@@ -1,122 +1,259 @@
 <template>
   <div class="elevator-simulator">
+    <!-- Floating Success Message -->
+    <transition name="success-popup">
+      <div v-if="showSuccess" class="success-message">
+        🎉 {{ successMessage }}
+      </div>
+    </transition>
+
+    <!-- Particle System -->
+    <div class="particles-container">
+      <div 
+        v-for="particle in particles" 
+        :key="particle.id"
+        class="particle"
+        :class="particle.type"
+        :style="getParticleStyle(particle)"
+      />
+    </div>
+
+    <!-- Background Floating Elements -->
+    <div class="floating-elements">
+      <div class="floating-icon" style="--delay: 0s; --duration: 8s;">🏢</div>
+      <div class="floating-icon" style="--delay: 2s; --duration: 12s;">🌟</div>
+      <div class="floating-icon" style="--delay: 4s; --duration: 10s;">✨</div>
+      <div class="floating-icon" style="--delay: 6s; --duration: 14s;">🔔</div>
+    </div>
+
     <!-- Header -->
     <div class="header">
-      <h3>🛗 Elevator Simulation</h3>
+      <h3 class="title">
+        <span class="title-icon">🛗</span>
+        <span>Elevator Simulation</span>
+        <div class="title-glow"></div>
+      </h3>
       <div class="controls">
-        <button @click="play" :disabled="isPlaying" class="btn">▶️ Play</button>
-        <button @click="pause" :disabled="!isPlaying" class="btn">⏸️ Pause</button>
-        <button @click="reset" class="btn">🔄 Reset</button>
-        <input type="range" v-model="speed" min="0.5" max="3" step="0.1" class="slider">
-        <span>{{speed}}x</span>
+        <button @click="play" :disabled="isPlaying" class="btn play-btn">
+          {{ isPlaying ? '⏸️ Playing...' : '▶️ Play' }}
+        </button>
+        <button @click="pause" :disabled="!isPlaying" class="btn pause-btn">⏸️ Pause</button>
+        <button @click="reset" class="btn reset-btn">🔄 Reset</button>
+        <div class="speed-control">
+          <label>Speed:</label>
+          <input type="range" v-model="speed" min="0.5" max="3" step="0.1" class="speed-slider">
+          <span class="speed-display">{{speed}}x</span>
+        </div>
       </div>
     </div>
 
     <!-- Debug Panel -->
     <div class="debug">
-      <strong>Floors:</strong> {{floors.join(', ')}} | 
-      <strong>Elevators:</strong> {{elevators.join(', ')}} | 
-      <strong>Passengers:</strong> {{passengerList.join(', ')}}
+      <div class="debug-item">
+        <span class="debug-label">🏢 Floors:</span>
+        <span class="debug-value">{{floors.join(', ')}}</span>
+      </div>
+      <div class="debug-item">
+        <span class="debug-label">🛗 Elevators:</span>
+        <span class="debug-value">{{elevators.join(', ')}}</span>
+      </div>
+      <div class="debug-item">
+        <span class="debug-label">👥 Passengers:</span>
+        <span class="debug-value">{{passengerList.join(', ')}}</span>
+      </div>
     </div>
 
     <!-- Building -->
     <div class="building">
+      <!-- Building Background Effects -->
+      <div class="building-bg-effects">
+        <div class="elevator-light-beam" :class="{ active: isMoving }"></div>
+        <div class="building-glow" :class="{ active: doorsOpen }"></div>
+      </div>
       
       <!-- Floors -->
-      <div 
-        v-for="(floor, index) in floors" 
-        :key="floor"
-        class="floor"
-        :class="{ active: activeFloor === floor }"
-        :style="{ bottom: index * 150 + 'px' }"
-      >
-        <div class="floor-label">{{floor}}</div>
-        
-        <!-- Passengers waiting on floor -->
-        <div class="waiting-passengers">
-          <div 
-            v-for="passenger in getWaitingPassengers(floor)" 
-            :key="passenger.id"
-            class="passenger-waiting"
-          >
-            <div class="passenger-avatar">👤</div>
-            <div class="passenger-name">{{passenger.name}}</div>
-            <div class="passenger-dest" v-if="passenger.destination">→ {{passenger.destination}}</div>
+      <transition-group name="floor-highlight" tag="div">
+        <div 
+          v-for="(floor, index) in floors" 
+          :key="floor"
+          class="floor"
+          :class="{ 
+            active: activeFloor === floor,
+            'floor-pulse': activeFloor === floor && (isMoving || doorsOpen)
+          }"
+          :style="{ bottom: index * 150 + 'px' }"
+        >
+          <div class="floor-label">
+            <span class="floor-number">{{floor}}</span>
+            <div v-if="activeFloor === floor" class="floor-indicator">
+              <div class="indicator-ring"></div>
+              <div class="indicator-ring delay-1"></div>
+              <div class="indicator-ring delay-2"></div>
+            </div>
+          </div>
+          
+          <!-- Passengers waiting on floor -->
+          <div class="waiting-passengers">
+            <transition-group name="passenger-bounce" tag="div">
+              <div 
+                v-for="passenger in getWaitingPassengers(floor)" 
+                :key="passenger.id"
+                class="passenger-waiting"
+                :class="{ 'passenger-excited': passenger.state === 'delivered' }"
+              >
+                <div class="passenger-avatar">
+                  <span class="avatar-emoji">👤</span>
+                  <div class="avatar-glow"></div>
+                </div>
+                <div class="passenger-name">{{passenger.name}}</div>
+                <div class="passenger-dest" v-if="passenger.destination">
+                  <span class="dest-arrow">→</span>
+                  <span>{{passenger.destination}}</span>
+                </div>
+                <div v-if="passenger.state === 'delivered'" class="delivery-badge">✅</div>
+              </div>
+            </transition-group>
           </div>
         </div>
-      </div>
+      </transition-group>
 
-      <!-- Elevator -->
+      <!-- Elevator Shaft -->
       <div class="elevator-shaft">
+        <!-- Shaft Background Pattern -->
+        <div class="shaft-pattern"></div>
+        
+        <!-- Elevator Car -->
         <div 
           class="elevator-car"
           :class="{ 
             moving: isMoving,
-            'doors-open': doorsOpen 
+            'doors-open': doorsOpen,
+            'emergency-stop': emergencyStop 
           }"
           :style="{ 
             bottom: elevatorPosition + 'px',
-            transition: isMoving ? `bottom ${2/speed}s ease-in-out` : 'none'
+            transition: isMoving ? `bottom ${2/speed}s cubic-bezier(0.4, 0, 0.2, 1)` : 'none'
           }"
         >
+          <!-- Elevator Exterior -->
+          <div class="elevator-exterior">
+            <div class="elevator-buttons">
+              <div class="call-button up" :class="{ active: direction === 'up' }">⬆️</div>
+              <div class="call-button down" :class="{ active: direction === 'down' }">⬇️</div>
+            </div>
+          </div>
+
           <!-- Elevator Interior -->
           <div class="elevator-interior">
             <!-- Floor Display -->
-            <div class="floor-display">{{currentFloor}}</div>
+            <div class="floor-display">
+              <div class="display-screen">{{currentFloor}}</div>
+              <div class="display-glow"></div>
+            </div>
             
             <!-- Direction Arrow -->
-            <div class="direction" v-if="direction">
-              {{direction === 'up' ? '⬆️' : '⬇️'}}
-            </div>
+            <transition name="direction-change">
+              <div class="direction" v-if="direction">
+                <span class="direction-arrow">{{direction === 'up' ? '⬆️' : '⬇️'}}</span>
+                <div class="direction-glow"></div>
+              </div>
+            </transition>
             
             <!-- Passengers inside elevator -->
             <div class="inside-passengers">
-              <div 
-                v-for="passenger in getRidingPassengers()" 
-                :key="passenger.id"
-                class="passenger-inside"
-              >
-                <div class="passenger-avatar">👤</div>
-                <div class="passenger-name">{{passenger.name}}</div>
-              </div>
+              <transition-group name="passenger-enter" tag="div">
+                <div 
+                  v-for="passenger in getRidingPassengers()" 
+                  :key="passenger.id"
+                  class="passenger-inside"
+                >
+                  <div class="passenger-avatar">
+                    <span class="avatar-emoji">👤</span>
+                    <div class="riding-glow"></div>
+                  </div>
+                  <div class="passenger-name">{{passenger.name}}</div>
+                </div>
+              </transition-group>
+            </div>
+
+            <!-- Elevator Interior Lights -->
+            <div class="interior-lights">
+              <div class="light" :class="{ on: doorsOpen }"></div>
+              <div class="light" :class="{ on: isMoving }"></div>
+              <div class="light" :class="{ on: getRidingPassengers().length > 0 }"></div>
             </div>
           </div>
           
           <!-- Elevator Doors -->
           <div class="doors">
-            <div class="door door-left" :class="{ open: doorsOpen }"></div>
-            <div class="door door-right" :class="{ open: doorsOpen }"></div>
+            <div class="door door-left" :class="{ open: doorsOpen }">
+              <div class="door-handle"></div>
+              <div class="door-window"></div>
+            </div>
+            <div class="door door-right" :class="{ open: doorsOpen }">
+              <div class="door-handle"></div>
+              <div class="door-window"></div>
+            </div>
           </div>
+
+          <!-- Door Opening Light Effect -->
+          <div class="door-light" :class="{ active: doorsOpen }"></div>
         </div>
       </div>
 
       <!-- Moving Passenger Animation -->
-      <div 
-        v-if="movingPassenger" 
-        class="moving-passenger"
-        :style="movingPassengerStyle"
-      >
-        <div class="passenger-avatar">👤</div>
-        <div class="passenger-name">{{movingPassenger.name}}</div>
-      </div>
+      <transition name="passenger-move">
+        <div 
+          v-if="movingPassenger" 
+          class="moving-passenger"
+          :class="{ 
+            boarding: movingPassenger.state === 'boarding',
+            exiting: movingPassenger.state === 'exiting'
+          }"
+          :style="movingPassengerStyle"
+        >
+          <div class="passenger-avatar">
+            <span class="avatar-emoji">👤</span>
+            <div class="moving-trail"></div>
+          </div>
+          <div class="passenger-name">{{movingPassenger.name}}</div>
+          <div class="movement-indicator">
+            <span v-if="movingPassenger.state === 'boarding'">➡️</span>
+            <span v-else>⬅️</span>
+          </div>
+        </div>
+      </transition>
     </div>
 
     <!-- Action Timeline -->
     <div class="timeline">
-      <h4>Actions</h4>
+      <h4 class="timeline-title">
+        <span>📋 Actions Timeline</span>
+        <div class="timeline-progress" :style="{ width: (currentStep / actions.length) * 100 + '%' }"></div>
+      </h4>
       <div class="actions">
-        <div 
-          v-for="(action, index) in actions" 
-          :key="index"
-          class="action"
-          :class="{ 
-            current: index === currentStep,
-            completed: index < currentStep 
-          }"
-        >
-          <span class="time">{{getActionTime(action)}}</span>
-          <span class="desc">{{getActionDesc(action)}}</span>
-        </div>
+        <transition-group name="action-slide" tag="div">
+          <div 
+            v-for="(action, index) in actions" 
+            :key="index"
+            class="action"
+            :class="{ 
+              current: index === currentStep,
+              completed: index < currentStep,
+              upcoming: index > currentStep
+            }"
+          >
+            <div class="action-content">
+              <span class="time">{{getActionTime(action)}}</span>
+              <span class="desc">{{getActionDesc(action)}}</span>
+              <div class="action-status">
+                <div v-if="index === currentStep" class="status-icon current-icon">▶️</div>
+                <div v-else-if="index < currentStep" class="status-icon done-icon">✅</div>
+                <div v-else class="status-icon upcoming-icon">⏳</div>
+              </div>
+            </div>
+          </div>
+        </transition-group>
       </div>
     </div>
   </div>
@@ -126,8 +263,22 @@
 export default {
   name: 'ElevatorSimulator',
   props: {
-    entities: { type: Object, default: () => ({}) },
-    actions: { type: Array, default: () => [] }
+    entities: { 
+      type: Object, 
+      default: () => ({}) 
+    },
+    actions: { 
+      type: Array, 
+      default: () => [
+        { type: 'load', params: ['passenger1'], time: 0 },
+        { type: 'move-up', params: ['elevator1'], time: 2 },
+        { type: 'move-up', params: ['elevator1'], time: 4 },
+        { type: 'unload', params: ['passenger1'], time: 6 },
+        { type: 'load', params: ['passenger2'], time: 8 },
+        { type: 'move-down', params: ['elevator1'], time: 10 },
+        { type: 'unload', params: ['passenger2'], time: 12 }
+      ]
+    }
   },
   data() {
     return {
@@ -141,6 +292,7 @@ export default {
       isMoving: false,
       direction: null,
       doorsOpen: false,
+      emergencyStop: false,
       
       // Entities
       floors: [],
@@ -151,9 +303,13 @@ export default {
       // Animation
       activeFloor: null,
       movingPassenger: null,
+      particles: [],
+      showSuccess: false,
+      successMessage: '',
       
       // Timer
-      timer: null
+      timer: null,
+      particleTimer: null
     }
   },
   computed: {
@@ -173,14 +329,14 @@ export default {
           left: '350px',
           bottom: baseY + 'px',
           transform: 'translateX(50px)',
-          transition: 'all 1.5s ease-in-out'
+          transition: 'all 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55)'
         };
       } else if (this.movingPassenger.state === 'exiting') {
         return {
           left: '450px',
           bottom: baseY + 'px',
           transform: 'translateX(-50px)',
-          transition: 'all 1.5s ease-in-out'
+          transition: 'all 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55)'
         };
       }
       
@@ -191,7 +347,66 @@ export default {
     actions: { handler: 'initialize', immediate: true },
     entities: { handler: 'initialize', immediate: true }
   },
+  mounted() {
+    // Start particle animation
+    this.particleTimer = setInterval(this.updateParticles, 50);
+  },
+  beforeUnmount() {
+    if (this.timer) clearInterval(this.timer);
+    if (this.particleTimer) clearInterval(this.particleTimer);
+  },
   methods: {
+    // Particle System
+    generateParticles(type, count = 10) {
+      const newParticles = [];
+      for (let i = 0; i < count; i++) {
+        newParticles.push({
+          id: Math.random() + Date.now(),
+          type,
+          x: Math.random() * 100,
+          y: Math.random() * 100,
+          vx: (Math.random() - 0.5) * 4,
+          vy: (Math.random() - 0.5) * 4,
+          life: 1,
+          size: Math.random() * 8 + 4,
+          rotation: Math.random() * 360
+        });
+      }
+      this.particles.push(...newParticles);
+    },
+
+    updateParticles() {
+      this.particles = this.particles
+        .map(particle => ({
+          ...particle,
+          x: particle.x + particle.vx,
+          y: particle.y + particle.vy,
+          life: particle.life - 0.02,
+          size: particle.size * 0.98,
+          rotation: particle.rotation + 2
+        }))
+        .filter(particle => particle.life > 0);
+    },
+
+    getParticleStyle(particle) {
+      return {
+        left: particle.x + '%',
+        top: particle.y + '%',
+        width: particle.size + 'px',
+        height: particle.size + 'px',
+        opacity: particle.life,
+        transform: `rotate(${particle.rotation}deg)`
+      };
+    },
+
+    showSuccessMessage(message) {
+      this.successMessage = message;
+      this.showSuccess = true;
+      setTimeout(() => {
+        this.showSuccess = false;
+      }, 3000);
+    },
+
     initialize() {
       if (!this.actions.length) return;
       
@@ -209,8 +424,11 @@ export default {
       this.isMoving = false;
       this.direction = null;
       this.doorsOpen = false;
+      this.emergencyStop = false;
       this.activeFloor = null;
       this.movingPassenger = null;
+      this.particles = [];
+      this.showSuccess = false;
       
       console.log('Initialization complete:', {
         floors: this.floors,
@@ -327,6 +545,7 @@ export default {
       if (this.currentStep >= this.actions.length) return;
       
       this.isPlaying = true;
+      this.generateParticles('play', 15);
       this.timer = setInterval(() => {
         this.executeNextAction();
       }, 1000 / this.speed);
@@ -342,12 +561,15 @@ export default {
     
     reset() {
       this.pause();
+      this.generateParticles('reset', 12);
       this.initialize();
     },
     
     executeNextAction() {
       if (this.currentStep >= this.actions.length) {
         this.pause();
+        this.showSuccessMessage('All actions completed successfully!');
+        this.generateParticles('success', 25);
         return;
       }
       
@@ -394,6 +616,7 @@ export default {
       
       console.log(`Moving ${direction} from ${this.currentFloor} to ${targetFloor}`);
       
+      this.generateParticles('movement', 12);
       this.isMoving = true;
       this.activeFloor = targetFloor;
       this.currentFloor = targetFloor;
@@ -417,6 +640,8 @@ export default {
       if (!passenger) return;
       
       console.log(`${passengerName} boarding at ${this.currentFloor}`);
+      
+      this.generateParticles('load', 8);
       
       // Open doors
       this.doorsOpen = true;
@@ -445,6 +670,8 @@ export default {
       
       console.log(`${passengerName} exiting at ${this.currentFloor}`);
       
+      this.generateParticles('unload', 10);
+      
       // Open doors
       this.doorsOpen = true;
       this.activeFloor = this.currentFloor;
@@ -458,6 +685,8 @@ export default {
         // Passenger exits elevator
         passenger.state = 'delivered';
         this.movingPassenger = null;
+        this.showSuccessMessage(`${passengerName} delivered successfully!`);
+        this.generateParticles('delivery', 15);
         
         // Close doors
         setTimeout(() => {
@@ -470,6 +699,7 @@ export default {
       const passenger = this.passengers.find(p => p.name === passengerName);
       if (passenger) {
         passenger.state = 'delivered';
+        this.generateParticles('success', 8);
         console.log(`${passengerName} reached destination`);
       }
     },
@@ -514,199 +744,917 @@ export default {
 
 <style scoped>
 .elevator-simulator {
-  padding: 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 15px;
+  padding: 25px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  border-radius: 20px;
   color: white;
-  font-family: Arial, sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  position: relative;
+  overflow: hidden;
+  min-height: 100vh;
 }
 
+/* Success Message */
+.success-message {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: linear-gradient(135deg, #27ae60, #2ecc71);
+  color: white;
+  padding: 15px 25px;
+  border-radius: 15px;
+  font-weight: bold;
+  z-index: 1000;
+  box-shadow: 0 8px 25px rgba(39, 174, 96, 0.4);
+  border: 3px solid rgba(255,255,255,0.3);
+}
+
+.success-popup-enter-active, .success-popup-leave-active {
+  transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.success-popup-enter-from {
+  opacity: 0;
+  transform: translateX(100px) scale(0.8);
+}
+
+.success-popup-leave-to {
+  opacity: 0;
+  transform: translateX(100px) scale(0.8);
+}
+
+/* Particle System */
+.particles-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 100;
+}
+
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  transition: all 0.1s ease-out;
+}
+
+.particle.play {
+  background: radial-gradient(circle, #27ae60, #2ecc71);
+  box-shadow: 0 0 15px rgba(39, 174, 96, 0.6);
+}
+
+.particle.movement {
+  background: radial-gradient(circle, #3498db, #2980b9);
+  box-shadow: 0 0 15px rgba(52, 152, 219, 0.6);
+}
+
+.particle.load {
+  background: radial-gradient(circle, #f39c12, #e67e22);
+  box-shadow: 0 0 15px rgba(243, 156, 18, 0.6);
+}
+
+.particle.unload {
+  background: radial-gradient(circle, #9b59b6, #8e44ad);
+  box-shadow: 0 0 15px rgba(155, 89, 182, 0.6);
+}
+
+.particle.delivery {
+  background: radial-gradient(circle, #e74c3c, #c0392b);
+  box-shadow: 0 0 20px rgba(231, 76, 60, 0.8);
+}
+
+.particle.success {
+  background: radial-gradient(circle, #1abc9c, #16a085);
+  box-shadow: 0 0 15px rgba(26, 188, 156, 0.6);
+}
+
+.particle.reset {
+  background: radial-gradient(circle, #95a5a6, #7f8c8d);
+  box-shadow: 0 0 12px rgba(149, 165, 166, 0.6);
+}
+
+/* Floating Elements */
+.floating-elements {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.floating-icon {
+  position: absolute;
+  font-size: 30px;
+  opacity: 0.3;
+  animation: float-around var(--duration, 10s) ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+
+.floating-icon:nth-child(1) {
+  top: 15%;
+  left: 20%;
+}
+
+.floating-icon:nth-child(2) {
+  top: 60%;
+  right: 15%;
+}
+
+.floating-icon:nth-child(3) {
+  bottom: 20%;
+  left: 70%;
+}
+
+.floating-icon:nth-child(4) {
+  top: 35%;
+  left: 80%;
+}
+
+@keyframes float-around {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+    opacity: 0.2;
+  }
+  25% {
+    transform: translateY(-30px) rotate(90deg);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translateY(-60px) rotate(180deg);
+    opacity: 0.6;
+  }
+  75% {
+    transform: translateY(-30px) rotate(270deg);
+    opacity: 0.4;
+  }
+}
+
+/* Header */
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-  padding: 15px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
+  margin-bottom: 25px;
+  padding: 20px 25px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.2);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-size: 28px;
+  font-weight: bold;
+  margin: 0;
+  position: relative;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+.title-icon {
+  font-size: 35px;
+  animation: elevator-bounce 3s ease-in-out infinite;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+}
+
+@keyframes elevator-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.title-glow {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  right: -10px;
+  bottom: -10px;
+  background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+  border-radius: 15px;
+  animation: title-shimmer 3s ease-in-out infinite;
+  z-index: -1;
+}
+
+@keyframes title-shimmer {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
 }
 
 .controls {
   display: flex;
-  gap: 10px;
+  gap: 15px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .btn {
-  padding: 8px 16px;
+  padding: 12px 24px;
   border: none;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
+  border-radius: 12px;
+  font-weight: bold;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 16px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 
-.btn:hover {
-  background: rgba(255, 255, 255, 0.3);
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  transition: left 0.6s;
+}
+
+.btn:hover:not(:disabled)::before {
+  left: 100%;
+}
+
+.play-btn {
+  background: linear-gradient(135deg, #27ae60, #2ecc71);
+  color: white;
+}
+
+.pause-btn {
+  background: linear-gradient(135deg, #f39c12, #e67e22);
+  color: white;
+}
+
+.reset-btn {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  color: white;
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.3);
 }
 
 .btn:disabled {
-  opacity: 0.5;
+  opacity: 0.6;
   cursor: not-allowed;
+  transform: none;
 }
 
-.slider {
-  width: 80px;
-  margin: 0 10px;
+.speed-control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-left: 20px;
+  border-left: 2px solid rgba(255,255,255,0.3);
 }
 
+.speed-control label {
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.speed-slider {
+  width: 100px;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(to right, #667eea, #764ba2);
+  outline: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.speed-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  border: 2px solid white;
+  transition: all 0.3s ease;
+}
+
+.speed-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.speed-display {
+  font-weight: bold;
+  font-size: 18px;
+  min-width: 35px;
+  color: #fff;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+/* Debug Panel */
 .debug {
-  background: rgba(0, 0, 0, 0.3);
-  padding: 10px;
-  border-radius: 8px;
-  margin-bottom: 20px;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10px);
+  padding: 15px 20px;
+  border-radius: 15px;
+  margin-bottom: 25px;
   font-size: 14px;
+  border: 1px solid rgba(255,255,255,0.1);
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
 }
 
+.debug-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.debug-label {
+  font-weight: bold;
+  opacity: 0.8;
+}
+
+.debug-value {
+  background: rgba(255,255,255,0.15);
+  padding: 4px 12px;
+  border-radius: 8px;
+  font-family: 'Courier New', monospace;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+/* Building */
 .building {
   position: relative;
   width: 100%;
-  height: 600px;
-  background: linear-gradient(180deg, #e3f2fd 0%, #bbdefb 100%);
-  border-radius: 10px;
-  border: 3px solid #1976d2;
-  margin-bottom: 20px;
+  height: 700px;
+  background: linear-gradient(180deg, 
+    rgba(227, 242, 253, 0.9) 0%, 
+    rgba(187, 222, 251, 0.8) 50%,
+    rgba(144, 202, 249, 0.7) 100%);
+  border-radius: 20px;
+  border: 4px solid rgba(25, 118, 210, 0.6);
+  margin-bottom: 25px;
+  overflow: hidden;
+  box-shadow: inset 0 4px 20px rgba(0,0,0,0.1);
 }
 
+.building-bg-effects {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.elevator-light-beam {
+  position: absolute;
+  left: 400px;
+  width: 120px;
+  height: 100%;
+  background: linear-gradient(to right, 
+    transparent, 
+    rgba(255, 193, 7, 0.1), 
+    rgba(255, 193, 7, 0.2), 
+    rgba(255, 193, 7, 0.1), 
+    transparent);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.elevator-light-beam.active {
+  opacity: 1;
+  animation: light-pulse 2s ease-in-out infinite;
+}
+
+@keyframes light-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.building-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 50% 50%, 
+    rgba(76, 175, 80, 0.1) 0%, 
+    transparent 70%);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.building-glow.active {
+  opacity: 1;
+}
+
+/* Floor Transitions */
+.floor-highlight-enter-active, .floor-highlight-leave-active {
+  transition: all 0.5s ease;
+}
+
+.floor-highlight-enter-from, .floor-highlight-leave-to {
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+/* Floors */
 .floor {
   position: absolute;
   left: 0;
   right: 0;
   height: 150px;
-  border-top: 2px solid #1976d2;
+  border-top: 3px solid rgba(25, 118, 210, 0.4);
   display: flex;
   align-items: center;
-  padding: 0 20px;
-  transition: all 0.3s ease;
+  padding: 0 25px;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  background: linear-gradient(90deg, 
+    rgba(255,255,255,0.05) 0%, 
+    rgba(255,255,255,0.1) 50%, 
+    rgba(255,255,255,0.05) 100%);
 }
 
 .floor.active {
-  background: rgba(76, 175, 80, 0.3);
-  box-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
+  background: linear-gradient(90deg, 
+    rgba(76, 175, 80, 0.2) 0%, 
+    rgba(76, 175, 80, 0.3) 50%, 
+    rgba(76, 175, 80, 0.2) 100%);
+  border-top-color: #4caf50;
+  transform: scale(1.02);
+  z-index: 10;
+}
+
+.floor-pulse {
+  animation: floor-glow 1.5s ease-in-out infinite;
+}
+
+@keyframes floor-glow {
+  0%, 100% { 
+    box-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
+  }
+  50% { 
+    box-shadow: 0 0 30px rgba(76, 175, 80, 0.6);
+  }
 }
 
 .floor-label {
   font-weight: bold;
   color: #1976d2;
-  background: white;
-  padding: 8px 16px;
-  border-radius: 8px;
-  margin-right: 20px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.7));
+  padding: 12px 20px;
+  border-radius: 15px;
+  margin-right: 25px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255,255,255,0.3);
+}
+
+.floor-number {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.floor-indicator {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 20px;
+  height: 20px;
+}
+
+.indicator-ring {
+  position: absolute;
+  border: 2px solid #4caf50;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  animation: pulse-ring 1.5s ease-out infinite;
+}
+
+.indicator-ring.delay-1 {
+  animation-delay: 0.5s;
+}
+
+.indicator-ring.delay-2 {
+  animation-delay: 1s;
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.8);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2.5);
+    opacity: 0;
+  }
 }
 
 .waiting-passengers {
   display: flex;
-  gap: 15px;
+  gap: 20px;
   flex-wrap: wrap;
+  align-items: center;
+}
+
+/* Passenger Transitions */
+.passenger-bounce-enter-active, .passenger-bounce-leave-active {
+  transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.passenger-bounce-enter-from {
+  opacity: 0;
+  transform: translateY(-50px) scale(0.5) rotate(180deg);
+}
+
+.passenger-bounce-leave-to {
+  opacity: 0;
+  transform: translateY(50px) scale(0.5) rotate(-180deg);
+}
+
+.passenger-bounce-move {
+  transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
 .passenger-waiting {
-  background: rgba(33, 150, 243, 0.8);
-  padding: 10px;
-  border-radius: 15px;
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  padding: 15px;
+  border-radius: 20px;
   text-align: center;
-  min-width: 80px;
-  animation: bounce 2s infinite;
+  min-width: 90px;
+  box-shadow: 0 6px 20px rgba(52, 152, 219, 0.3);
+  border: 3px solid rgba(255,255,255,0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.passenger-excited {
+  background: linear-gradient(135deg, #27ae60, #2ecc71) !important;
 }
 
 .passenger-avatar {
-  font-size: 24px;
-  margin-bottom: 5px;
+  position: relative;
+  margin-bottom: 8px;
+}
+
+.avatar-emoji {
+  font-size: 28px;
+  filter: drop-shadow(0 3px 6px rgba(0,0,0,0.3));
+}
+
+.avatar-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,0.2), transparent);
 }
 
 .passenger-name {
   font-size: 12px;
   font-weight: bold;
+  margin-bottom: 5px;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
 
 .passenger-dest {
-  font-size: 10px;
-  opacity: 0.8;
-  margin-top: 2px;
+  font-size: 11px;
+  opacity: 0.9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
 }
 
+.dest-arrow {
+  /* Static arrow - no animation */
+}
+
+.delivery-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  font-size: 20px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+/* Elevator Shaft */
 .elevator-shaft {
   position: absolute;
-  top: 20px;
-  bottom: 20px;
-  left: 400px;
-  width: 120px;
-  background: linear-gradient(180deg, #424242 0%, #616161 100%);
-  border: 3px solid #757575;
-  border-radius: 10px;
+  top: 25px;
+  bottom: 25px;
+  left: 420px;
+  width: 140px;
+  background: linear-gradient(180deg, 
+    rgba(66, 66, 66, 0.9) 0%, 
+    rgba(97, 97, 97, 0.8) 100%);
+  border: 4px solid rgba(117, 117, 117, 0.8);
+  border-radius: 15px;
+  box-shadow: inset 0 4px 15px rgba(0,0,0,0.3);
 }
 
+.shaft-pattern {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0px,
+    transparent 30px,
+    rgba(255,255,255,0.05) 30px,
+    rgba(255,255,255,0.05) 32px
+  );
+}
+
+/* Elevator Car */
 .elevator-car {
   position: absolute;
-  width: 114px;
-  height: 130px;
-  background: linear-gradient(135deg, #ffd54f 0%, #ffb74d 100%);
-  border: 2px solid #ff8f00;
-  border-radius: 8px;
-  left: 3px;
+  width: 132px;
+  height: 140px;
+  background: linear-gradient(135deg, 
+    #ffd54f 0%, 
+    #ffb74d 50%, 
+    #ff8f00 100%);
+  border: 3px solid #ff8f00;
+  border-radius: 12px;
+  left: 4px;
   transition: all 0.3s ease;
+  box-shadow: 0 6px 20px rgba(255, 143, 0, 0.4);
+  overflow: hidden;
 }
 
 .elevator-car.moving {
-  animation: shake 0.5s ease-in-out infinite;
-  box-shadow: 0 0 20px rgba(255, 193, 7, 0.6);
+  animation: elevator-shake 0.3s ease-in-out infinite;
+  box-shadow: 0 8px 30px rgba(255, 193, 7, 0.8);
+}
+
+.elevator-car.doors-open {
+  box-shadow: 0 6px 25px rgba(76, 175, 80, 0.6);
+}
+
+.elevator-car.emergency-stop {
+  animation: emergency-flash 0.5s ease-in-out infinite;
+}
+
+@keyframes elevator-shake {
+  0%, 100% { transform: translateX(0) translateY(0); }
+  25% { transform: translateX(-1px) translateY(-1px); }
+  50% { transform: translateX(1px) translateY(0); }
+  75% { transform: translateX(0) translateY(1px); }
+}
+
+@keyframes emergency-flash {
+  0%, 100% { background: linear-gradient(135deg, #ffd54f, #ffb74d, #ff8f00); }
+  50% { background: linear-gradient(135deg, #e74c3c, #c0392b, #a93226); }
+}
+
+.elevator-exterior {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  right: 0;
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.elevator-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.call-button {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  border: 2px solid rgba(255,255,255,0.3);
+}
+
+.call-button.active {
+  background: linear-gradient(135deg, #27ae60, #2ecc71);
+  box-shadow: 0 4px 15px rgba(39, 174, 96, 0.6);
+  animation: button-pulse 1s ease-in-out infinite;
+}
+
+@keyframes button-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
 }
 
 .elevator-interior {
   position: relative;
   width: 100%;
   height: 100%;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 6px;
-  padding: 10px;
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.15), 
+    rgba(255, 255, 255, 0.05));
+  border-radius: 10px;
+  padding: 12px;
 }
 
 .floor-display {
   position: absolute;
-  top: 5px;
-  right: 5px;
+  top: 8px;
+  right: 8px;
+  background: linear-gradient(135deg, #000, #333);
+  border-radius: 8px;
+  padding: 2px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+  border: 2px solid rgba(76, 175, 80, 0.6);
+}
+
+.display-screen {
   background: #000;
   color: #4caf50;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 14px;
   font-weight: bold;
+  font-family: 'Courier New', monospace;
+  text-align: center;
+  min-width: 40px;
+  text-shadow: 0 0 10px #4caf50;
+  animation: screen-flicker 3s ease-in-out infinite;
+}
+
+@keyframes screen-flicker {
+  0%, 100% { opacity: 1; }
+  98% { opacity: 1; }
+  99% { opacity: 0.8; }
+}
+
+.display-glow {
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, #4caf50, transparent, #4caf50);
+  border-radius: 10px;
+  opacity: 0.3;
+  animation: display-glow-pulse 2s ease-in-out infinite;
+  z-index: -1;
+}
+
+@keyframes display-glow-pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.6; }
+}
+
+/* Direction Arrow */
+.direction-change-enter-active, .direction-change-leave-active {
+  transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.direction-change-enter-from {
+  opacity: 0;
+  transform: scale(0) rotate(180deg);
+}
+
+.direction-change-leave-to {
+  opacity: 0;
+  transform: scale(0) rotate(-180deg);
 }
 
 .direction {
   position: absolute;
-  top: 5px;
-  left: 5px;
-  font-size: 16px;
-  animation: pulse 1s infinite;
+  top: 8px;
+  left: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.direction-arrow {
+  font-size: 20px;
+  animation: direction-pulse 1s ease-in-out infinite;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+@keyframes direction-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+}
+
+.direction-glow {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,193,7,0.3), transparent);
+  animation: direction-glow-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes direction-glow-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.3; }
+  50% { transform: scale(1.5); opacity: 0.6; }
 }
 
 .inside-passengers {
   position: absolute;
-  bottom: 10px;
-  left: 10px;
-  right: 10px;
+  bottom: 15px;
+  left: 12px;
+  right: 12px;
   display: flex;
-  gap: 5px;
+  gap: 8px;
   flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* Passenger Enter Transitions */
+.passenger-enter-enter-active, .passenger-enter-leave-active {
+  transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.passenger-enter-enter-from {
+  opacity: 0;
+  transform: translateY(30px) scale(0.5);
+}
+
+.passenger-enter-leave-to {
+  opacity: 0;
+  transform: translateY(-30px) scale(0.5);
+}
+
+.passenger-enter-move {
+  transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
 .passenger-inside {
   text-align: center;
-  font-size: 10px;
+  font-size: 11px;
+  background: rgba(255,255,255,0.2);
+  padding: 8px;
+  border-radius: 10px;
+  border: 2px solid rgba(255,255,255,0.3);
+  min-width: 50px;
 }
 
+.riding-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,193,7,0.3), transparent);
+}
+
+.interior-lights {
+  position: absolute;
+  top: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+}
+
+.light {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.3);
+  transition: all 0.3s ease;
+}
+
+.light.on {
+  background: #4caf50;
+  box-shadow: 0 0 15px #4caf50;
+  animation: light-blink 2s ease-in-out infinite;
+}
+
+@keyframes light-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* Doors */
 .doors {
   position: absolute;
   top: 0;
@@ -720,9 +1668,32 @@ export default {
 .door {
   width: 50%;
   height: 100%;
-  background: rgba(144, 164, 174, 0.9);
-  border: 1px solid #607d8b;
-  transition: transform 1s ease-in-out;
+  background: linear-gradient(135deg, 
+    rgba(144, 164, 174, 0.95), 
+    rgba(120, 144, 156, 0.9));
+  border: 2px solid rgba(96, 125, 139, 0.8);
+  transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.door::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, 
+    transparent 30%, 
+    rgba(255,255,255,0.1) 50%, 
+    transparent 70%);
+  animation: door-shimmer 3s ease-in-out infinite;
+}
+
+@keyframes door-shimmer {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
 }
 
 .door.open {
@@ -737,80 +1708,454 @@ export default {
   transform-origin: right;
 }
 
+.door-handle {
+  position: absolute;
+  top: 50%;
+  width: 8px;
+  height: 40px;
+  background: linear-gradient(135deg, #795548, #5d4037);
+  border-radius: 4px;
+  transform: translateY(-50%);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.door-left .door-handle {
+  right: 5px;
+}
+
+.door-right .door-handle {
+  left: 5px;
+}
+
+.door-window {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 60%;
+  background: linear-gradient(135deg, 
+    rgba(255,255,255,0.2), 
+    rgba(255,255,255,0.1));
+  border-radius: 8px;
+  border: 2px solid rgba(255,255,255,0.3);
+  backdrop-filter: blur(5px);
+}
+
+.door-light {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  right: -10px;
+  bottom: -10px;
+  background: radial-gradient(circle, rgba(76, 175, 80, 0.3), transparent);
+  border-radius: 15px;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+}
+
+.door-light.active {
+  opacity: 1;
+  animation: door-opening-glow 2s ease-in-out infinite;
+}
+
+@keyframes door-opening-glow {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.8; }
+}
+
+/* Moving Passenger */
+.passenger-move-enter-active, .passenger-move-leave-active {
+  transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.passenger-move-enter-from, .passenger-move-leave-to {
+  opacity: 0;
+  transform: scale(0) rotate(180deg);
+}
+
 .moving-passenger {
   position: absolute;
   text-align: center;
-  background: rgba(255, 152, 0, 0.9);
-  padding: 8px;
-  border-radius: 12px;
+  background: linear-gradient(135deg, #ff9800, #f57c00);
+  padding: 12px;
+  border-radius: 15px;
   z-index: 20;
-  animation: walk 0.5s ease-in-out infinite;
+  box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
+  border: 3px solid rgba(255,255,255,0.3);
+  min-width: 80px;
 }
 
+.moving-passenger.boarding {
+  background: linear-gradient(135deg, #4caf50, #388e3c);
+}
+
+.moving-passenger.exiting {
+  background: linear-gradient(135deg, #2196f3, #1976d2);
+}
+
+.moving-trail {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,152,0,0.2), transparent);
+  animation: trail-expand 1s ease-out infinite;
+}
+
+@keyframes trail-expand {
+  0% {
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(2);
+    opacity: 0;
+  }
+}
+
+.movement-indicator {
+  font-size: 18px;
+  margin-top: 5px;
+}
+
+/* Timeline */
 .timeline {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-  padding: 15px;
-  max-height: 200px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 25px;
+  max-height: 400px;
   overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
 }
 
-.timeline h4 {
-  margin: 0 0 15px 0;
+.timeline-title {
+  margin: 0 0 20px 0;
+  font-size: 20px;
+  font-weight: bold;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.timeline-progress {
+  height: 4px;
+  background: linear-gradient(90deg, #27ae60, #2ecc71);
+  border-radius: 2px;
+  transition: width 0.5s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.timeline-progress::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+  animation: progress-shine 2s ease-in-out infinite;
+}
+
+@keyframes progress-shine {
+  0% { left: -100%; }
+  100% { left: 100%; }
 }
 
 .actions {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
+}
+
+/* Action Transitions */
+.action-slide-enter-active, .action-slide-leave-active {
+  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.action-slide-enter-from {
+  opacity: 0;
+  transform: translateX(-50px) scale(0.9);
+}
+
+.action-slide-leave-to {
+  opacity: 0;
+  transform: translateX(50px) scale(0.9);
+}
+
+.action-slide-move {
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .action {
+  border-radius: 12px;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 2px solid transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.action::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.8s;
+}
+
+.action.current::before {
+  left: 100%;
+}
+
+.action-content {
   display: flex;
-  gap: 15px;
-  padding: 8px 12px;
-  border-radius: 6px;
-  transition: all 0.3s ease;
+  align-items: center;
+  gap: 20px;
+  padding: 15px 20px;
+  position: relative;
+  z-index: 1;
 }
 
 .action.completed {
-  background: rgba(76, 175, 80, 0.3);
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.3), rgba(56, 142, 60, 0.2));
+  border-color: rgba(76, 175, 80, 0.5);
+  transform: scale(0.98);
+  opacity: 0.8;
 }
 
 .action.current {
-  background: rgba(255, 193, 7, 0.3);
-  animation: pulse 2s infinite;
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.4), rgba(255, 152, 0, 0.3));
+  border-color: #ffc107;
+  transform: translateX(15px) scale(1.03);
+  box-shadow: 0 8px 25px rgba(255, 193, 7, 0.4);
+  z-index: 2;
+}
+
+.action.upcoming {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.action.upcoming:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateX(5px) scale(1.01);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
 .time {
   font-weight: bold;
   min-width: 60px;
-  color: #81c784;
+  color: #4caf50;
+  text-align: right;
+  font-size: 16px;
+  font-family: 'Courier New', monospace;
+}
+
+.action.current .time {
+  color: #fff;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.action.completed .time {
+  color: rgba(76, 175, 80, 0.8);
 }
 
 .desc {
   flex: 1;
+  font-size: 15px;
+  font-weight: 500;
 }
 
-@keyframes bounce {
-  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-  40% { transform: translateY(-10px); }
-  60% { transform: translateY(-5px); }
+.action.current .desc {
+  color: #fff;
+  font-weight: bold;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
 
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-2px); }
-  75% { transform: translateX(2px); }
+.action.completed .desc {
+  color: rgba(255, 255, 255, 0.8);
 }
 
-@keyframes pulse {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.1); opacity: 0.7; }
+.action-status {
+  min-width: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-@keyframes walk {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
+.status-icon {
+  font-size: 20px;
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+.current-icon {
+  animation: current-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes current-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+}
+
+.done-icon {
+  animation: done-bounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes done-bounce {
+  0% { transform: scale(0) rotate(0deg); }
+  50% { transform: scale(1.4) rotate(180deg); }
+  100% { transform: scale(1) rotate(360deg); }
+}
+
+.upcoming-icon {
+  opacity: 0.6;
+  animation: upcoming-spin 4s linear infinite;
+}
+
+@keyframes upcoming-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Scrollbar Styling */
+.timeline::-webkit-scrollbar {
+  width: 12px;
+}
+
+.timeline::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+}
+
+.timeline::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, rgba(255,255,255,0.3), rgba(255,255,255,0.2));
+  border-radius: 6px;
+  border: 2px solid rgba(255,255,255,0.1);
+}
+
+.timeline::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, rgba(255,255,255,0.4), rgba(255,255,255,0.3));
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .controls {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .speed-control {
+    padding-left: 0;
+    border-left: none;
+    border-top: 2px solid rgba(255,255,255,0.3);
+    padding-top: 15px;
+  }
+  
+  .debug {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .building {
+    height: 500px;
+  }
+  
+  .floor {
+    height: 120px;
+    padding: 0 15px;
+  }
+  
+  .floor-label {
+    margin-right: 15px;
+    padding: 8px 12px;
+  }
+  
+  .elevator-shaft {
+    left: 350px;
+    width: 100px;
+  }
+  
+  .elevator-car {
+    width: 92px;
+    height: 110px;
+  }
+  
+  .waiting-passengers {
+    gap: 10px;
+  }
+  
+  .passenger-waiting {
+    min-width: 70px;
+    padding: 10px;
+  }
+  
+  .action-content {
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+  }
+  
+  .time {
+    min-width: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .elevator-simulator {
+    padding: 15px;
+  }
+  
+  .title {
+    font-size: 20px;
+  }
+  
+  .building {
+    height: 400px;
+  }
+  
+  .floor {
+    height: 100px;
+  }
+  
+  .elevator-shaft {
+    left: 280px;
+    width: 80px;
+  }
+  
+  .elevator-car {
+    width: 72px;
+    height: 90px;
+  }
+  
+  .passenger-waiting {
+    min-width: 60px;
+    padding: 8px;
+  }
+  
+  .avatar-emoji {
+    font-size: 20px;
+  }
+  
+  .passenger-name {
+    font-size: 10px;
+  }
 }
 </style>
