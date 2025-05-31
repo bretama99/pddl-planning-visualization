@@ -105,7 +105,7 @@
               :key="obj"
               class="object object-bounce"
             >
-              <span class="object-icon">📦</span>
+              <span class="object-icon">{{ getObjectIcon(obj) }}</span>
               <span>{{ obj }}</span>
             </div>
           </transition-group>
@@ -139,7 +139,7 @@
               class="carried-object"
               :style="{ '--delay': index * 0.2 + 's' }"
             >
-              <span class="carry-icon">📦</span>
+              <span class="carry-icon">{{ getObjectIcon(obj) }}</span>
               <span>{{ obj }}</span>
             </div>
           </transition-group>
@@ -252,6 +252,109 @@ export default {
     // Animation intervals
     const particleInterval = ref(null)
     const playInterval = ref(null)
+
+    // Object icon mapping function
+    const getObjectIcon = (objectName) => {
+      const name = objectName.toLowerCase()
+      
+      // Ball/sphere objects
+      if (name.includes('ball') || name.includes('sphere')) {
+        if (name.includes('football') || name.includes('soccer')) return '⚽'
+        if (name.includes('basketball')) return '🏀'
+        if (name.includes('tennis')) return '🎾'
+        if (name.includes('ping') || name.includes('pong')) return '🏓'
+        if (name.includes('golf')) return '🏌️'
+        if (name.includes('baseball')) return '⚾'
+        if (name.includes('volleyball')) return '🏐'
+        return '⚽' // Default ball
+      }
+      
+      // Box/container objects
+      if (name.includes('box') || name.includes('container') || name.includes('package')) {
+        if (name.includes('gift') || name.includes('present')) return '🎁'
+        return '📦'
+      }
+      
+      // Book objects
+      if (name.includes('book') || name.includes('manual') || name.includes('guide')) {
+        return '📚'
+      }
+      
+      // Tool objects
+      if (name.includes('tool') || name.includes('hammer') || name.includes('wrench')) {
+        if (name.includes('hammer')) return '🔨'
+        if (name.includes('wrench')) return '🔧'
+        if (name.includes('screwdriver')) return '🪛'
+        return '🔧'
+      }
+      
+      // Food objects
+      if (name.includes('apple')) return '🍎'
+      if (name.includes('banana')) return '🍌'
+      if (name.includes('orange')) return '🍊'
+      if (name.includes('pizza')) return '🍕'
+      if (name.includes('burger')) return '🍔'
+      if (name.includes('coffee')) return '☕'
+      if (name.includes('water') || name.includes('bottle')) return '💧'
+      
+      // Electronics
+      if (name.includes('phone') || name.includes('mobile')) return '📱'
+      if (name.includes('laptop') || name.includes('computer')) return '💻'
+      if (name.includes('tablet')) return '📱'
+      if (name.includes('camera')) return '📷'
+      if (name.includes('battery')) return '🔋'
+      
+      // Clothing
+      if (name.includes('shirt') || name.includes('clothes')) return '👕'
+      if (name.includes('shoe') || name.includes('boot')) return '👟'
+      if (name.includes('hat') || name.includes('cap')) return '🧢'
+      
+      // Furniture/household
+      if (name.includes('chair')) return '🪑'
+      if (name.includes('table')) return '🪑'
+      if (name.includes('lamp')) return '💡'
+      if (name.includes('clock')) return '🕐'
+      if (name.includes('key')) return '🔑'
+      if (name.includes('pen') || name.includes('pencil')) return '✏️'
+      
+      // Vehicles/transport
+      if (name.includes('car')) return '🚗'
+      if (name.includes('bike') || name.includes('bicycle')) return '🚴'
+      if (name.includes('plane')) return '✈️'
+      
+      // Shapes/geometric
+      if (name.includes('cube')) return '🧊'
+      if (name.includes('cylinder')) return '🥫'
+      if (name.includes('pyramid')) return '🔺'
+      
+      // Medical/health
+      if (name.includes('medicine') || name.includes('pill')) return '💊'
+      if (name.includes('bandage')) return '🩹'
+      
+      // Art/creative
+      if (name.includes('paint') || name.includes('brush')) return '🎨'
+      if (name.includes('music') || name.includes('instrument')) return '🎵'
+      
+      // Nature
+      if (name.includes('flower')) return '🌸'
+      if (name.includes('tree')) return '🌳'
+      if (name.includes('stone') || name.includes('rock')) return '🪨'
+      
+      // Generic objects by common prefixes/suffixes
+      if (name.startsWith('item') || name.startsWith('obj')) return '🔘'
+      if (name.includes('part')) return '⚙️'
+      if (name.includes('piece')) return '🧩'
+      
+      // Default fallback based on common naming patterns
+      if (/\d/.test(name)) { // Contains numbers
+        if (name.includes('box')) return '📦'
+        if (name.includes('ball')) return '⚽'
+        return '🔘'
+      }
+      
+      // Final fallback
+      return '📦'
+    }
 
     // Dynamically extract entities from plan actions
     const planRooms = computed(() => {
@@ -764,6 +867,7 @@ export default {
       getObjectsInRoom,
       getTrailPath,
       getParticleStyle,
+      getObjectIcon,
       playPlan,
       stopPlan,
       resetPlan
@@ -773,6 +877,639 @@ export default {
 </script>
 
 <style scoped>
+.robot-simulator {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  padding: 20px;
+  color: white;
+  overflow-x: auto;
+}
+
+/* Success Message */
+.success-message {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(45deg, #4CAF50, #8BC34A);
+  padding: 20px 40px;
+  border-radius: 15px;
+  font-size: 24px;
+  font-weight: bold;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  z-index: 1000;
+  animation: successBounce 0.6s ease-out;
+}
+
+.success-popup-enter-active, .success-popup-leave-active {
+  transition: all 0.5s ease;
+}
+
+.success-popup-enter-from, .success-popup-leave-to {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.8);
+}
+
+@keyframes successBounce {
+  0% { transform: translate(-50%, -50%) scale(0.3); }
+  50% { transform: translate(-50%, -50%) scale(1.1); }
+  100% { transform: translate(-50%, -50%) scale(1); }
+}
+
+/* Particle System */
+.particles-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.particle.pickup {
+  background: radial-gradient(circle, #FFD700, #FFA500);
+  box-shadow: 0 0 10px #FFD700;
+}
+
+.particle.movement {
+  background: radial-gradient(circle, #00BFFF, #1E90FF);
+  box-shadow: 0 0 8px #00BFFF;
+}
+
+.particle.success {
+  background: radial-gradient(circle, #32CD32, #228B22);
+  box-shadow: 0 0 12px #32CD32;
+}
+
+.particle.energy {
+  background: radial-gradient(circle, #FF69B4, #FF1493);
+  box-shadow: 0 0 15px #FF69B4;
+}
+
+/* Controls */
+.controls {
+  display: flex;
+  gap: 15px;
+  margin: 20px 0;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 25px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.play-btn {
+  background: linear-gradient(45deg, #4CAF50, #8BC34A);
+  color: white;
+}
+
+.play-btn:hover:not(:disabled) {
+  background: linear-gradient(45deg, #45a049, #7cb342);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.play-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.stop-btn {
+  background: linear-gradient(45deg, #f44336, #e57373);
+  color: white;
+}
+
+.stop-btn:hover {
+  background: linear-gradient(45deg, #da190b, #ef5350);
+  transform: translateY(-2px);
+}
+
+.reset-btn {
+  background: linear-gradient(45deg, #2196F3, #64B5F6);
+  color: white;
+}
+
+.reset-btn:hover {
+  background: linear-gradient(45deg, #0b7dda, #42A5F5);
+  transform: translateY(-2px);
+}
+
+.speed-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255,255,255,0.1);
+  padding: 10px 15px;
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+}
+
+.speed-slider {
+  width: 100px;
+}
+
+/* Plan Info */
+.plan-info {
+  display: flex;
+  gap: 20px;
+  margin: 20px 0;
+  flex-wrap: wrap;
+}
+
+.info-card {
+  background: rgba(255,255,255,0.1);
+  padding: 15px 20px;
+  border-radius: 15px;
+  text-align: center;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.2);
+  min-width: 80px;
+}
+
+.info-number {
+  font-size: 24px;
+  font-weight: bold;
+  color: #FFD700;
+}
+
+.info-label {
+  font-size: 12px;
+  opacity: 0.8;
+  margin-top: 5px;
+}
+
+.current-action {
+  background: rgba(255,215,0,0.2);
+  padding: 15px 20px;
+  border-radius: 15px;
+  flex: 1;
+  min-width: 300px;
+}
+
+.action-header {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.action-details {
+  font-family: 'Courier New', monospace;
+  background: rgba(0,0,0,0.2);
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+/* Simulation Area */
+.simulation-area {
+  position: relative;
+  background: rgba(255,255,255,0.05);
+  border-radius: 20px;
+  padding: 40px;
+  margin: 20px 0;
+  min-height: 600px;
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255,255,255,0.1);
+  overflow: hidden;
+}
+
+/* Background Effects */
+.background-effects {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.floating-orb {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  background: radial-gradient(circle, rgba(255,255,255,0.1), transparent);
+  border-radius: 50%;
+  animation: float var(--duration, 10s) ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+
+.floating-orb:nth-child(1) { top: 10%; left: 20%; }
+.floating-orb:nth-child(2) { top: 60%; right: 15%; }
+.floating-orb:nth-child(3) { bottom: 20%; left: 70%; }
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(180deg); }
+}
+
+/* Rooms */
+.room {
+  position: absolute;
+  width: 240px;
+  height: 160px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+  border: 2px solid rgba(255,255,255,0.2);
+  border-radius: 15px;
+  padding: 15px;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.room.active {
+  border-color: #FFD700;
+  box-shadow: 0 0 20px rgba(255,215,0,0.4);
+  background: linear-gradient(135deg, rgba(255,215,0,0.2), rgba(255,215,0,0.1));
+}
+
+.room-pulse {
+  animation: roomPulse 2s ease-in-out infinite;
+}
+
+@keyframes roomPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.room-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  position: relative;
+}
+
+.room-icon {
+  font-size: 20px;
+}
+
+.active-indicator {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.pulse-ring {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #FFD700;
+  border-radius: 50%;
+  position: absolute;
+  animation: pulse 2s ease-out infinite;
+}
+
+.pulse-ring.delay-1 { animation-delay: 0.5s; }
+.pulse-ring.delay-2 { animation-delay: 1s; }
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.room-objects {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 100px;
+  overflow-y: auto;
+}
+
+.object {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,0.1);
+  padding: 8px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.object-bounce {
+  animation: objectBounce 3s ease-in-out infinite;
+}
+
+@keyframes objectBounce {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-3px); }
+}
+
+.object-icon {
+  font-size: 18px;
+}
+
+.object-move-enter-active, .object-move-leave-active {
+  transition: all 0.5s ease;
+}
+
+.object-move-enter-from, .object-move-leave-to {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+
+/* Robot */
+.robot {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: all 1s ease;
+  z-index: 100;
+}
+
+.robot-icon {
+  font-size: 40px;
+  position: relative;
+  animation: robotIdle 3s ease-in-out infinite;
+}
+
+.robot-charging .robot-icon {
+  animation: robotCharge 1s ease-in-out infinite;
+}
+
+.robot-moving .robot-icon {
+  animation: robotMove 0.5s ease-in-out infinite;
+}
+
+@keyframes robotIdle {
+  0%, 100% { transform: translateY(0px) rotate(-2deg); }
+  50% { transform: translateY(-5px) rotate(2deg); }
+}
+
+@keyframes robotCharge {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+@keyframes robotMove {
+  0%, 100% { transform: translateX(0px); }
+  25% { transform: translateX(-3px); }
+  75% { transform: translateX(3px); }
+}
+
+.robot-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 60px;
+  height: 60px;
+  background: radial-gradient(circle, rgba(0,191,255,0.3), transparent);
+  border-radius: 50%;
+  animation: glow 2s ease-in-out infinite;
+}
+
+@keyframes glow {
+  0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(0.8); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+}
+
+.charging-bolt {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  font-size: 20px;
+  animation: chargeBolt 0.5s ease-in-out infinite;
+}
+
+@keyframes chargeBolt {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.2) rotate(10deg); }
+}
+
+.robot-name {
+  font-size: 12px;
+  font-weight: bold;
+  margin-top: 5px;
+  background: rgba(0,0,0,0.3);
+  padding: 4px 8px;
+  border-radius: 10px;
+}
+
+.carrying {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  margin-top: 10px;
+}
+
+.carried-object {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255,215,0,0.8);
+  color: #333;
+  padding: 4px 8px;
+  border-radius: 15px;
+  font-size: 12px;
+  font-weight: bold;
+  animation: carryFloat 2s ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+
+@keyframes carryFloat {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+.carry-icon {
+  font-size: 14px;
+}
+
+.carry-float-enter-active, .carry-float-leave-active {
+  transition: all 0.4s ease;
+}
+
+.carry-float-enter-from, .carry-float-leave-to {
+  opacity: 0;
+  transform: translateY(-20px) scale(0.8);
+}
+
+.robot-move-enter-active, .robot-move-leave-active {
+  transition: all 0.8s ease;
+}
+
+.robot-move-enter-from, .robot-move-leave-to {
+  opacity: 0;
+  transform: scale(0.8);
+}
+
+/* Movement Trail */
+.movement-trail {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 50;
+}
+
+.trail-animation {
+  animation: trailDash 2s linear infinite;
+}
+
+@keyframes trailDash {
+  0% { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: 24; }
+}
+
+/* Action List */
+.action-list {
+  background: rgba(255,255,255,0.1);
+  border-radius: 15px;
+  padding: 20px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.action-list-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+  position: relative;
+}
+
+.title-underline {
+  flex: 1;
+  height: 2px;
+  background: linear-gradient(90deg, #FFD700, transparent);
+  border-radius: 1px;
+}
+
+.actions-container {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.action-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 12px 15px;
+  margin: 5px 0;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  background: rgba(255,255,255,0.05);
+}
+
+.action-item.current {
+  background: linear-gradient(90deg, rgba(255,215,0,0.3), rgba(255,215,0,0.1));
+  border-left: 4px solid #FFD700;
+  transform: translateX(5px);
+}
+
+.action-item.done {
+  background: linear-gradient(90deg, rgba(76,175,80,0.2), rgba(76,175,80,0.1));
+  border-left: 4px solid #4CAF50;
+  opacity: 0.8;
+}
+
+.action-item.upcoming {
+  opacity: 0.6;
+}
+
+.time {
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  color: #FFD700;
+  min-width: 50px;
+}
+
+.action {
+  font-weight: bold;
+  color: #00BFFF;
+  min-width: 80px;
+}
+
+.params {
+  font-family: 'Courier New', monospace;
+  flex: 1;
+  color: rgba(255,255,255,0.8);
+}
+
+.action-status {
+  display: flex;
+  align-items: center;
+}
+
+.status-icon {
+  font-size: 16px;
+}
+
+.current-icon {
+  animation: statusPulse 1s ease-in-out infinite;
+}
+
+@keyframes statusPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+.action-slide-enter-active, .action-slide-leave-active {
+  transition: all 0.3s ease;
+}
+
+.action-slide-enter-from, .action-slide-leave-to {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .robot-simulator {
+    padding: 10px;
+  }
+  
+  .controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .plan-info {
+    flex-direction: column;
+  }
+  
+  .simulation-area {
+    padding: 20px;
+    min-height: 400px;
+  }
+  
+  .room {
+    width: 200px;
+    height: 140px;
+  }
+  
+  .action-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+}
 .robot-simulator {
   padding: 20px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
