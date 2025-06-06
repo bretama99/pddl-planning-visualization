@@ -66,15 +66,17 @@
             <span>Elevator</span>
             <div class="btn-glow"></div>
           </button>
-          <button 
-            @click="selectDomain('logistics')" 
-            :class="{ active: selectedDomain === 'logistics' }"
-            class="nav-btn logistics-btn"
-          >
-            <span class="btn-icon">🚚</span>
-            <span>Logistics</span>
-            <div class="btn-glow"></div>
-          </button>
+          <router-link 
+  to="/logistics" 
+  class="nav-btn logistics-btn"
+  :class="{ active: selectedDomain === 'logistics' }"
+  @click="selectDomain('logistics')"
+>
+  <span class="btn-icon">🚚</span>
+  <span>Logistics</span>
+  <div class="btn-glow"></div>
+</router-link>
+
         </nav>
       </div>
     </div>
