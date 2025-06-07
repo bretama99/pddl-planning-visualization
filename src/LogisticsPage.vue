@@ -17,13 +17,13 @@ import MapVisualizer from './components/GraphVisualization.vue';
 const fileContent = `(define (problem logistics-4-0)
 (:domain logistics)
 (:objects
- pos2 pos1 pos3 pos4 - location
- cit1 cit2 - city
+ pos2 pos1 pos3 pos4 pos5 - location
+ cit1 cit2 cit3 - city
  tru1 tru2 - truck
  obj11 - package)
 
 (:init (at tru1 pos1) (at tru2 pos2) (at obj11 pos1)
- (in-city pos1 cit1)  (in-city pos2 cit1) (in-city pos3 cit1) (in-city pos4 cit1)
+ (in-city pos1 cit1) (in-city pos5 cit2)  (in-city pos2 cit1) (in-city pos3 cit1) (in-city pos4 cit1)
  )
 
 (:goal (and (at obj11 pos2)))
@@ -93,6 +93,7 @@ found plan:
 1.0: (drive-truck tru2 pos2 pos4 cit1)
 1.0: (drive-truck tru1 pos2 pos4 cit1)
 1.0: (drive-truck tru2 pos4 pos1 cit1)
+1.0: (drive-truck tru2 pos4 pos5 cit2)
 2.0: (unload-truck obj11 tru1 pos2)
 
 plan-length:3
