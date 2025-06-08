@@ -5,10 +5,6 @@
 </template>
 
 <script setup>
-import City from './models/City.js';
-import Place from './models/Place.js';
-import Package from './models/Package.js';
-import Truck from './models/Truck.js';
 import extractPDDLSections from './pddlParser.js';
 import { parseObjects, parseInit, extractPlanRobust } from './pddlParser.js';
 import MapVisualizer from './components/GraphVisualization.vue';
