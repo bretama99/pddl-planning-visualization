@@ -381,33 +381,62 @@ export default {
       // Aspetta che tutte le animazioni siano completate
       await Promise.all(animationPromises);
     },
-    async processStepsAndMoveTrucks(steps) {
-      for (const step of steps) {
-        // step ad esempio: "1.0: (drive-truck tru1 pos1 pos2 cit1)"
-        const actionPart = step.split(": ")[1].trim();
+    async processDriveTruckStep(actionPart) {
+  const tokens = actionPart.replace(/[()]/g, '').split(' ');
+  const truckName = tokens[1];   // secondo parametro
+  const fromPlace = tokens[2];   // terzo parametro  
+  const toPlace = tokens[3];     // quarto parametro
 
-        if (actionPart.startsWith("(drive-truck")) {
-          const tokens = actionPart.replace(/[()]/g, "").split(" ");
-          const truckName = tokens[1];
-          const fromPlace = tokens[2];
-          const toPlace = tokens[3];
-
-          console.log(
-            `🚛 Spostamento: Truck ${truckName} da ${fromPlace} a ${toPlace}`
-          );
-
-          // Aspetta che TUTTE le animazioni di questo movimento siano completate
-          await this.moveTruckToPos(truckName, toPlace);
-
-          console.log(
-            `✅ Movimento completato: Truck ${truckName} ora in ${toPlace}`
-          );
-
-          // Piccola pausa opzionale tra un movimento e l'altro
-          await new Promise((resolve) => setTimeout(resolve, 300));
-        }
-      }
+  console.log(`🚛 Spostamento: Truck ${truckName} da ${fromPlace} a ${toPlace}`);
+  
+  await this.moveTruckToPos(truckName, toPlace);
+  
+  console.log(`✅ Movimento completato: Truck ${truckName} ora in ${toPlace}`);
     },
+async processLoadTruckStep(actionPart) {
+  const tokens = actionPart.replace(/[()]/g, '').split(' ');
+  const packageName = tokens[1];  // secondo parametro
+  const truckName = tokens[2];    // terzo parametro
+  const placeName = tokens[3];    // quarto parametro
+
+  console.log(`📦⬆️ Caricamento: Package ${packageName} su truck ${truckName} in ${placeName}`);
+  
+  await this.loadPackageOnTruck(packageName, truckName);
+  
+  console.log(`✅ Caricamento completato: Package ${packageName} caricato su truck ${truckName}`);
+    },
+async processUnloadTruckStep(actionPart) {
+  const tokens = actionPart.replace(/[()]/g, '').split(' ');
+  const packageName = tokens[1];  // secondo parametro
+  const truckName = tokens[2];    // terzo parametro
+  const placeName = tokens[3];    // quarto parametro
+
+  console.log(`📦⬇️ Scaricamento: Package ${packageName} da truck ${truckName} in ${placeName}`);
+  
+  await this.unloadPackageFromTruck(packageName, truckName);
+  
+  console.log(`✅ Scaricamento completato: Package ${packageName} scaricato da truck ${truckName} in ${placeName}`);
+},
+    async processStepsAndMoveTrucks(steps) {
+  for (const step of steps) {
+    const actionPart = step.split(': ')[1].trim();
+
+    if (actionPart.startsWith('(drive-truck')) {
+      await this.processDriveTruckStep(actionPart);
+    } else if (actionPart.startsWith('(load-truck')) {
+      await this.processLoadTruckStep(actionPart);
+    } else if (actionPart.startsWith('(unload-truck')) {
+      await this.processUnloadTruckStep(actionPart);
+    } else {
+      console.warn(`Tipo di step non riconosciuto: ${actionPart}`);
+    }
+    
+    // Piccola pausa tra un'azione e l'altra
+    await new Promise(resolve => setTimeout(resolve, 300));
+  }
+  
+  console.log('🎉 Tutti i movimenti e operazioni completati!');
+},
     handleSvgClick(event) {
       // Ottieni il punto del clic rispetto all'SVG
       const svg = event.currentTarget;
@@ -427,96 +456,102 @@ export default {
         console.warn("Non ci sono steps da processare!");
       }
     },
-    loadPackageOnTruck(packageName, truckName) {
-      const pkg = Object.values(this.packages).find(
-        (p) => p.name === packageName
-      );
-      const truck = Object.values(this.trucks).find(
-        (t) => t.name === truckName
-      );
+    async loadPackageOnTruck(packageName, truckName) {
+  return new Promise((resolve) => {
+    const pkg = Object.values(this.packages).find(p => p.name === packageName);
+    const truck = Object.values(this.trucks).find(t => t.name === truckName);
 
-      if (!pkg || !truck) {
-        console.warn("Pacco o truck non trovato!");
-        return;
-      }
+    if (!pkg || !truck) {
+      console.warn("Pacco o truck non trovato!");
+      resolve();
+      return;
+    }
 
-      // Verifica che le location coincidano
-      if (
-        !pkg.location ||
-        !truck.location ||
-        pkg.location.id !== truck.location.id
-      ) {
-        console.warn(
-          `Impossibile caricare: il pacco ${packageName} e il truck ${truckName} non sono nella stessa location!`
-        );
-        return;
-      }
+    // Verifica che le location coincidano
+    if (!pkg.location || !truck.location || pkg.location.id !== truck.location.id) {
+      console.warn(`Impossibile caricare: il pacco ${packageName} e il truck ${truckName} non sono nella stessa location!`);
+      resolve();
+      return;
+    }
 
+    // Prima fai l'animazione
+    this.animatePackageToTruckAsync(packageName, truckName, () => {
+      // Poi aggiorna la logica nel callback dell'animazione
       if (!truck.packages) {
         truck.packages = [];
       }
       truck.packages.push(pkg);
-
       pkg.location = null;
 
       console.log(`Package ${packageName} caricato su truck ${truckName}.`);
-    },
-    animatePackageToTruck(packageName, truckName) {
-      // 1️⃣ Trova gli ID
-      const truckId = this.getTruckIdByName(truckName);
-      const packageId = this.getPackageIdByName(packageName);
-
-      if (truckId === null || packageId === null) {
-        console.error("Impossibile trovare truck o package!");
-        return;
-      }
-
-      // 2️⃣ Prendi le posizioni
-      const truckPos = this.positions.trucks[truckId];
-      const packagePos = this.positions.packages[packageId];
-
-      if (!truckPos || !packagePos) {
-        console.error("Posizioni mancanti per truck o package!");
-        return;
-      }
-
-      // 3️⃣ Fai animazione usando D3.js
-      const pkgGroup = d3.select(`#package-${packageName}`);
-      pkgGroup
-        .transition()
-        .duration(1000)
-        .attr(
-          "transform",
-          `translate(${truckPos.x}, ${
-            truckPos.y
-          })`
-        )
-        .on("end", () => {
-          // Alla fine dell'animazione: rimuovi pacchetto dalla mappa
-          pkgGroup.style("display", "none");
-          console.log(
-            `Il pacchetto ${packageName} è stato caricato nel truck ${truckName}.`
-          );
-        });
-    },
-    unloadPackageFromTruck(packageName, truckName) {
-  const truck = this.trucks[truckName];
-  const pkg = this.packages[packageName];
-
-  if (truck.packages.includes(pkg)) {
-    // Prima fai l'animazione
-    this.animatePackageUnload(packageName, truckName);
-    
-    // Poi aggiorna la logica (o fallo nel callback dell'animazione)
-    truck.unloadPackage(pkg);
-    pkg.setLocation(truck.location);
-
-    console.log(`Pacco ${packageName} scaricato da ${truckName} in ${truck.location.name}`);
-  } else {
-    console.log(`Errore: Il pacco ${packageName} non si trova nel camion ${truckName}`);
-  }
+      resolve();
+    });
+  });
 },
-    animatePackageUnload(packageName, truckName) {
+    animatePackageToTruckAsync(packageName, truckName, callback) {
+  // 1️⃣ Trova gli ID
+  const truckId = this.getTruckIdByName(truckName);
+  const packageId = this.getPackageIdByName(packageName);
+
+  if (truckId === null || packageId === null) {
+    console.error("Impossibile trovare truck o package!");
+    if (callback) callback();
+    return;
+  }
+
+  // 2️⃣ Prendi le posizioni
+  const truckPos = this.positions.trucks[truckId];
+  const packagePos = this.positions.packages[packageId];
+
+  if (!truckPos || !packagePos) {
+    console.error("Posizioni mancanti per truck o package!");
+    if (callback) callback();
+    return;
+  }
+
+  // 3️⃣ Fai animazione usando D3.js
+  const pkgGroup = d3.select(`#package-${packageName}`);
+  pkgGroup
+    .transition()
+    .duration(1000)
+    .attr("transform", `translate(${truckPos.x}, ${truckPos.y})`)
+    .on("end", () => {
+      // Alla fine dell'animazione: rimuovi pacchetto dalla mappa
+      pkgGroup.style("display", "none");
+      console.log(`Il pacchetto ${packageName} è stato caricato nel truck ${truckName}.`);
+      
+      if (callback) callback();
+    });
+}
+,
+    async unloadPackageFromTruck(packageName, truckName) {
+  return new Promise((resolve) => {
+    const truck = Object.values(this.trucks).find(t => t.name === truckName);
+    const pkg = Object.values(this.packages).find(p => p.name === packageName);
+
+    if (!truck || !pkg) {
+      console.warn("Truck o package non trovato!");
+      resolve();
+      return;
+    }
+
+    if (truck.packages && truck.packages.includes(pkg)) {
+      // Prima fai l'animazione
+      this.animatePackageUnloadAsync(packageName, truckName, () => {
+        // Poi aggiorna la logica nel callback dell'animazione
+        truck.unloadPackage(pkg);
+        pkg.setLocation(truck.location);
+
+        console.log(`Pacco ${packageName} scaricato da ${truckName} in ${truck.location.name}`);
+        resolve();
+      });
+    } else {
+      console.log(`Errore: Il pacco ${packageName} non si trova nel camion ${truckName}`);
+      resolve();
+    }
+  });
+},
+    animatePackageUnloadAsync(packageName, truckName, callback) {
   const truckId = this.getTruckIdByName(truckName);
   const truckPos = this.positions.trucks[truckId];
   const pkgId = this.getPackageIdByName(packageName);
@@ -527,17 +562,17 @@ export default {
   
   // Calcola la posizione finale del package nel place
   const place = Object.values(this.places).find(p => p.id === placeId);
-const packagesInPlace = Object.values(this.packages).filter(p => p.location && p.location.id === placeId);
+  const packagesInPlace = Object.values(this.packages).filter(p => p.location && p.location.id === placeId);
   const packageIndex = packagesInPlace.length; // Sarà l'ultimo
   const { x: finalX, y: finalY } = this.getPackagePositionInPlace(place, packageIndex, packageIndex + 1);
 
   const pkgGroup = d3.select(`#package-${packageName}`);
-      if (!pkgGroup.empty()) {
+  if (!pkgGroup.empty()) {
     pkgGroup.style("display", "block");
     pkgGroup
       .transition()
       .duration(1000)
-      .attr("transform", `translate(${finalX - constants.PACKAGE_SIZE}, ${finalY - constants.PACKAGE_SIZE / 2})`) // ← POSIZIONE ASSOLUTA
+      .attr("transform", `translate(${finalX - constants.PACKAGE_SIZE}, ${finalY - constants.PACKAGE_SIZE / 2})`)
       .style("opacity", 1)
       .on("end", () => {
         // Aggiorna la posizione
@@ -545,14 +580,20 @@ const packagesInPlace = Object.values(this.packages).filter(p => p.location && p
           x: finalX - constants.PACKAGE_SIZE,
           y: finalY - constants.PACKAGE_SIZE / 2,
         };
-        // Non chiamare drawGraph(), ricalcola solo le posizioni dei package in quel place
+        
+        // Ricalcola solo le posizioni dei package in quel place
         this.repositionPackagesInPlace(placeId);
+        
+        if (callback) callback();
       });
+  } else {
+    if (callback) callback();
   }
-    },
+},
 repositionPackagesInPlace(placeId) {
   const place = Object.values(this.places).find(p => p.id === placeId);
-  const packagesHere = Object.values(this.packages).filter(p => p.location.id === placeId);
+  const packagesHere = Object.values(this.packages).filter(p => p.location && p.location.id === placeId);
+  
   
   packagesHere.forEach((pkg, k) => {
     const { x: pkgX, y: pkgY } = this.getPackagePositionInPlace(place, k, packagesHere.length);
@@ -629,7 +670,8 @@ repositionPackagesInPlace(placeId) {
       pkgGroup.attr("transform", `translate(${truckPos.x}, ${truckPos.y})`);
     }
   });
-}
+    },
+
   },
 };
 </script>
