@@ -169,12 +169,12 @@ export default {
         const placeGroup = g.append("g").attr("id", `place-${place.id}`);
 
         placeGroup
-          .append("circle")
-          .attr("cx", pos.x)
-          .attr("cy", pos.y)
-          .attr("r", constants.PLACE_RADIUS)
-          .attr("fill", constants.PLACE_COLOR)
-          .attr("stroke", constants.PLACE_STROKE);
+  .append("image")
+  .attr("x", pos.x - constants.PLACE_IMAGE_WIDTH / 2)  // centra l'immagine
+  .attr("y", pos.y - constants.PLACE_IMAGE_HEIGHT / 2)
+  .attr("width", constants.IMAGE_SIZES.PLACE_WIDTH)
+  .attr("height", constants.IMAGE_SIZES.PLACE_HEIGHT)
+  .attr("href", constants.IMAGE_PATHS.PLACE);
 
         console.log(`constant: ${constants.PLACE_LABEL_OFFSET_Y} and pos`, pos);
         placeGroup
@@ -195,14 +195,13 @@ export default {
     .attr("id", `package-${pkg.name}`)
     .attr("transform", `translate(${pkgX - constants.PACKAGE_SIZE}, ${pkgY - constants.PACKAGE_SIZE / 2})`); // ← AGGIUNGI QUESTO
 
-  pkgGroup
-    .append("rect")
-    .attr("x", 0)  // ← CAMBIA: coordinate relative al gruppo
-    .attr("y", 0)  // ← CAMBIA: coordinate relative al gruppo
-    .attr("width", constants.PACKAGE_SIZE)
-    .attr("height", constants.PACKAGE_SIZE)
-    .attr("fill", constants.PACKAGE_COLOR)
-    .attr("stroke", constants.PACKAGE_STROKE);
+pkgGroup
+  .append("image")
+  .attr("x", 0)
+  .attr("y", 0)
+  .attr("width", constants.IMAGE_SIZES.PACKAGE_SIZE)
+  .attr("height", constants.IMAGE_SIZES.PACKAGE_SIZE)
+  .attr("href", constants.IMAGE_PATHS.PACKAGE);
 
   pkgGroup
     .append("text")
@@ -239,13 +238,12 @@ export default {
             );
 
           truckGroup
-            .append("rect")
-            .attr("x", 0)
-            .attr("y", -constants.TRUCK_SIZE / 2)
-            .attr("width", constants.TRUCK_SIZE)
-            .attr("height", constants.TRUCK_SIZE)
-            .attr("fill", constants.TRUCK_COLOR)
-            .attr("stroke", constants.TRUCK_STROKE);
+  .append("image")
+  .attr("x", 0)
+  .attr("y", -constants.TRUCK_SIZE / 2)
+  .attr("width", constants.IMAGE_SIZES.TRUCK_SIZE)
+  .attr("height", constants.IMAGE_SIZES.TRUCK_SIZE)
+  .attr("href", constants.IMAGE_PATHS.TRUCK);
 
           truckGroup
             .append("text")
