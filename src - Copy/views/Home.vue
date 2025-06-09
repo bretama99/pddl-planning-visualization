@@ -262,8 +262,7 @@
             <RobotSimulator 
               v-if="selectedDomain === 'robot'"
               :actions="parsedActions" 
-              :entities="parsedEntities"
-              :pddlType="selectedPDDLType"
+              :entities="parsedEntities" 
             />
             
             <!-- Elevator Domain -->
@@ -271,7 +270,6 @@
               v-else-if="selectedDomain === 'elevator'"
               :actions="parsedActions" 
               :entities="parsedEntities"
-              :pddlType="selectedPDDLType"
             />
             
             <!-- Logistics Domain -->
@@ -279,7 +277,6 @@
               v-else-if="selectedDomain === 'logistics'"
               :actions="parsedActions" 
               :entities="parsedEntities"
-              :pddlType="selectedPDDLType"
             />
           </div>
         </transition>
@@ -288,10 +285,10 @@
   </div>
 </template>
 
+
 <script>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { parseRobotDomain, parseElevatorDomain, parseLogisticsDomain } from '@/utils/domainParsers.js'
-import { calculateTotalDuration } from '@/utils/pddlTypes.js'
+import { parsePlanFile, calculateTotalDuration } from '@/utils/enhancedPDDLParser.js'
 import RobotSimulator from '@/components/visualization/RobotSimulator.vue'
 import ElevatorSimulator from '@/components/visualization/ElevatorSimulator.vue'
 import LogisticsSimulator from '@/components/visualization/LogisticsSimulator.vue'
@@ -313,13 +310,41 @@ export default {
     const error = ref('')
     const successMessage = ref('')
     const parsedActions = ref([])
-    const parsedEntities = ref({})
+    const parsedEntities = ref({ rooms: [], objects: [], robots: [] })
     const planMetrics = ref({})
     const fileContent = ref('')
     const isUploading = ref(false)
     const isProcessing = ref(false)
     const particles = ref([])
     const particleTimer = ref(null)
+
+    // PDDL Types configuration
+    const pddlTypes = [
+      { 
+        id: 'classical', 
+        name: 'Classical PDDL', 
+        description: 'Step-based planning with discrete actions',
+        icon: '🎯'
+      },
+      { 
+        id: 'temporal', 
+        name: 'Temporal PDDL', 
+        description: 'Time-based planning with durative actions',
+        icon: '⏱️'
+      },
+      { 
+        id: 'numerical', 
+        name: 'Numerical PDDL', 
+        description: 'Planning with numeric fluents and constraints',
+        icon: '🔢'
+      },
+      { 
+        id: 'pddl_plus', 
+        name: 'PDDL+', 
+        description: 'Hybrid discrete/continuous planning',
+        icon: '🌐'
+      }
+    ]
 
     // Static data
     const domains = [
@@ -343,13 +368,6 @@ export default {
       { title: 'Choose Domain', description: 'Select the appropriate domain type (Robot/Elevator/Logistics)' },
       { title: 'Start Visualization', description: 'Click the start button to begin the interactive simulation' }
     ]
-
-    // Domain-specific parsers mapping
-    const domainParsers = {
-      robot: parseRobotDomain,
-      elevator: parseElevatorDomain,
-      logistics: parseLogisticsDomain
-    }
 
     // Computed
     const canStart = computed(() => fileName.value && selectedDomain.value && selectedPDDLType.value)
@@ -463,23 +481,13 @@ export default {
 
     // Helper functions
     const getPDDLTypeName = (type) => {
-      const types = {
-        classical: 'Classical PDDL',
-        temporal: 'Temporal PDDL', 
-        numerical: 'Numerical PDDL',
-        pddl_plus: 'PDDL+'
-      }
-      return types[type] || 'Unknown'
+      const typeObj = pddlTypes.find(t => t.id === type)
+      return typeObj ? typeObj.name : 'Unknown'
     }
 
     const getPDDLTypeDescription = (type) => {
-      const descriptions = {
-        classical: 'Step-based planning with discrete actions',
-        temporal: 'Time-based planning with durative actions',
-        numerical: 'Planning with numeric fluents and constraints',
-        pddl_plus: 'Hybrid discrete/continuous planning'
-      }
-      return descriptions[type] || 'Unknown PDDL type'
+      const typeObj = pddlTypes.find(t => t.id === type)
+      return typeObj ? typeObj.description : 'Unknown PDDL type'
     }
 
     const getDomainIcon = (domain) => {
@@ -512,9 +520,15 @@ export default {
 
     const getTotalEntities = () => {
       const entities = parsedEntities.value
-      return Object.values(entities).reduce((total, entityArray) => {
-        return total + (Array.isArray(entityArray) ? entityArray.length : 0)
-      }, 0)
+      return (entities.rooms?.length || 0) + 
+             (entities.objects?.length || 0) + 
+             (entities.robots?.length || 0) +
+             (entities.vehicles?.length || 0) +
+             (entities.elevators?.length || 0) +
+             (entities.passengers?.length || 0) +
+             (entities.packages?.length || 0) +
+             (entities.floors?.length || 0) +
+             (entities.locations?.length || 0)
     }
 
     // File handling
@@ -531,7 +545,7 @@ export default {
       selectedDomain.value = domain
       simulationActive.value = false
       generateParticles('domain-change', 20)
-      console.log('🎯 Selected domain:', domain)
+      console.log('Selected domain:', domain)
     }
 
     const onDragOver = (e) => {
@@ -571,7 +585,7 @@ export default {
           isUploading.value = false
           successMessage.value = `File "${file.name}" loaded successfully!`
           generateParticles('success', 30)
-          console.log('📁 File loaded:', file.name, 'Size:', fileSize.value)
+          console.log('File loaded:', file.name)
           
           setTimeout(() => { successMessage.value = '' }, 3000)
         }, 1000)
@@ -604,40 +618,74 @@ export default {
             return
           }
 
-          console.log('🚀 === STARTING VISUALIZATION ===')
-          console.log('🎯 Domain:', selectedDomain.value)
-          console.log('📋 PDDL Type:', selectedPDDLType.value)
-          console.log('📄 File content length:', fileContent.value.length)
+          console.log('=== STARTING VISUALIZATION ===')
+          console.log('Domain:', selectedDomain.value)
+          console.log('PDDL Type:', selectedPDDLType.value)
+          console.log('File content length:', fileContent.value.length)
 
-          // Route to domain-specific parser
-          const parser = domainParsers[selectedDomain.value]
-          if (!parser) {
-            error.value = `No parser found for domain: ${selectedDomain.value}`
+          // For robot domain, pass raw content to let robot simulator handle parsing
+          if (selectedDomain.value === 'robot') {
+            console.log('🤖 Passing raw content to robot simulator')
+            console.log('📄 File content length:', fileContent.value.length)
+            console.log('🎯 PDDL Type:', selectedPDDLType.value)
+            
+            // Pass raw file content and let robot simulator parse it
+            parsedActions.value = fileContent.value // Raw content
+            parsedEntities.value = {
+              pddlType: selectedPDDLType.value,
+              domain: selectedDomain.value
+            }
+            
+            simulationActive.value = true
             isProcessing.value = false
+            
+            const typeDisplay = getPDDLTypeName(selectedPDDLType.value)
+            const domainDisplay = getDomainName(selectedDomain.value)
+            successMessage.value = `${typeDisplay} ${domainDisplay} visualization started!`
+            generateParticles('visualization-start', 40)
+            
+            console.log('🚀 Robot simulator should receive:')
+            console.log('- actions (raw content):', typeof fileContent.value, fileContent.value.substring(0, 200) + '...')
+            console.log('- entities:', parsedEntities.value)
+            console.log('- pddlType:', selectedPDDLType.value)
+            
+            setTimeout(() => { successMessage.value = '' }, 3000)
             return
           }
 
-          console.log(`🔧 Using ${selectedDomain.value} domain parser...`)
-          const parseResult = parser(fileContent.value, selectedPDDLType.value)
+          // For other domains, use general parser
+          const parseResult = parsePlanFile(fileContent.value, selectedPDDLType.value)
           
           if (parseResult.error) {
             error.value = parseResult.error
             isProcessing.value = false
-            console.error('❌ Parse error:', parseResult.error)
             return
           }
           
           if (parseResult.actions.length === 0) {
             error.value = `No valid ${getPDDLTypeName(selectedPDDLType.value)} actions found in plan file. Check console for details.`
             isProcessing.value = false
-            console.warn('⚠️ No actions parsed')
             return
           }
 
-          // Set parsed data
+          // Set parsed data for elevator/logistics
           parsedActions.value = parseResult.actions
-          parsedEntities.value = parseResult.entities || {}
           planMetrics.value = parseResult.metrics || {}
+          
+          parsedEntities.value = {
+            rooms: parseResult.rooms || [],
+            objects: parseResult.objects || [],
+            robots: parseResult.robots || [],
+            vehicles: parseResult.vehicles || [],
+            elevators: parseResult.elevators || [],
+            passengers: parseResult.passengers || [],
+            packages: parseResult.packages || [],
+            floors: parseResult.floors || [],
+            locations: parseResult.locations || [],
+            totalDuration: parseResult.totalDuration || 0,
+            pddlType: parseResult.pddlType,
+            domain: selectedDomain.value
+          }
           
           simulationActive.value = true
           isProcessing.value = false
@@ -647,18 +695,17 @@ export default {
           successMessage.value = `${typeDisplay} ${domainDisplay} visualization started with ${parseResult.actions.length} actions!`
           generateParticles('visualization-start', 40)
           
-          console.log('✅ === VISUALIZATION STARTED ===')
-          console.log('⚙️ Actions:', parseResult.actions.length)
-          console.log('📦 Entities:', Object.keys(parseResult.entities).map(key => `${key}: ${parseResult.entities[key]?.length || 0}`).join(', '))
-          console.log('📊 Metrics:', parseResult.metrics)
-          console.log('🎯 Domain:', parseResult.domain)
-          console.log('📋 PDDL Type:', parseResult.pddlType)
+          console.log('=== VISUALIZATION STARTED ===')
+          console.log('Actions:', parseResult.actions.length)
+          console.log('Total duration:', parseResult.totalDuration)
+          console.log('Metrics:', parseResult.metrics)
+          console.log('Entities:', parsedEntities.value)
           
           setTimeout(() => { successMessage.value = '' }, 3000)
         }, 1500)
         
       } catch (err) {
-        console.error('💥 Error starting visualization:', err)
+        console.error('Error starting visualization:', err)
         error.value = `Error: ${err.message}`
         isProcessing.value = false
       }
@@ -668,14 +715,12 @@ export default {
     onMounted(() => {
       particleTimer.value = setInterval(updateParticles, 50)
       generateParticles('ambient', 10)
-      console.log('🎬 PDDL Visualizer mounted')
     })
 
     onUnmounted(() => {
       if (particleTimer.value) {
         clearInterval(particleTimer.value)
       }
-      console.log('🛑 PDDL Visualizer unmounted')
     })
 
     return {
@@ -696,6 +741,7 @@ export default {
       
       // Static data
       domains,
+      pddlTypes,
       features,
       steps,
       
@@ -711,16 +757,17 @@ export default {
       onDragOver,
       onDragLeave,
       onDrop,
-      getPDDLTypeDescription,
-      getDomainIcon, 
-      getDomainName,
-      getDomainSubtitle,
-      getDomainDescription,
+        getPDDLTypeDescription,
+  getDomainIcon, 
+  getDomainName,
+  getDomainSubtitle,
+  getDomainDescription,
       startVisualization
     }
   }
 }
 </script>
+
 <style scoped>
 .pddl-visualizer {
   min-height: 100vh;

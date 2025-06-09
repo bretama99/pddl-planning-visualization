@@ -1,163 +1,573 @@
+<!-- File Path: src/components/visualization/LogisticsSimulator.vue -->
 <template>
-  <div class="logistics-simulator">
-    <!-- Header -->
-    <div class="header">
-      <h3>🚚 Logistics Network</h3>
-      <div class="controls">
-        <button @click="play" :disabled="isPlaying" class="btn">▶️ Play</button>
-        <button @click="pause" :disabled="!isPlaying" class="btn">⏸️ Pause</button>
-        <button @click="reset" class="btn">🔄 Reset</button>
-        <input type="range" v-model="speed" min="0.5" max="3" step="0.1" class="slider">
-        <span>{{speed}}x</span>
+  <div class="enhanced-logistics-simulator" :data-pddl="pddlType">
+    <!-- Success Message -->
+    <transition name="success-popup">
+      <div v-if="showSuccess" class="success-message">
+        🎉 Logistics Plan Completed Successfully!
       </div>
+    </transition>
+
+    <!-- Enhanced Particle System -->
+    <div class="particle-container">
+      <div 
+        v-for="particle in particles" 
+        :key="particle.id"
+        class="particle"
+        :class="particle.type"
+        :style="getParticleStyle(particle)"
+      ></div>
     </div>
 
-    <!-- Show message if no plan loaded -->
-    <div v-if="!actions.length" class="no-plan">
-      <h4>No Plan Loaded</h4>
-      <p>Please upload a logistics PDDL plan using the common upload area above.</p>
-    </div>
-
-    <!-- Simulator content (only show if plan is loaded) -->
-    <div v-else>
-      <!-- Debug Panel -->
-      <div class="debug">
-        <strong>Locations:</strong> {{locations.join(', ')}} | 
-        <strong>Vehicles:</strong> {{vehicles.join(', ')}} | 
-        <strong>Packages:</strong> {{packageList.join(', ')}}
+    <!-- Control Panel -->
+    <div class="control-panel">
+      <div class="panel-header">
+        <h2 class="panel-title">
+          <span class="title-icon">🚚</span>
+          Enhanced Logistics Control Center
+          <span class="pddl-type-badge" :class="`pddl-${pddlType || 'classical'}`">{{ (pddlType || 'classical').toUpperCase() }}</span>
+        </h2>
       </div>
 
-      <!-- World Map -->
-      <div class="world-map">
+      <!-- Playback Controls -->
+      <div class="playback-controls">
+        <button 
+          @click="togglePlayback" 
+          class="control-btn primary"
+          :disabled="!parsedActions?.length"
+        >
+          <span v-if="isPlaying">⏸️</span>
+          <span v-else>▶️</span>
+          {{ isPlaying ? 'Pause' : 'Play' }}
+        </button>
         
-        <!-- Locations (Cities/Warehouses) -->
-        <div 
-          v-for="(location, index) in locations" 
-          :key="location"
-          class="location"
-          :class="{ active: activeLocation === location }"
-          :style="getLocationPosition(location, index)"
-        >
-          <div class="location-icon">{{getLocationIcon(location)}}</div>
-          <div class="location-name">{{location}}</div>
-          
-          <!-- Packages at this location -->
-          <div class="packages-here">
-            <div 
-              v-for="pkg in getPackagesAtLocation(location)" 
-              :key="pkg.id"
-              class="package"
-              :class="{ loading: pkg.state === 'loading' }"
-            >
-              <div class="package-icon">📦</div>
-              <div class="package-name">{{pkg.name}}</div>
-              <div class="package-dest" v-if="pkg.destination">→ {{pkg.destination}}</div>
-            </div>
-          </div>
-          
-          <!-- Package count -->
-          <div class="package-count" v-if="getPackagesAtLocation(location).length > 0">
-            {{getPackagesAtLocation(location).length}} 📦
-          </div>
+        <button @click="resetSimulation" class="control-btn secondary">
+          🔄 Reset
+        </button>
+        
+        <button @click="stepForward" class="control-btn secondary" :disabled="isPlaying">
+          ⏭️ Step
+        </button>
+      </div>
+
+      <!-- Progress Section -->
+      <div class="progress-section">
+        <div class="progress-info">
+          <span class="step-counter">Step {{ currentStep }} of {{ parsedActions?.length || 0 }}</span>
+          <span class="duration-info" v-if="totalDuration && totalDuration > 0">
+            Duration: {{ totalDuration.toFixed(1) }}s
+          </span>
         </div>
-
-        <!-- Moving Vehicles -->
-        <div 
-          v-for="vehicle in vehicles" 
-          :key="vehicle"
-          class="vehicle"
-          :class="{ 
-            moving: vehicleStates[vehicle]?.moving,
-            loading: vehicleStates[vehicle]?.loading 
-          }"
-          :style="getVehiclePosition(vehicle)"
-        >
-          <div class="vehicle-icon">{{getVehicleIcon(vehicle)}}</div>
-          <div class="vehicle-name">{{vehicle}}</div>
-          
-          <!-- Cargo being carried -->
-          <div class="cargo" v-if="getCargoInVehicle(vehicle).length > 0">
-            <div 
-              v-for="cargo in getCargoInVehicle(vehicle)" 
-              :key="cargo.id"
-              class="cargo-item"
-            >
-              📦
-            </div>
-          </div>
-          
-          <!-- Cargo count -->
-          <div class="cargo-count" v-if="getCargoInVehicle(vehicle).length > 0">
-            {{getCargoInVehicle(vehicle).length}} 📦
-          </div>
-        </div>
-
-        <!-- Route Lines -->
-        <svg class="route-overlay" v-if="activeRoute">
-          <line 
-            :x1="activeRoute.from.x" 
-            :y1="activeRoute.from.y"
-            :x2="activeRoute.to.x" 
-            :y2="activeRoute.to.y"
-            class="route-line"
-          />
-          <circle 
-            :cx="activeRoute.from.x" 
-            :cy="activeRoute.from.y" 
-            r="8" 
-            class="route-start"
-          />
-          <circle 
-            :cx="activeRoute.to.x" 
-            :cy="activeRoute.to.y" 
-            r="8" 
-            class="route-end"
-          />
-        </svg>
-
-        <!-- Loading Animation -->
-        <div 
-          v-if="loadingPackage" 
-          class="loading-animation"
-          :style="loadingAnimationStyle"
-        >
-          <div class="loading-package">📦 {{loadingPackage.name}}</div>
-          <div class="loading-arrow">↗️</div>
+        <div class="progress-bar">
+          <div 
+            class="progress-fill" 
+            :style="{ width: `${progressPercentage}%` }"
+          ></div>
         </div>
       </div>
 
-      <!-- Action Timeline -->
-      <div class="timeline">
-        <h4>Logistics Operations</h4>
-        <div class="actions">
+      <!-- Speed Control -->
+      <div class="speed-control">
+        <label class="speed-label">⏱️ Speed:</label>
+        <input 
+          v-model="playbackSpeed" 
+          type="range" 
+          min="0.5" 
+          max="3" 
+          step="0.5" 
+          class="speed-slider"
+        >
+        <span class="speed-value">{{ playbackSpeed }}x</span>
+      </div>
+
+      <!-- Current Action -->
+      <div v-if="currentAction" class="current-action-panel">
+        <div class="action-header">
+          <span class="action-icon">⚡</span>
+          <span class="action-name">{{ (currentAction.name || '').toUpperCase() }}</span>
+          <span class="action-timing">
+            <template v-if="pddlType === 'temporal'">
+              Duration: {{ currentAction.duration?.toFixed(1) || '1.0' }}s
+            </template>
+            <template v-else-if="pddlType === 'numerical'">
+              Cost: {{ currentAction.cost || 1 }} | {{ currentAction.duration?.toFixed(1) || '1.0' }}s
+            </template>
+            <template v-else>
+              {{ currentAction.duration?.toFixed(1) || '1.0' }}s
+            </template>
+          </span>
+        </div>
+        
+        <div class="action-details">
+          <div class="action-description">{{ currentAction.raw || currentAction.name || '' }}</div>
+          
+          <!-- Show PDDL-specific information -->
+          <div v-if="pddlType === 'temporal'" class="pddl-info temporal-info">
+            ⏱️ Temporal Action - Start: {{ currentAction.start }}s, End: {{ currentAction.end }}s
+          </div>
+          <div v-else-if="pddlType === 'numerical'" class="pddl-info numerical-info">
+            💰 Cost: {{ currentAction.cost }} | 🚀 Step: {{ currentAction.step }}
+          </div>
+          
+          <div class="action-progress-container">
+            <div class="action-progress-bar">
+              <div 
+                class="action-progress-fill" 
+                :style="{ width: `${actionProgress}%` }"
+              ></div>
+            </div>
+            <span class="progress-text">{{ actionProgress?.toFixed(0) || '0' }}%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Enhanced Visualization Area -->
+    <div class="visualization-area">
+      <!-- No Actions Message -->
+      <div v-if="!parsedActions?.length" class="no-actions-message">
+        <div class="message-icon">🚚</div>
+        <h3>No Logistics Actions Found</h3>
+        <p>Please check that your plan file contains valid logistics actions like:</p>
+        <ul>
+          <li><code>load-vehicle obj12 tru1 pos1</code></li>
+          <li><code>drive-truck tru1 pos1 apt1 cit1</code></li>
+          <li><code>fly-airplane apn1 apt1 apt3</code></li>
+          <li><code>unload-vehicle obj12 tru1 apt1</code></li>
+        </ul>
+      </div>
+
+      <!-- Enhanced Logistics Network Visualization -->
+      <div v-if="parsedActions?.length" class="enhanced-logistics-network">
+        <!-- Cities Grid with Enhanced Visual Design -->
+        <div class="enhanced-cities-grid">
           <div 
-            v-for="(action, index) in actions" 
-            :key="index"
-            class="action"
+            v-for="city in getCitiesWithLocations()" 
+            :key="city.name"
+            class="enhanced-city-container"
             :class="{ 
-              current: index === currentStep,
-              completed: index < currentStep 
+              'active': hasActiveVehicleInCity(city.name),
+              'has-moving-vehicle': hasMovingVehicleInCity(city.name)
             }"
           >
-            <span class="time">{{getActionTime(action)}}</span>
-            <span class="desc">{{getActionDesc(action)}}</span>
+            <div class="city-header">
+              <h3 class="city-name">🏙️ {{ (city.name || '').toUpperCase() }}</h3>
+              <div class="city-status-indicators">
+                <div v-if="hasActiveVehicleInCity(city.name)" class="status-indicator active">🔴 Active</div>
+                <div v-if="hasMovingVehicleInCity(city.name)" class="status-indicator moving">🟡 Transit</div>
+              </div>
+            </div>
+            
+            <!-- Enhanced Locations in City -->
+            <div class="enhanced-locations-grid">
+              <div 
+                v-for="location in city.locations" 
+                :key="location"
+                class="enhanced-location-cell"
+                :class="{ 
+                  'airport': location.includes('apt'),
+                  'position': location.includes('pos'),
+                  'active': getVehiclesInLocation(location).length > 0,
+                  'has-moving-vehicle': hasMovingVehicleInLocation(location),
+                  'has-loading': getLoadingVehicles().some(v => vehicleLocations[v] === location)
+                }"
+              >
+                <div class="location-header">
+                  <h4 class="location-name">
+                    {{ location.includes('apt') ? '✈️' : '📍' }} 
+                    {{ (location || '').toUpperCase() }}
+                  </h4>
+                  <div class="location-status">
+                    <div v-if="getVehiclesInLocation(location).length > 0" class="vehicle-count">
+                      🚛 {{ getVehiclesInLocation(location).length }}
+                    </div>
+                    <div v-if="getPackagesInLocation(location).length > 0" class="package-count">
+                      📦 {{ getPackagesInLocation(location).length }}
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Enhanced Ground Packages Display -->
+                <div class="enhanced-packages-area">
+                  <div class="packages-header" v-if="getPackagesInLocation(location).length > 0">
+                    <span class="packages-label">📦 Ground Packages:</span>
+                  </div>
+                  <div class="packages-grid">
+                    <div 
+                      v-for="pkg in getPackagesInLocation(location)" 
+                      :key="pkg"
+                      class="enhanced-package-item"
+                      :class="{ 
+                        'carried': isPackageCarried(pkg),
+                        'transferring': isCargoTransferring(pkg)
+                      }"
+                    >
+                      <div class="package-visual">
+                        <span class="package-icon">{{ getPackageIcon(pkg) }}</span>
+                        <div class="package-info">
+                          <div class="package-name">{{ pkg || '' }}</div>
+                          <div class="package-status">
+                            <span v-if="isCargoTransferring(pkg)" class="status-transferring">🔄 Moving</span>
+                            <span v-else class="status-ready">✅ Ready</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Enhanced Stationary Vehicles Display -->
+                <div class="enhanced-vehicles-area">
+                  <div 
+                    v-for="vehicle in getVehiclesInLocation(location)" 
+                    :key="`${vehicle}-${location}`"
+                    v-show="!isVehicleMoving(vehicle)"
+                    class="enhanced-vehicle-container"
+                    :class="{
+                      'loading': isVehicleLoading(vehicle),
+                      'truck': vehicle.includes('tru'),
+                      'airplane': vehicle.includes('apn')
+                    }"
+                  >
+                    <!-- Enhanced Vehicle Visual -->
+                    <div class="enhanced-vehicle-figure">
+                      <!-- Vehicle Main Body -->
+                      <div class="vehicle-main-body" 
+                           :class="{ 
+                             'truck-body': vehicle.includes('tru'),
+                             'airplane-body': vehicle.includes('apn'),
+                             'loading-animation': isVehicleLoading(vehicle)
+                           }">
+                        
+                        <!-- Vehicle Icon with Animation -->
+                        <div class="vehicle-icon-container">
+                          <div class="vehicle-icon-main">{{ getVehicleIcon(vehicle) }}</div>
+                          <div v-if="isVehicleLoading(vehicle)" class="loading-spinner">🔄</div>
+                        </div>
+                        
+                        <!-- Enhanced Activity Lights -->
+                        <div class="activity-lights">
+                          <div class="activity-light" 
+                               :class="{ 
+                                 'active': isVehicleLoading(vehicle),
+                                 'loading': isVehicleLoading(vehicle) && getVehicleLoadingType(vehicle) === 'loading',
+                                 'unloading': isVehicleLoading(vehicle) && getVehicleLoadingType(vehicle) === 'unloading'
+                               }"></div>
+                        </div>
+                        
+                        <!-- Loading Progress Indicator -->
+                        <div v-if="isVehicleLoading(vehicle)" class="loading-progress-indicator">
+                          <div class="loading-progress-bar">
+                            <div class="loading-progress-fill" 
+                                 :style="{ width: `${getVehicleLoadingProgress(vehicle) * 100}%` }"></div>
+                          </div>
+                          <div class="loading-action-text">
+                            {{ getVehicleLoadingType(vehicle) === 'loading' ? '📦 Loading...' : '📤 Unloading...' }}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <!-- Enhanced Cargo Bay -->
+                      <div v-if="getVehicleCarrying(vehicle).length > 0" class="enhanced-cargo-bay">
+                        <div class="cargo-bay-header">
+                          <span class="cargo-label">🚛 Cargo Bay:</span>
+                          <span class="cargo-count">{{ getVehicleCarrying(vehicle).length }} items</span>
+                        </div>
+                        <div class="cargo-items-grid">
+                          <div 
+                            v-for="pkg in getVehicleCarrying(vehicle)" 
+                            :key="`cargo-${pkg}`"
+                            class="enhanced-cargo-item"
+                          >
+                            <span class="cargo-package-icon">{{ getPackageIcon(pkg) }}</span>
+                            <span class="cargo-package-name">{{ pkg }}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <!-- Enhanced Vehicle Information Panel -->
+                    <div class="enhanced-vehicle-info">
+                      <div class="vehicle-name-display">{{ (vehicle || '').toUpperCase() }}</div>
+                      <div class="vehicle-status-panel">
+                        <div v-if="isVehicleLoading(vehicle)" class="status-loading">
+                          <span class="status-icon">🔄</span>
+                          <span class="status-text">
+                            {{ getVehicleLoadingType(vehicle) === 'loading' ? 'Loading Cargo' : 'Unloading Cargo' }}
+                          </span>
+                          <div class="status-progress">{{ Math.round(getVehicleLoadingProgress(vehicle) * 100) }}%</div>
+                        </div>
+                        <div v-else-if="getVehicleCarrying(vehicle).length > 0" class="status-carrying">
+                          <span class="status-icon">📦</span>
+                          <span class="status-text">Carrying {{ getVehicleCarrying(vehicle).length }} packages</span>
+                        </div>
+                        <div v-else class="status-idle">
+                          <span class="status-icon">😴</span>
+                          <span class="status-text">{{ vehicle.includes('tru') ? 'Parked' : 'Grounded' }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Enhanced Moving Vehicles Overlay -->
+        <div class="enhanced-moving-vehicles-overlay">
+          <!-- Moving Vehicles with Realistic Animation -->
+          <div 
+            v-for="vehicle in getMovingVehicles()" 
+            :key="`moving-${vehicle}`"
+            class="enhanced-moving-vehicle"
+            :style="getMovingVehicleStyle(vehicle)"
+          >
+            <div class="enhanced-moving-vehicle-figure" 
+                 :class="{ 
+                   'truck': vehicle.includes('tru'),
+                   'airplane': vehicle.includes('apn'),
+                   'carrying-cargo': getVehicleCarrying(vehicle).length > 0
+                 }">
+              
+              <!-- Enhanced Vehicle Body with Motion Effects -->
+              <div class="moving-vehicle-body">
+                <div class="vehicle-icon-moving">{{ getVehicleIcon(vehicle) }}</div>
+                
+                <!-- Movement Direction Indicator -->
+                <div class="movement-direction-indicator">
+                  <div class="direction-arrow">➡️</div>
+                </div>
+                
+                <!-- Enhanced Activity Light for Movement -->
+                <div class="movement-activity-light"></div>
+              </div>
+              
+              <!-- Realistic Movement Trail -->
+              <div class="realistic-movement-trail">
+                <div class="trail-line-main"></div>
+                <div class="trail-particles-enhanced">
+                  <div class="trail-particle" v-for="i in 5" :key="i" :style="{ '--delay': i * 0.2 + 's' }"></div>
+                </div>
+              </div>
+              
+              <!-- Enhanced Cargo Display for Moving Vehicle -->
+              <div v-if="getVehicleCarrying(vehicle).length > 0" class="moving-cargo-display">
+                <div class="moving-cargo-items">
+                  <div 
+                    v-for="pkg in getVehicleCarrying(vehicle)" 
+                    :key="`moving-cargo-${pkg}`"
+                    class="moving-cargo-item"
+                  >
+                    <span class="moving-package-icon">{{ getPackageIcon(pkg) }}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Enhanced Movement Progress Display -->
+              <div class="enhanced-movement-progress">
+                <div class="movement-progress-bar-container">
+                  <div class="movement-progress-bar">
+                    <div class="movement-progress-fill" 
+                         :style="{ width: `${getVehicleMovementProgress(vehicle) * 100}%` }"></div>
+                  </div>
+                </div>
+                <div class="movement-percentage">{{ Math.round(getVehicleMovementProgress(vehicle) * 100) }}%</div>
+              </div>
+              
+              <!-- Enhanced PDDL-specific movement information -->
+              <div class="enhanced-movement-info" :class="`movement-${pddlType}`">
+                <template v-if="pddlType === 'temporal'">
+                  <div class="temporal-movement-data">
+                    <div class="movement-duration">⏱️ {{ getCurrentActionForVehicle(vehicle)?.duration?.toFixed(1) || '1.0' }}s</div>
+                    <div class="movement-schedule">
+                      {{ getCurrentActionForVehicle(vehicle)?.end?.toFixed(1) || '1.0' }}s
+                    </div>
+                  </div>
+                </template>
+                
+                <template v-else-if="pddlType === 'numerical'">
+                  <div class="numerical-movement-data">
+                    <div class="movement-cost">💰 Cost: {{ getCurrentActionForVehicle(vehicle)?.cost || 1 }}</div>
+                    <div class="fuel-indicator">
+                      ⛽ Fuel: {{ getVehicleFuel(vehicle) }}%
+                    </div>
+                  </div>
+                </template>
+                
+                <template v-else>
+                  <div class="classical-movement-data">
+                    <div class="movement-type">{{ vehicle.includes('tru') ? '🚛 Driving' : '✈️ Flying' }}</div>
+                    <div class="movement-duration">{{ getCurrentActionForVehicle(vehicle)?.duration?.toFixed(1) || '1.0' }}s</div>
+                  </div>
+                </template>
+              </div>
+            </div>
+            
+            <!-- Enhanced Moving Vehicle Information Panel -->
+            <div class="enhanced-moving-vehicle-info">
+              <div class="moving-vehicle-name">{{ (vehicle || '').toUpperCase() }}</div>
+              <div class="moving-vehicle-status">
+                <div class="route-info">
+                  <span class="route-from">{{ vehicleStartLocations[vehicle] || 'Unknown' }}</span>
+                  <span class="route-arrow">→</span>
+                  <span class="route-to">{{ vehicleTargetLocations[vehicle] || 'Unknown' }}</span>
+                </div>
+                <div class="movement-type-display">
+                  {{ vehicle.includes('tru') ? '🚛 Truck Transport' : '✈️ Air Transport' }}
+                </div>
+              </div>
+              
+              <!-- Enhanced PDDL-specific status information -->
+              <div class="enhanced-pddl-status" :class="`status-${pddlType}`">
+                <template v-if="pddlType === 'temporal'">
+                  <div class="temporal-status-display">
+                    <div class="status-line">⏰ Scheduled Movement</div>
+                    <div class="status-line">📊 Makespan: {{ getTotalMakespan() }}s</div>
+                  </div>
+                </template>
+                
+                <template v-else-if="pddlType === 'numerical'">
+                  <div class="numerical-status-display">
+                    <div class="status-line">📈 Efficiency: {{ getEfficiencyScore() }}%</div>
+                    <div class="status-line">💰 Total Cost: {{ totalCost }}</div>
+                  </div>
+                </template>
+                
+                <template v-else>
+                  <div class="classical-status-display">
+                    <div class="status-line">📝 Step {{ currentStep }} of {{ parsedActions?.length || 0 }}</div>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Enhanced Cargo Transfer Animations -->
+        <div class="enhanced-cargo-transfer-overlay">
+          <div 
+            v-for="packageId in Object.keys(cargoAnimations)" 
+            :key="`transfer-${packageId}`"
+            class="enhanced-cargo-transfer"
+            :style="getCargoTransferStyle(packageId)"
+            v-show="isCargoTransferring(packageId)"
+          >
+            <div class="cargo-transfer-visual">
+              <div class="transfer-package-icon">{{ getPackageIcon(packageId) }}</div>
+              <div class="transfer-animation-rings">
+                <div class="transfer-ring"></div>
+                <div class="transfer-ring"></div>
+                <div class="transfer-ring"></div>
+              </div>
+              <div class="transfer-trail">
+                <div class="transfer-trail-particle" v-for="i in 3" :key="i"></div>
+              </div>
+            </div>
+            <div class="cargo-transfer-info">
+              <div class="transfer-package-name">{{ packageId }}</div>
+              <div class="transfer-status">🔄 Transferring...</div>
+            </div>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Stats -->
-      <div class="stats">
-        <div class="stat">
-          <span class="label">Active Vehicles:</span>
-          <span class="value">{{getActiveVehicles()}}</span>
+    <!-- Enhanced Statistics Panel -->
+    <div class="enhanced-stats-panel">
+      <h3 class="stats-title">📊 Enhanced Logistics Statistics</h3>
+      <div class="enhanced-stats-grid">
+        <div class="stat-category">
+          <h4 class="category-title">📋 Plan Overview</h4>
+          <div class="stat-item">
+            <span class="stat-label">Total Actions:</span>
+            <span class="stat-value">{{ parsedActions?.length || 0 }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Completed:</span>
+            <span class="stat-value">{{ currentStep }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Progress:</span>
+            <span class="stat-value">{{ progressPercentage.toFixed(1) }}%</span>
+          </div>
         </div>
-        <div class="stat">
-          <span class="label">Packages Delivered:</span>
-          <span class="value">{{deliveredPackages}}</span>
+
+        <div class="stat-category">
+          <h4 class="category-title">🚛 Fleet Status</h4>
+          <div class="stat-item">
+            <span class="stat-label">Trucks:</span>
+            <span class="stat-value">{{ logisticsEntities?.trucks?.length || 0 }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Airplanes:</span>
+            <span class="stat-value">{{ logisticsEntities?.airplanes?.length || 0 }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Active Vehicles:</span>
+            <span class="stat-value">{{ activeVehicles.size }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Moving:</span>
+            <span class="stat-value">{{ movingVehicles.size }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Loading:</span>
+            <span class="stat-value">{{ loadingVehicles.size }}</span>
+          </div>
         </div>
-        <div class="stat">
-          <span class="label">Total Distance:</span>
-          <span class="value">{{totalDistance.toFixed(0)}} km</span>
+
+        <div class="stat-category">
+          <h4 class="category-title">📦 Cargo Status</h4>
+          <div class="stat-item">
+            <span class="stat-label">Total Packages:</span>
+            <span class="stat-value">{{ logisticsEntities?.packages?.length || 0 }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">In Transit:</span>
+            <span class="stat-value">{{ Object.values(vehicleCarrying).flat().length }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Transferring:</span>
+            <span class="stat-value">{{ cargoTransferring.size }}</span>
+          </div>
+        </div>
+
+        <div class="stat-category">
+          <h4 class="category-title">🌍 Network</h4>
+          <div class="stat-item">
+            <span class="stat-label">Cities:</span>
+            <span class="stat-value">{{ logisticsEntities?.cities?.length || 0 }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Locations:</span>
+            <span class="stat-value">{{ logisticsEntities?.locations?.length || 0 }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Airports:</span>
+            <span class="stat-value">{{ logisticsEntities?.airports?.length || 0 }}</span>
+          </div>
+        </div>
+
+        <!-- PDDL-specific statistics -->
+        <div v-if="pddlType === 'temporal' || pddlType === 'numerical'" class="stat-category">
+          <h4 class="category-title">⚙️ PDDL Metrics</h4>
+          <div v-if="totalDuration && totalDuration > 0" class="stat-item">
+            <span class="stat-label">Duration:</span>
+            <span class="stat-value">{{ totalDuration.toFixed(1) }}s</span>
+          </div>
+          <div v-if="totalCost > 0" class="stat-item">
+            <span class="stat-label">Total Cost:</span>
+            <span class="stat-value">{{ totalCost }}</span>
+          </div>
+          <div v-if="pddlType === 'numerical'" class="stat-item">
+            <span class="stat-label">Efficiency:</span>
+            <span class="stat-value">{{ getEfficiencyScore() }}%</span>
+          </div>
+          <div v-if="pddlType === 'temporal'" class="stat-item">
+            <span class="stat-label">Makespan:</span>
+            <span class="stat-value">{{ getTotalMakespan() }}s</span>
+          </div>
         </div>
       </div>
     </div>
@@ -165,811 +575,62 @@
 </template>
 
 <script>
+// Import the enhanced logistics simulator logic
+import { createLogisticsSimulator } from './logisticsSimulator.js'
+
 export default {
-  name: 'LogisticsSimulator',
+  name: 'EnhancedLogisticsSimulator',
   props: {
-    entities: { type: Object, default: () => ({}) },
-    actions: { type: Array, default: () => [] }
+    actions: {
+      type: [Array, String],
+      default: () => []
+    },
+    entities: {
+      type: Object,
+      default: () => ({})
+    },
+    pddlType: {
+      type: String,
+      default: 'classical'
+    }
   },
-  data() {
+  setup(props) {
+    console.log('🚚 Enhanced LogisticsSimulator setup:', {
+      actionsType: typeof props.actions,
+      actionsLength: Array.isArray(props.actions) ? props.actions.length : 'string length: ' + (typeof props.actions === 'string' ? props.actions.length : 'unknown'),
+      pddlType: props.pddlType,
+      entities: props.entities
+    })
+    
+    const simulatorProps = {
+      ...props
+    }
+    
+    const simulator = createLogisticsSimulator(simulatorProps)
+    
+    // Enhanced helper function for particle styling
+    const getParticleStyle = (particle) => {
+      const baseStyle = {
+        left: particle.x + '%',
+        top: particle.y + '%',
+        width: particle.size + 'px',
+        height: particle.size + 'px',
+        opacity: particle.life || 1
+      }
+      
+      if (particle.rotation !== undefined) {
+        baseStyle.transform = `rotate(${particle.rotation}deg)`
+      }
+      
+      return baseStyle
+    }
+    
     return {
-      // Simulation state
-      isPlaying: false,
-      currentStep: 0,
-      speed: 1,
-      
-      // Entities
-      locations: [],
-      vehicles: [],
-      packageList: [],
-      packages: [],
-      
-      // Vehicle states
-      vehicleStates: {},
-      locationPositions: {},
-      
-      // Animation
-      activeLocation: null,
-      activeRoute: null,
-      loadingPackage: null,
-      
-      // Stats
-      deliveredPackages: 0,
-      totalDistance: 0,
-      
-      // Timer
-      timer: null
-    }
-  },
-  computed: {
-    loadingAnimationStyle() {
-      if (!this.loadingPackage || !this.loadingPackage.location) return {};
-      
-      const pos = this.locationPositions[this.loadingPackage.location];
-      if (!pos) return {};
-      
-      return {
-        left: pos.x + 'px',
-        top: pos.y - 50 + 'px'
-      };
-    }
-  },
-  watch: {
-    actions: { handler: 'initialize', immediate: true },
-    entities: { handler: 'initialize', immediate: true }
-  },
-  methods: {
-    initialize() {
-      if (!this.actions.length) return;
-      
-      console.log('Initializing logistics simulator...');
-      
-      // Extract entities from actions
-      this.extractEntities();
-      
-      // Generate location positions
-      this.generateLocationPositions();
-      
-      // Create packages
-      this.createPackages();
-      
-      // Initialize vehicle states
-      this.initializeVehicles();
-      
-      // Reset state
-      this.currentStep = 0;
-      this.deliveredPackages = 0;
-      this.totalDistance = 0;
-      this.activeLocation = null;
-      this.activeRoute = null;
-      this.loadingPackage = null;
-      
-      console.log('Initialization complete:', {
-        locations: this.locations,
-        vehicles: this.vehicles,
-        packages: this.packages.length
-      });
-    },
-    
-    extractEntities() {
-      const locations = new Set();
-      const vehicles = new Set();
-      const packages = new Set();
-      
-      // Extract from actions
-      this.actions.forEach(action => {
-        const type = action.type || action.name || '';
-        const params = action.params || (action.parameters ? action.parameters.split(' ') : []);
-        
-        switch (type) {
-          case 'load':
-          case 'unload':
-            if (params[0]) packages.add(params[0]);
-            if (params[1]) vehicles.add(params[1]);
-            if (params[2]) locations.add(params[2]);
-            break;
-          case 'drive':
-          case 'fly':
-          case 'move':
-            if (params[0]) vehicles.add(params[0]);
-            if (params[1]) locations.add(params[1]);
-            if (params[2]) locations.add(params[2]);
-            break;
-        }
-      });
-      
-      this.locations = Array.from(locations);
-      this.vehicles = Array.from(vehicles);
-      this.packageList = Array.from(packages);
-      
-      // Ensure defaults
-      if (this.locations.length === 0) this.locations = ['warehouse1', 'warehouse2', 'city1'];
-      if (this.vehicles.length === 0) this.vehicles = ['truck1'];
-    },
-    
-    generateLocationPositions() {
-      const mapWidth = 700;
-      const mapHeight = 400;
-      const margin = 80;
-      
-      this.locations.forEach((location, index) => {
-        // Arrange locations in a grid
-        const cols = Math.ceil(Math.sqrt(this.locations.length));
-        const rows = Math.ceil(this.locations.length / cols);
-        
-        const col = index % cols;
-        const row = Math.floor(index / cols);
-        
-        const x = margin + (col * (mapWidth - 2 * margin)) / Math.max(cols - 1, 1);
-        const y = margin + (row * (mapHeight - 2 * margin)) / Math.max(rows - 1, 1);
-        
-        this.locationPositions[location] = { x, y };
-      });
-    },
-    
-    createPackages() {
-      this.packages = [];
-      let id = 1;
-      
-      this.packageList.forEach(name => {
-        // Find where this package loads
-        const loadAction = this.actions.find(a => {
-          const type = a.type || a.name || '';
-          const params = a.params || (a.parameters ? a.parameters.split(' ') : []);
-          return type === 'load' && params[0] === name;
-        });
-        
-        // Find where it unloads
-        const unloadAction = this.actions.find(a => {
-          const type = a.type || a.name || '';
-          const params = a.params || (a.parameters ? a.parameters.split(' ') : []);
-          return type === 'unload' && params[0] === name;
-        });
-        
-        const pkg = {
-          id: id++,
-          name: name,
-          currentLocation: loadAction ? loadAction.params[2] : this.locations[0],
-          destination: unloadAction ? unloadAction.params[2] : null,
-          state: 'waiting', // waiting, loading, transit, delivered
-          vehicle: null
-        };
-        
-        this.packages.push(pkg);
-      });
-    },
-    
-    initializeVehicles() {
-      this.vehicleStates = {};
-      
-      this.vehicles.forEach(vehicle => {
-        this.vehicleStates[vehicle] = {
-          currentLocation: this.locations[0],
-          moving: false,
-          loading: false,
-          x: this.locationPositions[this.locations[0]]?.x || 0,
-          y: this.locationPositions[this.locations[0]]?.y || 0
-        };
-      });
-    },
-    
-    play() {
-      if (this.currentStep >= this.actions.length) return;
-      
-      this.isPlaying = true;
-      this.timer = setInterval(() => {
-        this.executeNextAction();
-      }, 1000 / this.speed);
-    },
-    
-    pause() {
-      this.isPlaying = false;
-      if (this.timer) {
-        clearInterval(this.timer);
-        this.timer = null;
-      }
-    },
-    
-    reset() {
-      this.pause();
-      this.initialize();
-    },
-    
-    executeNextAction() {
-      if (this.currentStep >= this.actions.length) {
-        this.pause();
-        return;
-      }
-      
-      const action = this.actions[this.currentStep];
-      const type = action.type || action.name || '';
-      const params = action.params || (action.parameters ? action.parameters.split(' ') : []);
-      
-      console.log(`Executing: ${type} [${params.join(', ')}]`);
-      
-      switch (type) {
-        case 'load':
-          this.handleLoad(params[0], params[1], params[2]);
-          break;
-        case 'unload':
-          this.handleUnload(params[0], params[1], params[2]);
-          break;
-        case 'drive':
-        case 'fly':
-        case 'move':
-          this.handleMove(params[0], params[1], params[2]);
-          break;
-      }
-      
-      this.currentStep++;
-    },
-    
-    handleLoad(packageName, vehicleName, locationName) {
-      const pkg = this.packages.find(p => p.name === packageName);
-      const vehicleState = this.vehicleStates[vehicleName];
-      
-      if (!pkg || !vehicleState) return;
-      
-      console.log(`Loading ${packageName} onto ${vehicleName} at ${locationName}`);
-      
-      this.activeLocation = locationName;
-      vehicleState.loading = true;
-      pkg.state = 'loading';
-      this.loadingPackage = { name: packageName, location: locationName };
-      
-      setTimeout(() => {
-        pkg.state = 'transit';
-        pkg.vehicle = vehicleName;
-        pkg.currentLocation = null; // In vehicle
-        vehicleState.loading = false;
-        this.loadingPackage = null;
-      }, 1500 / this.speed);
-    },
-    
-    handleUnload(packageName, vehicleName, locationName) {
-      const pkg = this.packages.find(p => p.name === packageName);
-      const vehicleState = this.vehicleStates[vehicleName];
-      
-      if (!pkg || !vehicleState) return;
-      
-      console.log(`Unloading ${packageName} from ${vehicleName} at ${locationName}`);
-      
-      this.activeLocation = locationName;
-      vehicleState.loading = true;
-      pkg.state = 'loading';
-      this.loadingPackage = { name: packageName, location: locationName };
-      
-      setTimeout(() => {
-        pkg.state = 'delivered';
-        pkg.vehicle = null;
-        pkg.currentLocation = locationName;
-        vehicleState.loading = false;
-        this.loadingPackage = null;
-        this.deliveredPackages++;
-      }, 1500 / this.speed);
-    },
-    
-    handleMove(vehicleName, fromLocation, toLocation) {
-      const vehicleState = this.vehicleStates[vehicleName];
-      
-      if (!vehicleState) return;
-      
-      console.log(`${vehicleName} moving from ${fromLocation} to ${toLocation}`);
-      
-      const fromPos = this.locationPositions[fromLocation];
-      const toPos = this.locationPositions[toLocation];
-      
-      if (!fromPos || !toPos) return;
-      
-      // Set up route visualization
-      this.activeRoute = { from: fromPos, to: toPos };
-      
-      // Calculate distance
-      const distance = this.calculateDistance(fromPos, toPos);
-      this.totalDistance += distance;
-      
-      // Start movement
-      vehicleState.moving = true;
-      vehicleState.currentLocation = toLocation;
-      
-      // Animate vehicle movement
-      this.animateVehicleMovement(vehicleName, fromPos, toPos);
-      
-      // Update packages in vehicle
-      this.packages.forEach(pkg => {
-        if (pkg.vehicle === vehicleName && pkg.state === 'transit') {
-          pkg.currentLocation = toLocation;
-        }
-      });
-      
-      setTimeout(() => {
-        vehicleState.moving = false;
-        this.activeRoute = null;
-      }, (3000 / this.speed) + 200);
-    },
-    
-    animateVehicleMovement(vehicleName, fromPos, toPos) {
-      const vehicleState = this.vehicleStates[vehicleName];
-      const duration = 3000 / this.speed;
-      const startTime = Date.now();
-      
-      const animate = () => {
-        const elapsed = Date.now() - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        
-        // Smooth easing
-        const easeProgress = progress < 0.5 
-          ? 2 * progress * progress 
-          : 1 - Math.pow(-2 * progress + 2, 3) / 2;
-        
-        vehicleState.x = fromPos.x + (toPos.x - fromPos.x) * easeProgress;
-        vehicleState.y = fromPos.y + (toPos.y - fromPos.y) * easeProgress;
-        
-        if (progress < 1) {
-          requestAnimationFrame(animate);
-        }
-      };
-      
-      animate();
-    },
-    
-    calculateDistance(fromPos, toPos) {
-      const dx = toPos.x - fromPos.x;
-      const dy = toPos.y - fromPos.y;
-      return Math.sqrt(dx * dx + dy * dy) / 3; // Scale for display
-    },
-    
-    getLocationPosition(location) {
-      const pos = this.locationPositions[location];
-      return pos ? { left: pos.x + 'px', top: pos.y + 'px' } : {};
-    },
-    
-    getVehiclePosition(vehicle) {
-      const state = this.vehicleStates[vehicle];
-      if (!state) return {};
-      
-      return {
-        left: state.x + 'px',
-        top: state.y + 'px',
-        transition: state.moving ? `all ${3/this.speed}s ease-in-out` : 'none'
-      };
-    },
-    
-    getLocationIcon(location) {
-      const name = location.toLowerCase();
-      if (name.includes('airport') || name.includes('air')) return '✈️';
-      if (name.includes('port') || name.includes('harbor')) return '🚢';
-      if (name.includes('warehouse') || name.includes('depot')) return '🏭';
-      if (name.includes('city') || name.includes('town')) return '🏙️';
-      return '📍';
-    },
-    
-    getVehicleIcon(vehicle) {
-      const name = vehicle.toLowerCase();
-      if (name.includes('plane') || name.includes('aircraft') || name.includes('air')) return '✈️';
-      if (name.includes('ship') || name.includes('boat')) return '🚢';
-      if (name.includes('truck') || name.includes('van')) return '🚚';
-      if (name.includes('train')) return '🚂';
-      return '🚛';
-    },
-    
-    getPackagesAtLocation(location) {
-      return this.packages.filter(p => 
-        p.currentLocation === location && 
-        (p.state === 'waiting' || p.state === 'delivered')
-      );
-    },
-    
-    getCargoInVehicle(vehicle) {
-      return this.packages.filter(p => 
-        p.vehicle === vehicle && p.state === 'transit'
-      );
-    },
-    
-    getActiveVehicles() {
-      return Object.values(this.vehicleStates).filter(state => state.moving).length;
-    },
-    
-    getActionTime(action) {
-      return action.time !== undefined ? action.time : (action.start || 0);
-    },
-    
-    getActionDesc(action) {
-      const type = action.type || action.name || '';
-      const params = action.params || (action.parameters ? action.parameters.split(' ') : []);
-      
-      switch (type) {
-        case 'load':
-          return `📦 ${params[0]} loaded onto ${this.getVehicleIcon(params[1])} ${params[1]} at ${this.getLocationIcon(params[2])} ${params[2]}`;
-        case 'unload':
-          return `📦 ${params[0]} unloaded from ${this.getVehicleIcon(params[1])} ${params[1]} at ${this.getLocationIcon(params[2])} ${params[2]}`;
-        case 'drive':
-          return `🚚 ${params[0]} drives from ${this.getLocationIcon(params[1])} ${params[1]} to ${this.getLocationIcon(params[2])} ${params[2]}`;
-        case 'fly':
-          return `✈️ ${params[0]} flies from ${this.getLocationIcon(params[1])} ${params[1]} to ${this.getLocationIcon(params[2])} ${params[2]}`;
-        case 'move':
-          return `${this.getVehicleIcon(params[0])} ${params[0]} moves from ${this.getLocationIcon(params[1])} ${params[1]} to ${this.getLocationIcon(params[2])} ${params[2]}`;
-        default:
-          return `${type} ${params.join(' ')}`;
-      }
+      ...simulator,
+      getParticleStyle
     }
   }
 }
 </script>
 
-<style scoped>
-.logistics-simulator {
-  padding: 20px;
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-  border-radius: 15px;
-  color: white;
-  font-family: Arial, sans-serif;
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  padding: 15px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-}
-
-.controls {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.btn {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.btn:hover {
-  background: rgba(255, 255, 255, 0.3);
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.slider {
-  width: 80px;
-  margin: 0 10px;
-}
-
-.debug {
-  background: rgba(0, 0, 0, 0.3);
-  padding: 10px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  font-size: 14px;
-}
-
-.no-plan {
-  text-align: center;
-  padding: 40px 20px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-  margin: 20px 0;
-}
-
-.no-plan h4 {
-  margin: 0 0 10px 0;
-  color: #81c784;
-}
-
-.no-plan p {
-  margin: 0;
-  opacity: 0.8;
-}
-
-.world-map {
-  position: relative;
-  width: 100%;
-  height: 500px;
-  background: linear-gradient(180deg, #87ceeb 0%, #98fb98 100%);
-  border-radius: 10px;
-  border: 3px solid #20b2aa;
-  margin-bottom: 20px;
-  overflow: hidden;
-}
-
-.location {
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  transform: translate(-50%, -50%);
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
-
-.location.active {
-  animation: pulse 2s infinite;
-}
-
-.location-icon {
-  font-size: 32px;
-  margin-bottom: 5px;
-  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
-}
-
-.location-name {
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: bold;
-  text-align: center;
-  min-width: 60px;
-}
-
-.packages-here {
-  display: flex;
-  gap: 5px;
-  margin-top: 8px;
-  flex-wrap: wrap;
-  max-width: 120px;
-  justify-content: center;
-}
-
-.package {
-  background: rgba(255, 152, 0, 0.8);
-  padding: 4px 8px;
-  border-radius: 10px;
-  font-size: 10px;
-  color: white;
-  text-align: center;
-  transition: all 0.3s ease;
-}
-
-.package.loading {
-  background: rgba(244, 67, 54, 0.8);
-  animation: bounce 1s infinite;
-}
-
-.package-icon {
-  font-size: 12px;
-}
-
-.package-name {
-  font-weight: bold;
-}
-
-.package-dest {
-  font-size: 8px;
-  opacity: 0.8;
-}
-
-.package-count {
-  position: absolute;
-  top: -10px;
-  right: -10px;
-  background: rgba(244, 67, 54, 0.9);
-  color: white;
-  border-radius: 10px;
-  padding: 2px 6px;
-  font-size: 10px;
-  font-weight: bold;
-}
-
-.vehicle {
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  transform: translate(-50%, -50%);
-  z-index: 10;
-}
-
-.vehicle.moving {
-  animation: vehicleMove 1s ease-in-out infinite;
-}
-
-.vehicle.loading {
-  animation: vehicleLoading 1s ease-in-out infinite;
-}
-
-.vehicle-icon {
-  font-size: 28px;
-  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
-}
-
-.vehicle-name {
-  background: rgba(33, 150, 243, 0.9);
-  color: white;
-  padding: 2px 6px;
-  border-radius: 8px;
-  font-size: 10px;
-  font-weight: bold;
-  text-align: center;
-  margin-top: 3px;
-}
-
-.cargo {
-  display: flex;
-  gap: 2px;
-  margin-top: 3px;
-}
-
-.cargo-item {
-  font-size: 12px;
-}
-
-.cargo-count {
-  position: absolute;
-  top: -8px;
-  right: -8px;
-  background: rgba(76, 175, 80, 0.9);
-  color: white;
-  border-radius: 8px;
-  padding: 1px 4px;
-  font-size: 8px;
-  font-weight: bold;
-}
-
-.route-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 5;
-}
-
-.route-line {
-  stroke: #ff4081;
-  stroke-width: 3;
-  stroke-dasharray: 10, 5;
-  animation: dashMove 2s linear infinite;
-}
-
-.route-start {
-  fill: #4caf50;
-  animation: pulse 1s infinite;
-}
-
-.route-end {
-  fill: #f44336;
-  animation: pulse 1s infinite;
-}
-
-.loading-animation {
-  position: absolute;
-  background: rgba(255, 193, 7, 0.9);
-  padding: 8px 12px;
-  border-radius: 15px;
-  color: white;
-  font-weight: bold;
-  transform: translate(-50%, -50%);
-  animation: loadingBounce 1s ease-in-out infinite;
-  z-index: 15;
-}
-
-.loading-package {
-  font-size: 14px;
-}
-
-.loading-arrow {
-  font-size: 16px;
-  text-align: center;
-  margin-top: 4px;
-}
-
-.timeline {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-  padding: 15px;
-  margin-bottom: 20px;
-  max-height: 200px;
-  overflow-y: auto;
-}
-
-.timeline h4 {
-  margin: 0 0 15px 0;
-}
-
-.actions {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.action {
-  display: flex;
-  gap: 15px;
-  padding: 8px 12px;
-  border-radius: 6px;
-  transition: all 0.3s ease;
-}
-
-.action.completed {
-  background: rgba(76, 175, 80, 0.3);
-}
-
-.action.current {
-  background: rgba(255, 193, 7, 0.3);
-  animation: pulse 2s infinite;
-}
-
-.time {
-  font-weight: bold;
-  min-width: 60px;
-  color: #81c784;
-}
-
-.desc {
-  flex: 1;
-  font-size: 14px;
-}
-
-.stats {
-  display: flex;
-  gap: 20px;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.stat {
-  background: rgba(255, 255, 255, 0.1);
-  padding: 10px 20px;
-  border-radius: 10px;
-  text-align: center;
-}
-
-.label {
-  display: block;
-  font-size: 12px;
-  opacity: 0.8;
-  margin-bottom: 5px;
-}
-
-.value {
-  font-size: 18px;
-  font-weight: bold;
-  color: #81c784;
-}
-
-@keyframes bounce {
-  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-  40% { transform: translateY(-5px); }
-  60% { transform: translateY(-3px); }
-}
-
-@keyframes pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
-}
-
-@keyframes vehicleMove {
-  0% { transform: translate(-50%, -50%) rotate(-1deg); }
-  50% { transform: translate(-50%, -50%) rotate(1deg); }
-  100% { transform: translate(-50%, -50%) rotate(-1deg); }
-}
-
-@keyframes vehicleLoading {
-  0%, 100% { transform: translate(-50%, -50%) scale(1); }
-  50% { transform: translate(-50%, -50%) scale(1.1); }
-}
-
-@keyframes dashMove {
-  0% { stroke-dashoffset: 0; }
-  100% { stroke-dashoffset: 30; }
-}
-
-@keyframes loadingBounce {
-  0%, 100% { transform: translate(-50%, -50%) translateY(0px); }
-  50% { transform: translate(-50%, -50%) translateY(-10px); }
-}
-</style>
+<style src="./LogisticsSimulator.css" scoped></style>

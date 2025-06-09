@@ -52,15 +52,22 @@ export default {
   },
   computed: {
     elevatorPosition() {
+      if (!this.floors.length) return 20;
       const floorIndex = this.floors.indexOf(this.currentFloor);
-      return floorIndex * 150 + 20;
+      if (floorIndex === -1) return 20;
+      // Position from bottom up (reverse the index)
+      const positionFromBottom = (this.floors.length - 1 - floorIndex) * 150 + 20;
+      return positionFromBottom;
     },
     
     movingPassengerStyle() {
-      if (!this.movingPassenger) return {};
+      if (!this.movingPassenger || !this.floors.length) return {};
       
       const floorIndex = this.floors.indexOf(this.movingPassenger.currentLocation);
-      const baseY = floorIndex * 150 + 50;
+      if (floorIndex === -1) return {};
+      
+      // Calculate position from bottom up (reverse the index)
+      const baseY = (this.floors.length - 1 - floorIndex) * 150 + 50;
       
       if (this.movingPassenger.state === 'boarding') {
         return {
@@ -82,18 +89,49 @@ export default {
     }
   },
   watch: {
-    actions: { handler: 'initialize', immediate: true },
-    entities: { handler: 'initialize', immediate: true }
+    actions: { 
+      handler: 'initialize', 
+      immediate: true,
+      deep: true 
+    },
+    entities: { 
+      handler: 'initialize', 
+      immediate: true,
+      deep: true 
+    }
   },
   mounted() {
     // Start particle animation
     this.particleTimer = setInterval(this.updateParticles, 50);
+    
+    // Force initialization if not already done
+    this.$nextTick(() => {
+      if (this.floors.length === 0) {
+        this.initialize();
+      }
+    });
   },
   beforeUnmount() {
     if (this.timer) clearInterval(this.timer);
     if (this.particleTimer) clearInterval(this.particleTimer);
   },
   methods: {
+    // Helper method to safely parse parameters
+    parseActionParams(action) {
+      if (action.params && Array.isArray(action.params)) {
+        return action.params;
+      }
+      if (action.parameters) {
+        if (typeof action.parameters === 'string') {
+          return action.parameters.split(' ').filter(p => p.trim());
+        }
+        if (Array.isArray(action.parameters)) {
+          return action.parameters;
+        }
+      }
+      return [];
+    },
+
     // Particle System
     generateParticles(type, count = 10) {
       const newParticles = [];
@@ -146,9 +184,23 @@ export default {
     },
 
     initialize() {
-      if (!this.actions.length) return;
-      
       console.log('Initializing elevator simulator...');
+      
+      // Reset all arrays first
+      this.floors = [];
+      this.elevators = [];
+      this.passengerList = [];
+      this.passengers = [];
+      
+      // If no actions, provide defaults
+      if (!this.actions || !this.actions.length) {
+        this.floors = ['Floor1', 'Floor2', 'Floor3'];
+        this.elevators = ['elevator1'];
+        this.passengerList = [];
+        this.passengers = [];
+        console.log('No actions provided, using defaults');
+        return;
+      }
       
       // Extract entities from actions
       this.extractEntities();
@@ -171,7 +223,8 @@ export default {
       console.log('Initialization complete:', {
         floors: this.floors,
         elevators: this.elevators,
-        passengers: this.passengers.length
+        passengers: this.passengers.length,
+        passengerList: this.passengerList
       });
     },
     
@@ -183,7 +236,7 @@ export default {
       // Extract from actions
       this.actions.forEach(action => {
         const type = action.type || action.name || '';
-        const params = action.params || (action.parameters ? action.parameters.split(' ') : []);
+        const params = this.parseActionParams(action);
         
         switch (type) {
           case 'move-up':
@@ -238,7 +291,7 @@ export default {
         // Find where they unload
         const unloadAction = this.actions.find(a => {
           const type = a.type || a.name || '';
-          const params = a.params || (a.parameters ? a.parameters.split(' ') : []);
+          const params = this.parseActionParams(a);
           return type === 'unload' && params[0] === name;
         });
         
@@ -313,7 +366,7 @@ export default {
       
       const action = this.actions[this.currentStep];
       const type = action.type || action.name || '';
-      const params = action.params || (action.parameters ? action.parameters.split(' ') : []);
+      const params = this.parseActionParams(action);
       
       console.log(`Executing: ${type} [${params.join(', ')}]`);
       
@@ -459,7 +512,7 @@ export default {
     
     getActionDesc(action) {
       const type = action.type || action.name || '';
-      const params = action.params || (action.parameters ? action.parameters.split(' ') : []);
+      const params = this.parseActionParams(action);
       
       switch (type) {
         case 'move-up':
