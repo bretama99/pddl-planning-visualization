@@ -1,14 +1,14 @@
 <template>
   <div class="pddl-visualizer">
     <!-- Floating Background Elements -->
-    <div class="floating-background">
-      <div class="floating-shape" style="--delay: 0s; --duration: 15s; --x: 10%; --y: 20%;">🤖</div>
-      <div class="floating-shape" style="--delay: 3s; --duration: 18s; --x: 80%; --y: 10%;">🛗</div>
-      <div class="floating-shape" style="--delay: 6s; --duration: 12s; --x: 70%; --y: 70%;">🚚</div>
-      <div class="floating-shape" style="--delay: 9s; --duration: 20s; --x: 20%; --y: 80%;">⚙️</div>
-      <div class="floating-shape" style="--delay: 12s; --duration: 16s; --x: 50%; --y: 30%;">📁</div>
-      <div class="floating-shape" style="--delay: 15s; --duration: 14s; --x: 90%; --y: 60%;">✨</div>
-    </div>
+ <div class="floating-background">
+  <div class="floating-shape">🤖</div>
+  <div class="floating-shape">🛗</div>
+  <div class="floating-shape">🚚</div>
+  <div class="floating-shape">⚙️</div>
+  <div class="floating-shape">📁</div>
+  <div class="floating-shape">✨</div>
+</div>
 
     <!-- Particle System -->
     <div class="particles-container">
@@ -41,44 +41,44 @@
     </transition>
 
     <!-- Header with Navigation -->
-    <div class="header">
-      <div class="header-content">
-        <h1 class="main-title">
-          <span class="title-icon">🤖</span>
-          <span class="title-text">PDDL Visualizer</span>
-          <div class="title-glow"></div>
-        </h1>
-        <nav class="navigation">
-          <button 
-            @click="navigateToRobot" 
-            :class="{ active: selectedDomain === 'robot' }"
-            class="nav-btn robot-btn"
-          >
-            <span class="btn-icon">🤖</span>
-            <span>Robot</span>
-            <div class="btn-glow"></div>
-          </button>
-          <button 
-            @click="selectDomain('elevator')" 
-            :class="{ active: selectedDomain === 'elevator' }"
-            class="nav-btn elevator-btn"
-          >
-            <span class="btn-icon">🛗</span>
-            <span>Elevator</span>
-            <div class="btn-glow"></div>
-          </button>
-          <button 
-            @click="navigateToLogistics" 
-            :class="{ active: selectedDomain === 'logistics' }"
-            class="nav-btn logistics-btn"
-          >
-            <span class="btn-icon">🚚</span>
-            <span>Logistics</span>
-            <div class="btn-glow"></div>
-          </button>
-        </nav>
-      </div>
-    </div>
+  <div class="header">
+  <div class="header-content">
+    <h1 class="main-title">
+      <span class="title-icon">🤖</span>
+      <span class="title-text">PDDL Visualizer</span>
+      <div class="title-glow"></div>
+    </h1>
+    <nav class="navigation">
+      <button 
+        @click="navigateToRobot" 
+        :class="{ active: selectedDomain === 'robot' }"
+        class="nav-btn robot-btn"
+      >
+        <span class="btn-icon">🤖</span>
+        <span>Robot</span>
+        <div class="btn-glow"></div>
+      </button>
+      <button 
+        @click="selectDomain('elevator')" 
+        :class="{ active: selectedDomain === 'elevator' }"
+        class="nav-btn elevator-btn"
+      >
+        <span class="btn-icon">🛗</span>
+        <span>Elevator</span>
+        <div class="btn-glow"></div>
+      </button>
+      <button 
+        @click="navigateToLogistics" 
+        :class="{ active: selectedDomain === 'logistics' }"
+        class="nav-btn logistics-btn"
+      >
+        <span class="btn-icon">🚚</span>
+        <span>Logistics</span>
+        <div class="btn-glow"></div>
+      </button>
+    </nav>
+  </div>
+</div>
 
     <div class="main-content">
       <!-- Compact Sidebar -->
@@ -245,7 +245,7 @@
                   </div>
                 </div>
               </div>
-
+<!--show all domain-->
               <div class="domain-showcase">
                 <div class="showcase-title">Choose Your Domain:</div>
                 <div class="domain-cards">
@@ -268,13 +268,7 @@
             </div>
           </div>
 
-          <div v-else class="simulation-container">
-            <!-- Robot Domain -->
-            <RobotSimulator 
-              v-if="selectedDomain === 'robot'"
-              :actions="parsedActions" 
-              :entities="parsedEntities" 
-            />
+        
             
             <!-- Elevator Domain -->
    <ElevatorSimulator 
@@ -291,14 +285,7 @@
     :entities="parsedEntities"
     :pddl-type="selectedPDDLType"
   />
-            
-            <!-- Logistics Domain -->
-            <LogisticsSimulator 
-              v-else-if="selectedDomain === 'logistics'"
-              :actions="parsedActions" 
-              :entities="parsedEntities"
-            />
-          </div>
+         
         </transition>
       </div>
     </div>
@@ -306,20 +293,16 @@
 </template>
 
 <script>
-// Complete Home.vue JavaScript section with BULLETPROOF safety fixes
+// Home.vue JavaScript
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { parsePlanFile, calculateTotalDuration } from '@/utils/enhancedPDDLParser.js'
-import RobotSimulator from '@/components/visualization/RobotSimulator.vue'
 import ElevatorSimulator from '@/components/visualization/ElevatorSimulator.vue'
 import ElevatorSimulatorPDDL from '@/components/visualization/ElevatorSimulatorPDDL+.vue'
-import LogisticsSimulator from '@/components/visualization/LogisticsSimulator.vue'
 
 export default {
-  name: 'PDDLVisualizer',
+  name: 'PDDLVisualization',
   components: { 
-    RobotSimulator,
     ElevatorSimulator, 
-    LogisticsSimulator,
     ElevatorSimulatorPDDL
   },
   setup() {
