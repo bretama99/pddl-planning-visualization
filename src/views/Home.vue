@@ -20,7 +20,7 @@
         :style="getParticleStyle(particle)"
       />
     </div>
-    <!-- Success/Error Toast Animations -->
+    <!-- Success/Error Toast Animations and animations-->
     <transition name="toast-slide">
       <div v-if="error" class="error-toast" @click="error = ''">
         <div class="toast-icon">⚠️</div>
@@ -29,7 +29,7 @@
         <div class="toast-progress"></div>
       </div>
     </transition>
-
+<!-- show success message -->
     <transition name="toast-slide">
       <div v-if="successMessage" class="success-toast" @click="successMessage = ''">
         <div class="toast-icon">✅</div>
