@@ -1,14 +1,14 @@
 domain parsed
 problem parsed
 grounding..
-grounding time: 44
+grounding time: 45
 aibr preprocessing
 |f|:85
 |x|:0
 |a|:195
 |p|:0
 |e|:0
-h1 setup time (msec): 15
+h1 setup time (msec): 14
  g(n)= 1.0 h(n)=48.0
  g(n)= 2.0 h(n)=46.0
  g(n)= 3.0 h(n)=45.0
@@ -115,9 +115,9 @@ found plan:
 
 plan-length:55
 metric (search):55.0
-planning time (msec): 186
-heuristic time (msec): 142
-search time (msec): 179
+planning time (msec): 146
+heuristic time (msec): 113
+search time (msec): 142
 expanded nodes:84
 states evaluated:874
 number of dead-ends detected:176

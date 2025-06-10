@@ -55,4 +55,5 @@
       (at pacco4 fiumicino)
     )
   )
+  (:metric minimize total-time)
 )

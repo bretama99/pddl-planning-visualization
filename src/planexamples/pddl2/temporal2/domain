@@ -1,4 +1,3 @@
-pasquale@MSI:~/cs/is/lpg/LPG-td-1.4$ cat dom2.pddl
 (define (domain logistics)
   (:requirements :strips :typing :fluents :durative-actions)
   (:types

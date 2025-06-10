@@ -2,7 +2,7 @@
 ;;
 
 (define (domain logistics)
-  (:requirements :strips :typing :fluents)
+  (:requirements :strips :typing :fluents :durative-actions)
   (:types
     truck - vehicle
     package vehicle - physobj

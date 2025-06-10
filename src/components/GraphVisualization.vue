@@ -379,6 +379,14 @@ export default {
               -constants.TRUCK_SIZE / 2
             );
           }
+          if (truck.hasCapacity()) {
+            this.drawCapacityBar(
+              truckGroup,
+              truck,
+              0,
+              -constants.TRUCK_SIZE / 2
+            );
+          }
 
           // Aggiorna posizione
           this.positions.vehicles[truck.id] = {
@@ -420,6 +428,16 @@ export default {
             .attr("text-anchor", "middle")
             .attr("font-size", constants.TRUCK_LABEL_FONT_SIZE)
             .text(airplane.name);
+
+                    if (airplane.hasCapacity()) {
+            this.drawCapacityBar(
+              airplaneGroup,
+              airplane,
+              0,
+              -constants.TRUCK_SIZE / 2
+            );
+          }
+
 
           // Aggiorna posizione
           this.positions.vehicles[airplane.id] = {
@@ -753,6 +771,16 @@ export default {
       );
 
       await this.loadPackageToVehicle(packageName, vehicleName);
+      const vehicleObj = Object.values(this.vehicles).find(
+        (v) => v.name === vehicleName
+      );
+      if (vehicleObj && vehicleObj.hasCapacity()) {
+        this.updateCapacityBar(
+          vehicleName,
+          vehicleObj.packages.length,
+          vehicleObj.capacity
+        );
+      }
 
       console.log(
         `✅ Caricamento completato: Package ${packageName} caricato su Vehicle ${vehicleName}`
@@ -769,6 +797,16 @@ export default {
       );
 
       await this.unloadPackageFromVehicle(packageName, truckName);
+      const vehicleObj = Object.values(this.vehicles).find(
+        (v) => v.name === truckName
+      );
+      if (vehicleObj && vehicleObj.hasCapacity()) {
+        this.updateCapacityBar(
+          truckName,
+          vehicleObj.packages.length,
+          vehicleObj.capacity
+        );
+      }
 
       console.log(
         `✅ Scaricamento completato: Package ${packageName} scaricato da truck ${truckName} in ${placeName}`
@@ -1412,6 +1450,121 @@ export default {
           this.updateGasolineBar(truckObj.name, truckObj.gasoline);
           currentStep++;
         }, intervalMs);
+      });
+    },
+    drawCapacityBar(truckGroup, truck, offsetX, offsetY) {
+      if (!truck.hasCapacity()) return;
+
+      const barY = offsetY + constants.IMAGE_SIZES.TRUCK_SIZE; // Posiziona sotto l'immagine del truck
+
+      // Contenitore della barra capacità
+      const capacityBarGroup = truckGroup
+        .append("g")
+        .attr("class", "capacity-bar-group")
+        .attr("transform", `translate(${offsetX}, ${barY})`);
+
+      // Sfondo della barra
+      capacityBarGroup
+        .append("rect")
+        .attr("class", "capacity-bar-background")
+        .attr("x", 0)
+        .attr("y", 0)
+        .attr("width", constants.CAPACITY_BAR.WIDTH)
+        .attr("height", constants.CAPACITY_BAR.HEIGHT)
+        .attr("fill", constants.CAPACITY_BAR.BACKGROUND_COLOR)
+        .attr("stroke", constants.CAPACITY_BAR.BORDER_COLOR)
+        .attr("stroke-width", 1);
+
+      // Riempimento della barra (segmenti discreti)
+      const packagesCount = truck.packages.length;
+      const capacity = truck.capacity;
+
+      this.drawCapacitySegments(capacityBarGroup, packagesCount, capacity);
+
+      // Testo con i numeri
+      capacityBarGroup
+        .append("text")
+        .attr("class", "capacity-text")
+        .attr("x", constants.CAPACITY_BAR.WIDTH + 5)
+        .attr("y", constants.CAPACITY_BAR.HEIGHT / 2)
+        .attr("dy", "0.35em")
+        .attr("font-size", constants.CAPACITY_BAR.FONT_SIZE)
+        .attr("fill", constants.CAPACITY_BAR.TEXT_COLOR)
+        .text(`${packagesCount}/${capacity}`);
+    },
+    drawCapacitySegments(capacityBarGroup, packagesCount, capacity) {
+      // Rimuovi segmenti esistenti
+      capacityBarGroup.selectAll(".capacity-segment").remove();
+
+      if (capacity === 0) return;
+
+      const segmentWidth =
+        (constants.CAPACITY_BAR.WIDTH - (capacity - 1)) / capacity; // Sottrai spazio per i separatori
+
+      for (let i = 0; i < capacity; i++) {
+        const segmentX = i * (segmentWidth + 1); // +1 per il separatore
+        const isFilled = i < packagesCount;
+
+        capacityBarGroup
+          .append("rect")
+          .attr("class", "capacity-segment")
+          .attr("x", segmentX)
+          .attr("y", 1) // Piccolo offset dal bordo
+          .attr("width", segmentWidth)
+          .attr("height", constants.CAPACITY_BAR.HEIGHT - 2) // Piccolo offset dal bordo
+          .attr(
+            "fill",
+            isFilled
+              ? constants.CAPACITY_BAR.FILL_COLOR
+              : constants.CAPACITY_BAR.EMPTY_COLOR
+          )
+          .attr("opacity", isFilled ? 1 : 0.3);
+      }
+    },
+    updateCapacityBar(truckName, packagesCount, capacity) {
+      const svg = d3.select(this.$refs.svg);
+      const truck = Object.values(this.vehicles).find(
+        (v) => v.name === truckName
+      );
+      const subtype = truck.subtype;
+      const truckGroup = svg.select(`#${subtype}-${truckName}`);
+
+      if (truckGroup.empty()) return;
+
+      const capacityBarGroup = truckGroup.select(".capacity-bar-group");
+      if (capacityBarGroup.empty()) return;
+
+      // Ridisegna i segmenti con animazione
+      this.animateCapacitySegments(capacityBarGroup, packagesCount, capacity);
+
+      // Aggiorna il testo
+      capacityBarGroup
+        .select(".capacity-text")
+        .transition()
+        .duration(300)
+        .text(`${packagesCount}/${capacity}`);
+    },
+    animateCapacitySegments(capacityBarGroup, packagesCount, capacity) {
+      const segmentWidth =
+        (constants.CAPACITY_BAR.WIDTH - (capacity - 1)) / capacity;
+
+      // Seleziona tutti i segmenti esistenti
+      const segments = capacityBarGroup.selectAll(".capacity-segment");
+
+      segments.each(function (d, i) {
+        const segment = d3.select(this);
+        const isFilled = i < packagesCount;
+
+        segment
+          .transition()
+          .duration(300)
+          .attr(
+            "fill",
+            isFilled
+              ? constants.CAPACITY_BAR.FILL_COLOR
+              : constants.CAPACITY_BAR.EMPTY_COLOR
+          )
+          .attr("opacity", isFilled ? 1 : 0.3);
       });
     },
     drawGasolineBar(truckGroup, truck, x, y) {
