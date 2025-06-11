@@ -1,5 +1,6 @@
-// Enhanced Elevator Domain Parser with Advanced Features
-// File: src/utils/enhancedElevatorParser.js
+// File: src/utils/elevator/elevatorParser.js
+// Enhanced Elevator Domain Parser - Advanced Features
+// Handles all PDDL types: classical, temporal, numerical, pddl+
 
 export function parseElevatorDomain(rawContent, pddlType = 'classical') {
   console.log('🛗 Enhanced Elevator Domain Parser started...', { pddlType, contentLength: rawContent.length });
@@ -13,7 +14,7 @@ export function parseElevatorDomain(rawContent, pddlType = 'classical') {
         passengers: [],
         floors: [],
         locations: [],
-        // Enhanced entities
+        // Enhanced elevator-specific entities
         elevatorSpecs: {},
         passengerProfiles: {},
         floorInformation: {}
@@ -22,7 +23,7 @@ export function parseElevatorDomain(rawContent, pddlType = 'classical') {
       pddlType: pddlType,
       domain: 'elevator',
       error: null,
-      // Advanced features
+      // Advanced elevator features
       multiElevatorSupport: false,
       capacityManagement: true,
       smartScheduling: true,
@@ -30,7 +31,6 @@ export function parseElevatorDomain(rawContent, pddlType = 'classical') {
     };
 
     let inPlanSection = false;
-    // let elevatorCount = 0;
     let maxCapacityDetected = 1000; // Default capacity in kg
 
     // Enhanced parsing with multi-elevator support
@@ -115,7 +115,7 @@ function parseAdvancedElevatorAction(line, pddlType) {
     if (actionMatch) {
       const [, timeStr, actionStr, costStr, weightStr] = actionMatch;
       const action = createAdvancedElevatorAction(parseFloat(timeStr), actionStr, null, pddlType);
-      action.cost = parseFloat(costStr) || getDefaultActionCost(action.type);
+      action.cost = parseFloat(costStr) || getDefaultElevatorActionCost(action.type);
       action.weight = parseFloat(weightStr) || 0;
       return action;
     }
@@ -151,13 +151,13 @@ function createAdvancedElevatorAction(time, actionStr, duration = null, pddlType
     description: actionStr,
     originalLine: `${time}: (${actionStr})`,
     
-    // Enhanced properties
+    // Enhanced elevator properties
     elevatorId: extractElevatorId(actionType, params),
     passengerId: extractPassengerId(actionType, params),
     weight: extractPassengerWeight(actionType, params),
-    priority: calculateActionPriority(actionType, params),
-    energyCost: calculateEnergyCost(actionType, params),
-    safetyLevel: assessSafetyLevel(actionType, params)
+    priority: calculateElevatorActionPriority(actionType, params),
+    energyCost: calculateElevatorEnergyCost(actionType, params),
+    safetyLevel: assessElevatorSafetyLevel(actionType, params)
   };
   
   return action;
@@ -180,17 +180,15 @@ function calculateRealisticElevatorDuration(actionType, pddlType, params) {
   // Adjust for PDDL type characteristics
   switch (pddlType) {
     case 'temporal':
-      // Temporal PDDL - use exact durations
       return baseDuration;
       
     case 'numerical': {
-      // Scale based on resource consumption
       const elevatorId = extractElevatorId(actionType, params);
       const capacity = getElevatorCapacity(elevatorId);
-      return baseDuration * (1 + capacity / 2000); // Scale with capacity
+      return baseDuration * (1 + capacity / 2000);
     }
+      
     case 'pddl_plus':
-      // PDDL+ may have continuous processes
       if (actionType.includes('move')) {
         return baseDuration * 1.3; // Continuous movement takes longer
       }
@@ -202,19 +200,16 @@ function calculateRealisticElevatorDuration(actionType, pddlType, params) {
 }
 
 function extractElevatorId(actionType, params) {
-  // Look for elevator ID in parameters
   for (const param of params) {
     if (param.includes('elevator') || param.includes('lift')) {
       return param;
     }
   }
   
-  // Default elevator for movement actions
   if (actionType === 'move-up' || actionType === 'move-down') {
     return params[0] || 'elevator1';
   }
   
-  // For load/unload, elevator is usually second parameter
   if (actionType === 'load' || actionType === 'unload') {
     return params[1] || 'elevator1';
   }
@@ -230,7 +225,6 @@ function extractPassengerId(actionType, params) {
 }
 
 function extractPassengerWeight(actionType, params) {
-  // Try to extract weight from parameter names
   for (const param of params) {
     if (param.includes('kg') || param.includes('weight')) {
       const weight = parseInt(param.match(/\d+/)?.[0]);
@@ -238,7 +232,6 @@ function extractPassengerWeight(actionType, params) {
     }
   }
   
-  // Generate realistic weight for passengers
   if (actionType === 'load' || actionType === 'unload') {
     return generateRealisticPassengerWeight();
   }
@@ -247,15 +240,13 @@ function extractPassengerWeight(actionType, params) {
 }
 
 function generateRealisticPassengerWeight() {
-  // Generate weight between 45-120 kg with normal distribution
   const mean = 75;
   const stdDev = 15;
-  let weight = mean + stdDev * (Math.random() + Math.random() - 1); // Approximate normal distribution
+  let weight = mean + stdDev * (Math.random() + Math.random() - 1);
   return Math.max(45, Math.min(120, Math.round(weight)));
 }
 
-function calculateActionPriority(actionType) {
-  // Higher priority for safety and passenger actions
+function calculateElevatorActionPriority(actionType) {
   switch (actionType) {
     case 'emergency-stop':
       return 10;
@@ -271,25 +262,23 @@ function calculateActionPriority(actionType) {
   }
 }
 
-function calculateEnergyCost(actionType) {
-  // Energy consumption in kWh
+function calculateElevatorEnergyCost(actionType) {
   switch (actionType) {
     case 'move-up':
-      return 0.05; // More energy going up
+      return 0.05;
     case 'move-down':
-      return 0.02; // Less energy going down (regenerative)
+      return 0.02;
     case 'load':
     case 'unload':
-      return 0.01; // Door operations
+      return 0.01;
     case 'emergency-stop':
-      return 0.03; // Emergency braking
+      return 0.03;
     default:
       return 0.01;
   }
 }
 
-function assessSafetyLevel(actionType) {
-  // Safety assessment (1-10, 10 being safest)
+function assessElevatorSafetyLevel(actionType) {
   switch (actionType) {
     case 'emergency-stop':
       return 10;
@@ -305,14 +294,13 @@ function assessSafetyLevel(actionType) {
 }
 
 function getElevatorCapacity(elevatorId) {
-  // Default capacities by elevator type
   if (elevatorId.includes('freight')) return 2000;
   if (elevatorId.includes('passenger')) return 1000;
   if (elevatorId.includes('service')) return 800;
-  return 1000; // Standard passenger elevator
+  return 1000;
 }
 
-function getDefaultActionCost(actionType) {
+function getDefaultElevatorActionCost(actionType) {
   switch (actionType) {
     case 'move-up': return 3;
     case 'move-down': return 2;
@@ -324,7 +312,7 @@ function getDefaultActionCost(actionType) {
 }
 
 function extractAdvancedElevatorEntities(action, entities) {
-  const { type, elevatorId, passengerId, weight } = action;
+  const { elevatorId, passengerId, weight } = action;
   
   // Extract elevators with specifications
   if (elevatorId && !entities.elevators.find(e => e.id === elevatorId)) {
@@ -349,19 +337,6 @@ function extractAdvancedElevatorEntities(action, entities) {
       vipStatus: Math.random() > 0.95
     });
   }
-  
-  // Track floor usage
-  switch (type) {
-    case 'move-up':
-    case 'move-down':
-      // Floors will be calculated in post-processing
-      break;
-      
-    case 'load':
-    case 'unload':
-      // Track passenger boarding/exiting floors
-      break;
-  }
 }
 
 function determineElevatorType(elevatorId) {
@@ -373,14 +348,13 @@ function determineElevatorType(elevatorId) {
 
 function getMaxPassengers(elevatorId) {
   const capacity = getElevatorCapacity(elevatorId);
-  // Assume average passenger weight of 75kg
   return Math.floor(capacity / 75);
 }
 
 function getElevatorSpeed(elevatorId) {
   const type = determineElevatorType(elevatorId);
   switch (type) {
-    case 'express': return 3.5; // m/s
+    case 'express': return 3.5;
     case 'freight': return 1.5;
     case 'service': return 2.0;
     default: return 2.5;
@@ -394,7 +368,7 @@ function generateMobilityProfile() {
 
 function generatePassengerPriority() {
   const priorities = ['low', 'normal', 'high', 'urgent'];
-  const weights = [0.3, 0.5, 0.15, 0.05]; // Most passengers are normal priority
+  const weights = [0.3, 0.5, 0.15, 0.05];
   
   const random = Math.random();
   let cumulative = 0;
@@ -455,48 +429,13 @@ function postProcessAdvancedElevator(result, pddlType, maxCapacity) {
     
     result.entities.floorInformation[floorName] = {
       level: i,
-      height: i * 3.5, // 3.5m per floor
+      height: i * 3.5,
       type: determineFloorType(i, floorCount),
-      capacity: 100, // people
+      capacity: 100,
       emergencyExit: i === 0 || i === floorCount - 1,
-      accessibility: Math.random() > 0.2 // 80% of floors are accessible
+      accessibility: Math.random() > 0.2
     };
   }
-  
-  // Set elevator specifications based on detected features
-  result.entities.elevatorSpecs = {
-    defaultCapacity: maxCapacity,
-    maxSpeed: 2.5,
-    acceleration: 1.0,
-    doorTiming: {
-      openTime: 2.5,
-      closeTime: 2.0,
-      holdTime: 5.0
-    },
-    safety: {
-      overloadThreshold: maxCapacity * 1.1,
-      emergencyStop: true,
-      fireService: true,
-      seismicSensors: floorCount > 10
-    },
-    smartFeatures: {
-      destinationDispatch: result.entities.elevators.length > 1,
-      predictiveScheduling: true,
-      energyOptimization: pddlType === 'numerical',
-      loadBalancing: result.entities.elevators.length > 1
-    }
-  };
-  
-  // Generate passenger profiles for enhanced simulation
-  result.entities.passengerProfiles = {};
-  result.entities.passengers.forEach(passenger => {
-    result.entities.passengerProfiles[passenger.id] = {
-      ...passenger,
-      behaviorPattern: generateBehaviorPattern(),
-      satisfactionFactors: generateSatisfactionFactors(),
-      journeyHistory: []
-    };
-  });
   
   // Calculate total duration and metrics
   if (result.actions.length > 0) {
@@ -506,7 +445,7 @@ function postProcessAdvancedElevator(result, pddlType, maxCapacity) {
       case 'temporal':
       case 'pddl_plus':
         result.totalDuration = Math.max(...result.actions.map(a => a.end || a.time + a.duration));
-        result.metrics.parallelActions = calculateParallelActions(result.actions);
+        result.metrics.parallelActions = calculateElevatorParallelActions(result.actions);
         break;
         
       case 'numerical':
@@ -519,26 +458,17 @@ function postProcessAdvancedElevator(result, pddlType, maxCapacity) {
         result.totalDuration = lastAction.time || result.actions.length;
     }
     
-    // Advanced metrics
-    result.metrics.safetyScore = calculateSafetyScore(result.actions);
-    result.metrics.efficiencyRating = calculateEfficiencyRating(result.actions, result.entities.elevators.length);
-    result.metrics.passengerSatisfaction = calculatePassengerSatisfaction(result.actions, result.entities.passengers);
-    result.metrics.energyRating = calculateEnergyRating(result.actions, pddlType);
+    // Advanced elevator metrics
+    result.metrics.safetyScore = calculateElevatorSafetyScore(result.actions);
+    result.metrics.efficiencyRating = calculateElevatorEfficiencyRating(result.actions, result.entities.elevators.length);
+    result.metrics.passengerSatisfaction = calculateElevatorPassengerSatisfaction(result.actions, result.entities.passengers);
+    result.metrics.energyRating = calculateElevatorEnergyRating(result.actions, pddlType);
   }
   
   // Set locations for compatibility
   result.entities.locations = [...result.entities.floors];
   
-  console.log('🔧 Advanced elevator post-processing complete:', {
-    floors: result.entities.floors.length,
-    elevators: result.entities.elevators.length,
-    passengers: result.entities.passengers.length,
-    totalDuration: result.totalDuration,
-    multiElevator: result.multiElevatorSupport,
-    smartFeatures: Object.keys(result.entities.elevatorSpecs.smartFeatures).filter(
-      key => result.entities.elevatorSpecs.smartFeatures[key]
-    ).length
-  });
+  console.log('🔧 Advanced elevator post-processing complete');
 }
 
 function determineFloorType(floorIndex, totalFloors) {
@@ -550,22 +480,7 @@ function determineFloorType(floorIndex, totalFloors) {
   return 'middle';
 }
 
-function generateBehaviorPattern() {
-  const patterns = ['patient', 'impatient', 'efficient', 'social', 'quiet'];
-  return patterns[Math.floor(Math.random() * patterns.length)];
-}
-
-function generateSatisfactionFactors() {
-  return {
-    waitTime: Math.random() * 0.4 + 0.3, // 0.3-0.7 weight
-    journeyTime: Math.random() * 0.3 + 0.2, // 0.2-0.5 weight
-    comfort: Math.random() * 0.2 + 0.1, // 0.1-0.3 weight
-    safety: Math.random() * 0.3 + 0.4 // 0.4-0.7 weight
-  };
-}
-
-function calculateParallelActions(actions) {
-  // Find overlapping temporal actions
+function calculateElevatorParallelActions(actions) {
   let maxParallel = 0;
   const timeSlots = {};
   
@@ -581,14 +496,14 @@ function calculateParallelActions(actions) {
   return maxParallel;
 }
 
-function calculateSafetyScore(actions) {
+function calculateElevatorSafetyScore(actions) {
   if (actions.length === 0) return 100;
   
   const totalSafety = actions.reduce((sum, action) => sum + (action.safetyLevel || 5), 0);
   return Math.round((totalSafety / (actions.length * 10)) * 100);
 }
 
-function calculateEfficiencyRating(actions, elevatorCount) {
+function calculateElevatorEfficiencyRating(actions, elevatorCount) {
   if (actions.length === 0) return 100;
   
   const moveActions = actions.filter(a => a.type === 'move-up' || a.type === 'move-down');
@@ -597,11 +512,10 @@ function calculateEfficiencyRating(actions, elevatorCount) {
   if (passengerActions.length === 0) return 50;
   
   const moveToPassengerRatio = moveActions.length / passengerActions.length;
-  const idealRatio = 1.5; // 1.5 moves per passenger action is efficient
+  const idealRatio = 1.5;
   
   let efficiency = 100 - Math.abs(moveToPassengerRatio - idealRatio) * 20;
   
-  // Bonus for multiple elevators
   if (elevatorCount > 1) {
     efficiency += 10;
   }
@@ -609,26 +523,24 @@ function calculateEfficiencyRating(actions, elevatorCount) {
   return Math.max(0, Math.min(100, Math.round(efficiency)));
 }
 
-function calculatePassengerSatisfaction(actions, passengers) {
+function calculateElevatorPassengerSatisfaction(actions, passengers) {
   if (passengers.length === 0) return 100;
   
-  // Base satisfaction - higher for fewer actions per passenger
   const actionsPerPassenger = actions.length / passengers.length;
   let satisfaction = Math.max(60, 100 - actionsPerPassenger * 5);
   
-  // Bonus for load/unload balance
   const loadActions = actions.filter(a => a.type === 'load').length;
   const unloadActions = actions.filter(a => a.type === 'unload').length;
   
   if (loadActions === unloadActions) {
-    satisfaction += 10; // All passengers delivered
+    satisfaction += 10;
   }
   
   return Math.round(satisfaction);
 }
 
-function calculateEnergyRating(actions, pddlType) {
-  if (pddlType !== 'numerical') return 'A'; // No energy data available
+function calculateElevatorEnergyRating(actions, pddlType) {
+  if (pddlType !== 'numerical') return 'A';
   
   const totalEnergy = actions.reduce((sum, a) => sum + (a.energyCost || 0), 0);
   const actionCount = actions.length;
@@ -644,6 +556,7 @@ function calculateEnergyRating(actions, pddlType) {
   return 'D';
 }
 
+// Shared utility function
 function parseStatistics(line, metrics) {
   if (line.includes('plan-length:')) {
     metrics.planLength = parseInt(line.split(':')[1]);
@@ -659,6 +572,3 @@ function parseStatistics(line, metrics) {
     metrics.totalCost = parseFloat(line.split(':')[1]);
   }
 }
-
-// Export the enhanced parser
-export default parseElevatorDomain;

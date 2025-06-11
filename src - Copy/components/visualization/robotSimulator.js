@@ -2,7 +2,7 @@
 // Enhanced Robot Simulator with Smooth Movement Between Rooms
 // File Path: src/components/visualization/robotSimulator.js
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
-import { parseRobotPlanFile, extractEntitiesFromActions } from '@/utils/enhancedRobotParser.js'
+import { parseRobotPlanFile, extractEntitiesFromActions } from '@/utils/robot/enhancedRobotParser.js'
 
 export function createRobotSimulator(props) {
   console.log('🤖 Creating robot simulator with smooth movement:', props)

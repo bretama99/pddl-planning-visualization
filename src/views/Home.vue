@@ -289,9 +289,20 @@
 </template>
 
 <script>
+// Updated PDDLVisualizer.vue script section with integrated debug code
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { parseRobotDomain, parseElevatorDomain, parseLogisticsDomain } from '@/utils/domainParsers.js'
-import { calculateTotalDuration } from '@/utils/pddlTypes.js'
+
+// Updated imports to use the new organized structure
+import { parseRobotDomain } from '@/utils/robot/robotParser.js'
+import { parseElevatorDomain } from '@/utils/elevator/elevatorParser.js'
+import { parseLogisticsDomain } from '@/utils/logistics/logisticsParser.js'
+import { calculateTotalDuration } from '@/utils/common/pddlUtils.js'
+
+// Import domain-specific types
+import { getRobotPDDLTypeConfig } from '@/utils/robot/robotTypes.js'
+import { getElevatorPDDLTypeConfig } from '@/utils/elevator/elevatorTypes.js'
+import { getLogisticsPDDLTypeConfig } from '@/utils/logistics/logisticsTypes.js'
+
 import RobotSimulator from '@/components/visualization/RobotSimulator.vue'
 import ElevatorSimulator from '@/components/visualization/ElevatorSimulator.vue'
 import LogisticsSimulator from '@/components/visualization/LogisticsSimulator.vue'
@@ -344,11 +355,42 @@ export default {
       { title: 'Start Visualization', description: 'Click the start button to begin the interactive simulation' }
     ]
 
-    // Domain-specific parsers mapping
+    // Domain-specific parsers mapping - Updated to use new structure
     const domainParsers = {
       robot: parseRobotDomain,
       elevator: parseElevatorDomain,
       logistics: parseLogisticsDomain
+    }
+
+    // Domain-specific PDDL type config getters
+    const domainPDDLTypeConfigs = {
+      robot: getRobotPDDLTypeConfig,
+      elevator: getElevatorPDDLTypeConfig,
+      logistics: getLogisticsPDDLTypeConfig
+    }
+
+    // Enhanced domain detection function
+    const detectDomainFromContent = (content) => {
+      const contentLower = content.toLowerCase();
+      
+      // Count domain-specific keywords
+      const robotKeywords = ['robot', 'room', 'pick', 'drop', 'move', 'carry'];
+      const elevatorKeywords = ['elevator', 'floor', 'passenger', 'lift', 'board'];
+      const logisticsKeywords = ['truck', 'airplane', 'package', 'load', 'unload', 'drive', 'fly', 'cargo', 'airport', 'city'];
+      
+      const robotScore = robotKeywords.filter(k => contentLower.includes(k)).length;
+      const elevatorScore = elevatorKeywords.filter(k => contentLower.includes(k)).length;
+      const logisticsScore = logisticsKeywords.filter(k => contentLower.includes(k)).length;
+      
+      console.log('🔍 Domain detection scores:', { robotScore, elevatorScore, logisticsScore });
+      
+      if (logisticsScore > robotScore && logisticsScore > elevatorScore) {
+        return 'logistics';
+      } else if (elevatorScore > robotScore) {
+        return 'elevator';
+      } else {
+        return 'robot';
+      }
     }
 
     // Computed
@@ -396,8 +438,10 @@ export default {
         }
       ]
 
-      // Add type-specific metrics
-      if (selectedPDDLType.value === 'temporal' || selectedPDDLType.value === 'pddl_plus') {
+      // Add type-specific metrics using domain-specific configs
+      const typeConfig = domainPDDLTypeConfigs[selectedDomain.value]?.(selectedPDDLType.value);
+      
+      if (typeConfig?.supportsParallel) {
         baseStats.push({
           icon: '🔄',
           label: 'Parallel Actions',
@@ -406,7 +450,7 @@ export default {
         })
       }
 
-      if (selectedPDDLType.value === 'numerical') {
+      if (typeConfig?.supportsCost) {
         baseStats.push({
           icon: '💰',
           label: 'Total Cost',
@@ -557,6 +601,7 @@ export default {
       }
     }
 
+    // Enhanced processFile with auto-detection
     const processFile = (file) => {
       isUploading.value = true
       generateParticles('upload', 25)
@@ -568,8 +613,14 @@ export default {
       reader.onload = (e) => {
         setTimeout(() => {
           fileContent.value = e.target.result
+          
+          // AUTO-DETECT DOMAIN
+          const detectedDomain = detectDomainFromContent(fileContent.value);
+          console.log('🎯 Auto-detected domain:', detectedDomain);
+          selectedDomain.value = detectedDomain;
+          
           isUploading.value = false
-          successMessage.value = `File "${file.name}" loaded successfully!`
+          successMessage.value = `File "${file.name}" loaded successfully! Auto-detected: ${getDomainName(detectedDomain)}`
           generateParticles('success', 30)
           console.log('📁 File loaded:', file.name, 'Size:', fileSize.value)
           
@@ -579,6 +630,7 @@ export default {
       reader.readAsText(file)
     }
 
+    // Enhanced startVisualization with debug logging
     const startVisualization = () => {
       try {
         error.value = ''
@@ -604,10 +656,17 @@ export default {
             return
           }
 
-          console.log('🚀 === STARTING VISUALIZATION ===')
+          console.log('🚀 === STARTING VISUALIZATION (DEBUG) ===')
           console.log('🎯 Domain:', selectedDomain.value)
           console.log('📋 PDDL Type:', selectedPDDLType.value)
           console.log('📄 File content length:', fileContent.value.length)
+          console.log('📄 First 500 chars:', fileContent.value.substring(0, 500))
+
+          // Check if content contains logistics keywords
+          const logisticsKeywords = ['load', 'unload', 'drive', 'fly', 'truck', 'airplane', 'package'];
+          const foundKeywords = logisticsKeywords.filter(keyword => 
+            fileContent.value.toLowerCase().includes(keyword));
+          console.log('🔍 Found logistics keywords:', foundKeywords);
 
           // Route to domain-specific parser
           const parser = domainParsers[selectedDomain.value]
@@ -618,7 +677,14 @@ export default {
           }
 
           console.log(`🔧 Using ${selectedDomain.value} domain parser...`)
+          
+          // Parse and log results
           const parseResult = parser(fileContent.value, selectedPDDLType.value)
+          
+          console.log('📊 Parse result:', parseResult)
+          console.log('📊 Actions found:', parseResult.actions?.length || 0)
+          console.log('📊 Entities:', parseResult.entities)
+          console.log('📊 Error:', parseResult.error)
           
           if (parseResult.error) {
             error.value = parseResult.error
@@ -630,9 +696,13 @@ export default {
           if (parseResult.actions.length === 0) {
             error.value = `No valid ${getPDDLTypeName(selectedPDDLType.value)} actions found in plan file. Check console for details.`
             isProcessing.value = false
-            console.warn('⚠️ No actions parsed')
+            console.warn('⚠️ No actions parsed - file content preview:')
+            console.warn(fileContent.value.split('\n').slice(0, 10).join('\n'))
             return
           }
+
+          // Log first few actions
+          console.log('📋 First 3 actions:', parseResult.actions.slice(0, 3))
 
           // Set parsed data
           parsedActions.value = parseResult.actions
@@ -647,9 +717,15 @@ export default {
           successMessage.value = `${typeDisplay} ${domainDisplay} visualization started with ${parseResult.actions.length} actions!`
           generateParticles('visualization-start', 40)
           
-          console.log('✅ === VISUALIZATION STARTED ===')
+          console.log('✅ === VISUALIZATION STARTED (DEBUG) ===')
           console.log('⚙️ Actions:', parseResult.actions.length)
-          console.log('📦 Entities:', Object.keys(parseResult.entities).map(key => `${key}: ${parseResult.entities[key]?.length || 0}`).join(', '))
+          console.log('📦 Entities summary:')
+          Object.keys(parseResult.entities).forEach(key => {
+            console.log(`  ${key}: ${parseResult.entities[key]?.length || 0} items`)
+            if (parseResult.entities[key]?.length > 0) {
+              console.log(`    ${parseResult.entities[key]}`)
+            }
+          })
           console.log('📊 Metrics:', parseResult.metrics)
           console.log('🎯 Domain:', parseResult.domain)
           console.log('📋 PDDL Type:', parseResult.pddlType)
@@ -668,7 +744,7 @@ export default {
     onMounted(() => {
       particleTimer.value = setInterval(updateParticles, 50)
       generateParticles('ambient', 10)
-      console.log('🎬 PDDL Visualizer mounted')
+      console.log('🎬 PDDL Visualizer mounted with new organized structure')
     })
 
     onUnmounted(() => {
@@ -720,7 +796,10 @@ export default {
     }
   }
 }
+
 </script>
+
+
 <style scoped>
 .pddl-visualizer {
   min-height: 100vh;

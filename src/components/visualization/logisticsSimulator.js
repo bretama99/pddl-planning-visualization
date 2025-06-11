@@ -1,10 +1,10 @@
 // File Path: src/components/visualization/logisticsSimulator.js
-// Enhanced Realistic Logistics Simulator with Smooth Movements and Clear Vehicle Types
+// Fully Dynamic Realistic Logistics Simulator - No Hardcoded Values
 
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 
 export function createLogisticsSimulator(props) {
-  console.log('🚚 Creating enhanced realistic logistics simulator:', props)
+  console.log('🚚 Creating fully dynamic logistics simulator:', props)
   
   // State variables
   const isPlaying = ref(false)
@@ -85,8 +85,7 @@ export function createLogisticsSimulator(props) {
         
         // Set vehicle type based on action
         if (parsed.vehicle) {
-          vehicleTypes.value[parsed.vehicle] = parsed.vehicle.includes('tru') ? 'truck' : 
-                                              parsed.vehicle.includes('apn') ? 'airplane' : 'vehicle'
+          vehicleTypes.value[parsed.vehicle] = determineVehicleType(parsed.vehicle)
         }
         
         return parsed
@@ -96,12 +95,25 @@ export function createLogisticsSimulator(props) {
     return []
   })
 
-  // Extract entities with enhanced logistics support
+  // Extract entities dynamically from actions and props
   const logisticsEntities = computed(() => {
-    console.log('🔍 Using entities from domain parser:', props.entities)
+    console.log('🔍 Extracting entities dynamically from actions and props:', props.entities)
     
+    // Start with EMPTY entities - no defaults
+    let entities = {
+      trucks: [],
+      airplanes: [],
+      packages: [],
+      cities: [],
+      airports: [],
+      positions: [],
+      locations: [],
+      vehicles: []
+    }
+    
+    // Merge with props entities if available
     if (props.entities && typeof props.entities === 'object') {
-      const entities = {
+      entities = {
         trucks: props.entities.trucks || [],
         airplanes: props.entities.airplanes || [],
         packages: props.entities.packages || [],
@@ -111,27 +123,118 @@ export function createLogisticsSimulator(props) {
         locations: props.entities.locations || [],
         vehicles: props.entities.vehicles || []
       }
-      
-      if (entities.vehicles.length === 0) {
-        entities.vehicles = [...entities.trucks, ...entities.airplanes]
-      }
-      
-      console.log('🚛 Enhanced logistics entities:', entities)
-      return entities
+      console.log('📦 Using props entities:', entities)
     }
     
-    // Enhanced fallback
-    return {
-      trucks: ['tru1', 'tru2'],
-      airplanes: ['apn1', 'apn2'],
-      packages: ['obj11', 'obj12', 'obj21', 'obj22', 'obj23'],
-      cities: ['cit1', 'cit2'],
-      airports: ['apt1', 'apt2'],
-      positions: ['pos1', 'pos2'],
-      locations: ['apt1', 'apt2', 'pos1', 'pos2'],
-      vehicles: ['tru1', 'tru2', 'apn1', 'apn2']
+    // Extract dynamically from actions ONLY if props entities are empty
+    if (parsedActions.value.length > 0) {
+      const extractedEntities = extractEntitiesFromActions(parsedActions.value)
+      console.log('🔍 Extracted entities from actions:', extractedEntities)
+      
+      // Only use extracted entities if props entities are empty
+      if (entities.trucks.length === 0) entities.trucks = extractedEntities.trucks
+      if (entities.airplanes.length === 0) entities.airplanes = extractedEntities.airplanes
+      if (entities.packages.length === 0) entities.packages = extractedEntities.packages
+      if (entities.cities.length === 0) entities.cities = extractedEntities.cities
+      if (entities.airports.length === 0) entities.airports = extractedEntities.airports
+      if (entities.positions.length === 0) entities.positions = extractedEntities.positions
+      if (entities.locations.length === 0) entities.locations = extractedEntities.locations
+      if (entities.vehicles.length === 0) entities.vehicles = extractedEntities.vehicles
     }
+    
+    // Merge vehicles array if empty
+    if (entities.vehicles.length === 0) {
+      entities.vehicles = [...entities.trucks, ...entities.airplanes]
+    }
+    
+    console.log('🚛 FINAL logistics entities (NO DEFAULTS):', entities)
+    return entities
   })
+
+  // Dynamically extract entities from actions
+  function extractEntitiesFromActions(actions) {
+    const entities = {
+      trucks: new Set(),
+      airplanes: new Set(),
+      packages: new Set(),
+      cities: new Set(),
+      airports: new Set(),
+      positions: new Set(),
+      locations: new Set(),
+      vehicles: new Set()
+    }
+    
+    actions.forEach(action => {
+      // Extract vehicles
+      if (action.vehicle) {
+        entities.vehicles.add(action.vehicle)
+        const vehicleType = determineVehicleType(action.vehicle)
+        if (vehicleType === 'truck') {
+          entities.trucks.add(action.vehicle)
+        } else if (vehicleType === 'airplane') {
+          entities.airplanes.add(action.vehicle)
+        }
+      }
+      
+      // Extract packages
+      if (action.package) {
+        entities.packages.add(action.package)
+      }
+      
+      // Extract locations
+      if (action.location) {
+        entities.locations.add(action.location)
+        categorizeLocation(action.location, entities)
+      }
+      if (action.fromLocation) {
+        entities.locations.add(action.fromLocation)
+        categorizeLocation(action.fromLocation, entities)
+      }
+      if (action.toLocation) {
+        entities.locations.add(action.toLocation)
+        categorizeLocation(action.toLocation, entities)
+      }
+      
+      // Extract cities
+      if (action.city) {
+        entities.cities.add(action.city)
+      }
+    })
+    
+    // Convert sets to arrays
+    return {
+      trucks: Array.from(entities.trucks),
+      airplanes: Array.from(entities.airplanes),
+      packages: Array.from(entities.packages),
+      cities: Array.from(entities.cities),
+      airports: Array.from(entities.airports),
+      positions: Array.from(entities.positions),
+      locations: Array.from(entities.locations),
+      vehicles: Array.from(entities.vehicles)
+    }
+  }
+  
+  // Categorize location based on naming patterns
+  function categorizeLocation(location, entities) {
+    const locationLower = location.toLowerCase()
+    
+    if (locationLower.includes('apt') || locationLower.includes('airport')) {
+      entities.airports.add(location)
+    } else if (locationLower.includes('pos') || locationLower.includes('position')) {
+      entities.positions.add(location)
+    } else if (locationLower.includes('cit') || locationLower.includes('city')) {
+      entities.cities.add(location)
+    }
+  }
+  
+  // Determine vehicle type from name
+  function determineVehicleType(vehicleName) {
+    const nameLower = vehicleName.toLowerCase()
+    if (nameLower.includes('tru') || nameLower.includes('truck')) return 'truck'
+    if (nameLower.includes('apn') || nameLower.includes('plane') || nameLower.includes('airplane')) return 'airplane'
+    if (nameLower.includes('air') || nameLower.includes('flight')) return 'airplane'
+    return 'truck' // Default to truck
+  }
 
   const allLocations = computed(() => logisticsEntities.value.locations)
   const allVehicles = computed(() => logisticsEntities.value.vehicles)
@@ -205,7 +308,7 @@ export function createLogisticsSimulator(props) {
     if (!startTime) return
     
     const vehicleType = vehicleTypes.value[vehicle] || 'vehicle'
-    const baseDuration = vehicleType === 'airplane' ? 8.0 : 6.0 // Planes take longer but fly direct
+    const baseDuration = getVehicleMovementDuration(vehicleType)
     const elapsed = (now - startTime) / 1000
     let progress = Math.min(1, elapsed / baseDuration)
     
@@ -223,7 +326,7 @@ export function createLogisticsSimulator(props) {
     
     vehicleMovementProgress.value[vehicle] = progress
     
-    console.log(`🚛 ${vehicle} (${vehicleType}) moving: ${Math.round(progress * 100)}%`)
+    console.log(`🚛 ${vehicle} (${vehicleType}) moving: ${Math.round(progress * 100)}% - elapsed: ${elapsed.toFixed(1)}s`)
     
     // Update vehicle status
     vehicleStatus.value[vehicle] = 'moving'
@@ -232,6 +335,12 @@ export function createLogisticsSimulator(props) {
     if (progress >= 1) {
       completeRealisticVehicleMovement(vehicle)
     }
+  }
+
+  // Get vehicle movement duration based on type
+  function getVehicleMovementDuration(vehicleType) {
+    if (vehicleType === 'airplane') return 8.0 // Planes take longer but fly direct
+    return 6.0 // Trucks
   }
 
   // Realistic easing functions for different vehicle types
@@ -260,7 +369,7 @@ export function createLogisticsSimulator(props) {
     if (!startTime) return
     
     const vehicleType = vehicleTypes.value[vehicle] || 'vehicle'
-    const duration = vehicleType === 'airplane' ? 4.0 : 3.0 // Planes take longer to load
+    const duration = getLoadingDuration(vehicleType)
     const elapsed = (now - startTime) / 1000
     let progress = Math.min(1, elapsed / duration)
     
@@ -276,6 +385,12 @@ export function createLogisticsSimulator(props) {
     if (progress >= 1) {
       completeLoadingAnimation(vehicle)
     }
+  }
+
+  // Get loading duration based on vehicle type
+  function getLoadingDuration(vehicleType) {
+    if (vehicleType === 'airplane') return 4.0 // Planes take longer to load
+    return 3.0 // Trucks
   }
 
   function updateRealisticCargoAnimations(now) {
@@ -390,7 +505,7 @@ export function createLogisticsSimulator(props) {
 
   function updateActionDescription(action) {
     const vehicle = action.vehicle || 'vehicle'
-    const vehicleType = vehicleTypes.value[vehicle] || 'vehicle'
+    const vehicleType = vehicleTypes.value[vehicle] || determineVehicleType(vehicle)
     const packageId = action.package || 'package'
     const fromLocation = action.fromLocation || action.location
     const toLocation = action.toLocation
@@ -580,8 +695,12 @@ export function createLogisticsSimulator(props) {
     activeVehicles.value.add(vehicle)
     
     console.log(`🎯 REALISTIC MOVEMENT STARTED: ${vehicle} from ${fromLocation} to ${toLocation}`)
+    console.log(`📊 Moving vehicles now: ${Array.from(movingVehicles.value)}`)
+    console.log(`📊 Movement progress: ${vehicleMovementProgress.value[vehicle]}`)
+    console.log(`📊 Movement start time: ${vehicleMovementStartTime.value[vehicle]}`)
     
     if (!animationFrame) {
+      console.log(`🎬 Starting animation frame`)
       startMovementAnimation()
     }
     
@@ -702,7 +821,7 @@ export function createLogisticsSimulator(props) {
     }
   }
 
-  // Helper functions for realistic durations
+  // Helper functions for realistic durations based on action types
   function getRealisticDuration(actionType) {
     const type = actionType?.toLowerCase() || ''
     if (type.includes('load') || type.includes('unload')) {
@@ -769,7 +888,7 @@ export function createLogisticsSimulator(props) {
   }
 
   function getVehicleType(vehicle) {
-    return vehicleTypes.value[vehicle] || 'vehicle'
+    return vehicleTypes.value[vehicle] || determineVehicleType(vehicle)
   }
 
   function getVehicleStatus(vehicle) {
@@ -784,46 +903,73 @@ export function createLogisticsSimulator(props) {
     return vehicleAltitude.value[vehicle] || 0
   }
 
-  // Auto-play with enhanced timing
+  // Auto-play with enhanced timing and better debugging
   let playInterval = null
 
   watch([isPlaying, playbackSpeed], ([playing, speed]) => {
+    console.log('🎭 Watch triggered - isPlaying:', playing, 'speed:', speed, 'currentStep:', currentStep.value, 'totalActions:', parsedActions.value.length)
+    
     if (playInterval) {
       clearInterval(playInterval)
       playInterval = null
+      console.log('🔄 Cleared existing play interval')
     }
 
     if (playing && currentStep.value < parsedActions.value.length) {
+      console.log('🚀 Starting action execution loop')
+      
       const executeNextStep = () => {
         if (currentStep.value < parsedActions.value.length && isPlaying.value) {
-          console.log(`🎬 Auto-executing step ${currentStep.value + 1}`)
+          console.log(`🎬 Auto-executing step ${currentStep.value + 1}/${parsedActions.value.length}`)
+          
+          const currentAction = parsedActions.value[currentStep.value]
+          console.log('📋 Current action:', currentAction)
+          
           stepForward()
           
           // Enhanced timing based on action type
           const action = parsedActions.value[currentStep.value - 1]
           const delay = action ? (action.duration * 1000) / speed : 3000 / speed
           
+          console.log(`⏰ Next step in ${delay}ms`)
+          
           setTimeout(() => {
             if (isPlaying.value) {
               executeNextStep()
+            } else {
+              console.log('⏹️ Execution stopped - isPlaying is false')
             }
           }, delay)
         } else {
+          console.log('🏁 Execution finished - stopping playback')
           isPlaying.value = false
         }
       }
       
+      // Start immediately
       executeNextStep()
+    } else if (playing) {
+      console.log('⚠️ Cannot play - no actions or already at end')
     }
   })
 
   // Enhanced playback control functions
   function togglePlayback() {
-    isPlaying.value = !isPlaying.value
-    console.log('▶️ Enhanced playback toggled:', isPlaying.value)
+    console.log('🎬 TOGGLE PLAYBACK called, current state:', isPlaying.value)
     
-    if (isPlaying.value && !animationFrame) {
-      startMovementAnimation()
+    if (isPlaying.value) {
+      // Currently playing, so pause
+      isPlaying.value = false
+      console.log('⏸️ Paused simulation')
+    } else {
+      // Currently paused, so play
+      isPlaying.value = true
+      console.log('▶️ Starting simulation with', parsedActions.value.length, 'actions')
+      
+      // Start the animation loop if not already running
+      if (!animationFrame) {
+        startMovementAnimation()
+      }
     }
   }
 
@@ -961,22 +1107,36 @@ export function createLogisticsSimulator(props) {
   // Enhanced initialization with realistic positioning
   function initializeRealisticLocations() {
     console.log('🏁 Initializing enhanced realistic logistics locations...')
+    console.log('📊 Available data:', {
+      allVehicles: allVehicles.value,
+      allPackages: allPackages.value,
+      allLocations: allLocations.value,
+      parsedActionsCount: parsedActions.value.length
+    })
 
     if (allLocations.value.length === 0) {
-      console.log('⚠️ No locations found, using defaults')
+      console.warn('⚠️ NO LOCATIONS FOUND - cannot initialize')
+      return
+    }
+
+    if (allVehicles.value.length === 0) {
+      console.warn('⚠️ NO VEHICLES FOUND - cannot initialize')
       return
     }
 
     // Initialize vehicle locations with realistic starting positions
     allVehicles.value.forEach(vehicle => {
       let startLocation = allLocations.value[0]
-      const vehicleType = vehicle.includes('tru') ? 'truck' : vehicle.includes('apn') ? 'airplane' : 'vehicle'
-      vehicleTypes.value[vehicle] = vehicleType
+      const vehicleType = getVehicleType(vehicle)
+      
+      console.log(`🚚 Initializing vehicle ${vehicle} (${vehicleType})...`)
       
       // Find first action for this vehicle to determine starting location
       const vehicleActions = parsedActions.value
         .filter(action => action.vehicle === vehicle)
         .sort((a, b) => a.start - b.start)
+      
+      console.log(`📋 Found ${vehicleActions.length} actions for ${vehicle}:`, vehicleActions.map(a => a.actionType))
       
       if (vehicleActions.length > 0) {
         const firstAction = vehicleActions[0]
@@ -989,12 +1149,9 @@ export function createLogisticsSimulator(props) {
           startLocation = firstAction.location
         }
       } else {
-        // Default starting locations based on vehicle type
-        if (vehicleType === 'airplane') {
-          startLocation = allLocations.value.find(loc => loc.includes('apt')) || allLocations.value[0]
-        } else {
-          startLocation = allLocations.value.find(loc => loc.includes('pos')) || allLocations.value[0]
-        }
+        // Default starting locations based on vehicle type - NO FALLBACKS
+        console.warn(`⚠️ No actions found for vehicle ${vehicle} - using first location`)
+        startLocation = allLocations.value[0]
       }
       
       vehicleLocations.value[vehicle] = startLocation
@@ -1004,7 +1161,7 @@ export function createLogisticsSimulator(props) {
       vehicleDirection.value[vehicle] = 0
       vehicleAltitude.value[vehicle] = 0
       
-      console.log(`🚚 Vehicle ${vehicle} (${vehicleType}) starts in ${startLocation}`)
+      console.log(`✅ Vehicle ${vehicle} (${vehicleType}) starts in ${startLocation}`)
     })
 
     // Initialize package locations with realistic distribution
@@ -1017,14 +1174,17 @@ export function createLogisticsSimulator(props) {
         packageLocations.value[pkg] = firstLoadAction.location
         console.log(`📦 Package ${pkg} starts in ${firstLoadAction.location}`)
       } else {
-        // Default to first position location
-        const defaultLocation = allLocations.value.find(loc => loc.includes('pos')) || allLocations.value[0]
-        packageLocations.value[pkg] = defaultLocation
-        console.log(`📦 Package ${pkg} defaults to ${defaultLocation}`)
+        // NO DEFAULT - warn about missing package
+        console.warn(`⚠️ No load action found for package ${pkg} - placing at first location`)
+        packageLocations.value[pkg] = allLocations.value[0]
       }
     })
 
-    console.log('🏁 Enhanced realistic logistics state initialized')
+    console.log('🏁 Final state after initialization:', {
+      vehicleLocations: vehicleLocations.value,
+      packageLocations: packageLocations.value,
+      vehicleTypes: vehicleTypes.value
+    })
   }
 
   // Watch for props changes
@@ -1100,12 +1260,51 @@ export function createLogisticsSimulator(props) {
     getVehicleDirection,
     getVehicleAltitude,
     
-    // Enhanced helper functions
+    // Enhanced helper functions for cities and locations
     getCitiesWithLocations: () => {
       const cities = logisticsEntities.value.cities
       const locations = logisticsEntities.value.locations
       
-      return cities.map(city => {
+      console.log('🏙️ getCitiesWithLocations called:', { cities, locations })
+      
+      if (cities.length === 0 && locations.length === 0) {
+        console.warn('⚠️ NO CITIES OR LOCATIONS FOUND - showing empty state')
+        return []
+      }
+      
+      if (cities.length === 0) {
+        // If no explicit cities, create from locations
+        const inferredCities = new Set()
+        locations.forEach(loc => {
+          const cityMatch = loc.match(/cit\d+/) || loc.match(/city\d+/)
+          if (cityMatch) {
+            inferredCities.add(cityMatch[0])
+          } else {
+            // Extract number from location and create city
+            const numMatch = loc.match(/\d+/)
+            if (numMatch) {
+              inferredCities.add(`cit${numMatch[0]}`)
+            }
+          }
+        })
+        
+        console.log('🔍 Inferred cities from locations:', Array.from(inferredCities))
+        
+        return Array.from(inferredCities).map(city => {
+          const cityNum = city.match(/\d+/)?.[0]
+          const cityLocations = locations.filter(loc => {
+            const locNum = loc.match(/\d+/)?.[0]
+            return cityNum === locNum
+          })
+          
+          return {
+            name: city,
+            locations: cityLocations.length > 0 ? cityLocations : [locations[0] || 'default']
+          }
+        })
+      }
+      
+      const result = cities.map(city => {
         const cityNum = city.match(/\d+/)?.[0]
         const cityLocations = locations.filter(loc => {
           const locNum = loc.match(/\d+/)?.[0]
@@ -1114,9 +1313,12 @@ export function createLogisticsSimulator(props) {
         
         return {
           name: city,
-          locations: cityLocations.length > 0 ? cityLocations : [city + '_pos', city + '_apt']
+          locations: cityLocations.length > 0 ? cityLocations : []
         }
       })
+      
+      console.log('🏙️ Final cities with locations:', result)
+      return result
     },
     
     hasActiveVehicleInCity: (cityName) => {
@@ -1185,7 +1387,9 @@ export function createLogisticsSimulator(props) {
     },
     
     getMovingVehicles: () => {
-      return allVehicles.value.filter(vehicle => isVehicleMoving(vehicle))
+      const movingList = allVehicles.value.filter(vehicle => isVehicleMoving(vehicle))
+      console.log(`🚗 getMovingVehicles called: ${movingList.length} vehicles moving:`, movingList)
+      return movingList
     },
     
     getLoadingVehicles: () => {
@@ -1205,16 +1409,19 @@ export function createLogisticsSimulator(props) {
       const altitude = getVehicleAltitude(vehicle)
       
       if (!startLocation || !targetLocation) {
+        console.warn(`⚠️ Missing locations for moving vehicle ${vehicle}:`, { startLocation, targetLocation })
         return { display: 'none' }
       }
       
-      console.log(`🎯 Enhanced moving ${vehicle} (${vehicleType}): ${startLocation} → ${targetLocation} (${Math.round(progress * 100)}%)`)
+      console.log(`🎯 Styling moving ${vehicle} (${vehicleType}): ${startLocation} → ${targetLocation} (${Math.round(progress * 100)}%)`)
       
       // Calculate positions based on location layout
       const locationPositions = calculateLocationPositions()
       
       const startPos = locationPositions[startLocation] || { x: 20, y: 20 }
       const targetPos = locationPositions[targetLocation] || { x: 80, y: 20 }
+      
+      console.log(`📍 Positions: start=${JSON.stringify(startPos)}, target=${JSON.stringify(targetPos)}`)
       
       // Enhanced movement with realistic trajectory
       const route = vehicleRoutes.value[vehicle] || [startLocation, targetLocation]
@@ -1248,6 +1455,8 @@ export function createLogisticsSimulator(props) {
         }
       }
       
+      console.log(`🎨 Final position: x=${currentX}%, y=${currentY}%`)
+      
       return {
         position: 'absolute',
         left: `${currentX}%`,
@@ -1255,7 +1464,11 @@ export function createLogisticsSimulator(props) {
         transform: `translate(-50%, -50%) rotate(${direction}deg) scale(${vehicleType === 'airplane' ? 1.2 : 1})`,
         zIndex: vehicleType === 'airplane' ? 1200 : 1000,
         transition: 'none',
-        filter: vehicleType === 'airplane' ? 'drop-shadow(0 8px 16px rgba(0,0,0,0.3))' : 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))'
+        filter: vehicleType === 'airplane' ? 'drop-shadow(0 8px 16px rgba(0,0,0,0.3))' : 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))',
+        // FORCE VISIBILITY
+        opacity: 1,
+        display: 'block',
+        visibility: 'visible'
       }
     },
     
@@ -1341,36 +1554,50 @@ export function createLogisticsSimulator(props) {
     const cities = logisticsEntities.value.cities
     const locations = logisticsEntities.value.locations
     
-    cities.forEach((city, cityIndex) => {
-      const cityLocations = locations.filter(loc => {
-        const cityNum = city.match(/\d+/)?.[0]
-        const locNum = loc.match(/\d+/)?.[0]
-        return cityNum === locNum
-      })
-      
-      cityLocations.forEach((location, locIndex) => {
-        const cityRow = Math.floor(cityIndex / 2)
-        const cityCol = cityIndex % 2
-        const locRow = Math.floor(locIndex / 2)
-        const locCol = locIndex % 2
-        
-        positions[location] = {
-          x: 15 + (cityCol * 40) + (locCol * 12),
-          y: 15 + (cityRow * 35) + (locRow * 12)
-        }
-      })
-    })
+    console.log(`📍 Calculating positions for ${cities.length} cities and ${locations.length} locations`)
     
-    // Add default positions for any missing locations with better distribution
-    locations.forEach((location, index) => {
-      if (!positions[location]) {
+    if (cities.length > 0) {
+      cities.forEach((city, cityIndex) => {
+        const cityLocations = locations.filter(loc => {
+          const cityNum = city.match(/\d+/)?.[0]
+          const locNum = loc.match(/\d+/)?.[0]
+          return cityNum === locNum
+        })
+        
+        cityLocations.forEach((location, locIndex) => {
+          const cityRow = Math.floor(cityIndex / 2)
+          const cityCol = cityIndex % 2
+          const locRow = Math.floor(locIndex / 2)
+          const locCol = locIndex % 2
+          
+          positions[location] = {
+            x: 15 + (cityCol * 40) + (locCol * 12),
+            y: 15 + (cityRow * 35) + (locRow * 12)
+          }
+        })
+      })
+    } else {
+      // Fallback for locations without explicit cities
+      locations.forEach((location, index) => {
         positions[location] = {
           x: 20 + (index % 4) * 20,
           y: 20 + Math.floor(index / 4) * 20
         }
-      }
-    })
+      })
+    }
     
+    // Ensure we have at least some default positions
+    if (Object.keys(positions).length === 0) {
+      console.warn('⚠️ No positions calculated, creating defaults')
+      locations.forEach((location, index) => {
+        positions[location] = {
+          x: 25 + (index % 3) * 25,
+          y: 25 + Math.floor(index / 3) * 25
+        }
+      })
+    }
+    
+    console.log('📍 Calculated positions:', positions)
     return positions
   }
 }

@@ -1,4 +1,3 @@
-<!-- Enhanced Realistic Logistics Simulator Template -->
 <template>
   <div class="enhanced-logistics-simulator realistic-logistics" :data-pddl="pddlType">
     <!-- Success Message -->
@@ -139,6 +138,17 @@
 
       <!-- Enhanced Realistic Logistics Network Visualization -->
       <div v-if="parsedActions?.length" class="enhanced-logistics-network">
+        <!-- Debug Information -->
+        <div class="debug-info" v-if="false">
+          <p>Actions: {{ parsedActions.length }}</p>
+          <p>Vehicles: {{ allVehicles.length }}</p>
+          <p>Packages: {{ allPackages.length }}</p>
+          <p>Locations: {{ allLocations.length }}</p>
+          <p>Current Step: {{ currentStep }}</p>
+          <p>Is Playing: {{ isPlaying }}</p>
+          <p>Moving Vehicles: {{ getMovingVehicles().length }}</p>
+        </div>
+
         <!-- Cities Grid with Enhanced Realistic Visual Design -->
         <div class="enhanced-cities-grid">
           <div 
@@ -610,7 +620,7 @@
 import { createLogisticsSimulator } from './logisticsSimulator.js'
 
 export default {
-  name: 'EnhancedRealisticLogisticsSimulator',
+  name: 'LogisticsSimulator',
   props: {
     actions: {
       type: [Array, String],
@@ -626,12 +636,22 @@ export default {
     }
   },
   setup(props) {
-    console.log('🚚 Enhanced Realistic LogisticsSimulator setup:', {
+    console.log('🚚 LogisticsSimulator setup CALLED:', {
       actionsType: typeof props.actions,
       actionsLength: Array.isArray(props.actions) ? props.actions.length : 'string length: ' + (typeof props.actions === 'string' ? props.actions.length : 'unknown'),
       pddlType: props.pddlType,
-      entities: props.entities
+      entities: props.entities,
+      hasActions: !!props.actions,
+      firstAction: Array.isArray(props.actions) ? props.actions[0] : 'N/A'
     })
+    
+    // Debug logging to see what we receive
+    if (Array.isArray(props.actions) && props.actions.length > 0) {
+      console.log('📋 Sample actions received:', props.actions.slice(0, 3))
+      console.log('📦 Entities received:', props.entities)
+    } else {
+      console.warn('⚠️ No actions received in LogisticsSimulator!')
+    }
     
     const simulatorProps = {
       ...props
@@ -659,10 +679,47 @@ export default {
       
       return baseStyle
     }
+
+    // Helper function for cargo transfer styling
+    const getCargoTransferStyle = (packageId) => {
+      const animation = simulator.getCargoAnimation(packageId)
+      if (!animation) return { display: 'none' }
+      
+      const progress = animation.progress || 0
+      const rotation = animation.rotation || 0
+      
+      return {
+        position: 'absolute',
+        left: `${50 + progress * 20}%`,
+        top: `${50 + Math.sin(progress * Math.PI) * 10}%`,
+        transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
+        opacity: 1 - progress * 0.3,
+        zIndex: 1000
+      }
+    }
+    
+    // Debug function to check simulator state
+    const debugSimulatorState = () => {
+      console.log('🔍 SIMULATOR DEBUG STATE:')
+      console.log('  - parsedActions:', simulator.parsedActions.value?.length || 0)
+      console.log('  - logisticsEntities:', simulator.logisticsEntities.value)
+      console.log('  - allVehicles:', simulator.allVehicles.value)
+      console.log('  - allPackages:', simulator.allPackages.value)
+      console.log('  - allLocations:', simulator.allLocations.value)
+      console.log('  - isPlaying:', simulator.isPlaying.value)
+      console.log('  - currentStep:', simulator.currentStep.value)
+      console.log('  - vehicleLocations:', simulator.vehicleLocations.value)
+      console.log('  - packageLocations:', simulator.packageLocations.value)
+    }
+
+    // Call debug on mount
+    setTimeout(debugSimulatorState, 1000)
     
     return {
       ...simulator,
-      getParticleStyle
+      getParticleStyle,
+      getCargoTransferStyle,
+      debugSimulatorState
     }
   }
 }

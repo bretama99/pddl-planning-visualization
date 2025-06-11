@@ -2,7 +2,7 @@
 // Enhanced Robot Simulator with Dynamic Capabilities Detection
 // File Path: src/components/visualization/robotSimulator.js
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
-import { parseRobotPlanFile, extractEntitiesFromActions } from '@/utils/enhancedRobotParser.js'
+import { parseRobotPlanFile, extractEntitiesFromActions } from '@/utils/robot/enhancedRobotParser.js'
 
 export function createRobotSimulator(props) {
   console.log('🤖 Creating dynamic robot simulator:', props)
