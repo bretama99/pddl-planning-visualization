@@ -40,6 +40,7 @@ export default {
     trucks: Object,
     packages: Object,
     steps: Array,
+    distances: Array,
   },
   data() {
     return {
@@ -56,9 +57,18 @@ export default {
   },
   mounted() {
     this.initPositions();
+    this.initializeDistances();
     this.drawGraph();
   },
   watch: {
+    distances: {
+      handler(newDistances) {
+        if (newDistances && newDistances.length > 0) {
+          this.initializeDistances();
+        }
+      },
+      immediate: true
+    },
     cities: {
       handler() {
         this.initPositions();
@@ -120,6 +130,21 @@ export default {
               this.positions.places[place.id]
             );
           }
+        }
+      });
+    },
+
+    initializeDistances() {
+      // Ora puoi usare this.distances direttamente
+      console.log('Distanze ricevute:', this.distances);
+      
+      // Crea una mappa delle distanze per accesso rapido
+      this.distanceMap = new Map();
+      this.distances.forEach(dist => {
+        this.distanceMap.set(`${dist.from}-${dist.to}`, dist.distance);
+        // Aggiungi anche la direzione opposta se non esiste
+        if (!this.distanceMap.has(`${dist.to}-${dist.from}`)) {
+          this.distanceMap.set(`${dist.to}-${dist.from}`, dist.distance);
         }
       });
     },
@@ -267,54 +292,53 @@ pkgGroup
       );
       return placeEntry ? placeEntry.id : null;
     },
-    animateTruck(truckName, newX, newY) {
-      return new Promise((resolve) => {
-        const truckGroup = d3.select(`#truck-${truckName}`);
-        if (truckGroup.empty()) {
-          resolve();
-          return;
-        }
+    animateTruck(truckName, newX, newY, distance = 0) {
+  return new Promise((resolve) => {
+    const truckGroup = d3.select(`#truck-${truckName}`);
+    if (truckGroup.empty()) {
+      resolve();
+      return;
+    }
 
-        const truckId = this.getTruckIdByName(truckName);
-        if (!this.positions.trucks[truckId]) {
-          console.error(
-            `Posizione per il truck con ID ${truckId} non trovata!`
-          );
-          resolve();
-          return;
-        }
+    const truckId = this.getTruckIdByName(truckName);
+    if (!this.positions.trucks[truckId]) {
+      console.error(
+        `Posizione per il truck con ID ${truckId} non trovata!`
+      );
+      resolve();
+      return;
+    }
 
+    // Calcola la durata dell'animazione basata sulla distanza
+    const duration = this.calculateAnimationDuration(distance);
+
+    console.log(
+      `Animazione del truck ${truckName} da (${this.positions.trucks[truckId].x},${this.positions.trucks[truckId].y}) a (${newX}, ${newY}) con durata ${duration}ms (distanza: ${distance})`
+    );
+
+    truckGroup
+      .transition()
+      .duration(duration) // Usa la durata calcolata
+      .attr("transform", `translate(${newX}, ${newY})`)
+      .on("end", () => {
+        // Aggiorna la posizione nello stato
         console.log(
-          `Animazione del truck ${truckName} da (${this.positions.trucks[truckId].x},${this.positions.trucks[truckId].y}) a (${newX}, ${newY})`
+          "Transform finale nel DOM:",
+          truckGroup.attr("transform")
         );
+        this.positions.trucks[truckId].x = newX;
+        this.positions.trucks[truckId].y = newY;
         console.log(
-          `I delta sono: (${newX - this.positions.trucks[truckId].x}, ${
-            newY - this.positions.trucks[truckId].y
-          })`
+          `Posizione aggiornata per il truck ${truckName}:`,
+          this.positions.trucks[truckId]
         );
+        this.syncPackagePositionsOnTruck(truckName);
 
-        truckGroup
-          .transition()
-          .duration(1000)
-          .attr("transform", `translate(${newX}, ${newY})`)
-          .on("end", () => {
-            // Aggiorna la posizione nello stato
-            console.log(
-              "Transform finale nel DOM:",
-              truckGroup.attr("transform")
-            );
-            this.positions.trucks[truckId].x = newX;
-            this.positions.trucks[truckId].y = newY;
-            console.log(
-              `Posizione aggiornata per il truck ${truckName}:`,
-              this.positions.trucks[truckId]
-            );
-                this.syncPackagePositionsOnTruck(truckName);
-
-            resolve(); // Risolvi la Promise quando l'animazione è completata
-          });
+        resolve(); // Risolvi la Promise quando l'animazione è completata
       });
-    },
+  });
+}
+,
     getTruckIdByName(name) {
       const truckEntry = Object.values(this.trucks).find(
         (t) => t.name === name
@@ -325,60 +349,83 @@ pkgGroup
       const pkg = Object.values(this.packages).find((p) => p.name === name);
       return pkg ? pkg.id : null;
     },
-    async moveTruckToPos(truckName, placeName) {
-      const truckEntry = Object.values(this.trucks).find(
-        (t) => t.name === truckName
-      );
-      if (!truckEntry) return;
-
-      const newPlaceEntry = Object.values(this.places).find(
-        (p) => p.name === placeName
-      );
-      if (!newPlaceEntry) return;
-
-      const oldPlaceId = truckEntry.location.id;
-
-      // Aggiorna la location del truck PRIMA di ricalcolare
-      truckEntry.location = newPlaceEntry;
-
-      // Array di Promise per aspettare tutte le animazioni
-      const promises = [];
-
-      // Ricalcola e riposiziona tutti i truck nel posto di origine (se diverso)
-      if (oldPlaceId !== newPlaceEntry.id) {
-        promises.push(this.repositionTrucksInPlace(oldPlaceId));
+  calculateDistanceBetweenPlaces(fromPlace, toPlace) {
+      // Se sono nella stessa città, distanza 0 (movimento locale)
+      if (fromPlace.city.id === toPlace.city.id) {
+        return 0;
       }
 
-      // Ricalcola e riposiziona tutti i truck nel posto di destinazione
-      promises.push(this.repositionTrucksInPlace(newPlaceEntry.id));
+      const fromCityName = fromPlace.city.name;
+      const toCityName = toPlace.city.name;
+      
+      // Usa la mappa delle distanze per accesso rapido
+      const distance = this.distanceMap.get(`${fromCityName}-${toCityName}`) || 
+                      this.distanceMap.get(`${toCityName}-${fromCityName}`);
+      
+      return distance || 100; // Valore di default se non trovata
+    },  
+    async moveTruckToPos(truckName, placeName) {
+  const truckEntry = Object.values(this.trucks).find(
+    (t) => t.name === truckName
+  );
+  if (!truckEntry) return;
 
-      // Aspetta che tutte le animazioni siano completate
-      await Promise.all(promises);
-    },
-    async repositionTrucksInPlace(placeId) {
-      const placePos = this.positions.places[placeId];
-      if (!placePos) return;
+  const newPlaceEntry = Object.values(this.places).find(
+    (p) => p.name === placeName
+  );
+  if (!newPlaceEntry) return;
 
-      const trucksHere = this.getTrucksInPlace(this.getPlaceById(placeId));
-      const numTrucks = trucksHere.length;
-      const side = constants.SIDE_LENGTH;
-      const halfSide = side / 2;
+  const oldPlaceId = truckEntry.location.id;
+  const oldPlace = truckEntry.location;
 
-      // Crea un array di Promise per tutte le animazioni
-      const animationPromises = trucksHere.map((truck, k) => {
-        const { x: truckX, y: truckY } = this.getTruckPositionInPlace(
-          this.getPlaceById(placeId),
-          k,
-          numTrucks
-        );
+  // Calcola la distanza tra le città PRIMA di aggiornare la location
+  const distance = this.calculateDistanceBetweenPlaces(oldPlace, newPlaceEntry);
 
-        // Restituisce la Promise dell'animazione
-        return this.animateTruck(truck.name, truckX, truckY);
-      });
+  // Aggiorna la location del truck PRIMA di ricalcolare
+  truckEntry.location = newPlaceEntry;
 
-      // Aspetta che tutte le animazioni siano completate
-      await Promise.all(animationPromises);
-    },
+  // Array di Promise per aspettare tutte le animazioni
+  const promises = [];
+
+  // Ricalcola e riposiziona tutti i truck nel posto di origine (se diverso)
+  if (oldPlaceId !== newPlaceEntry.id) {
+    promises.push(this.repositionTrucksInPlace(oldPlaceId));
+  }
+
+  // Ricalcola e riposiziona tutti i truck nel posto di destinazione
+  // Passa la distanza per calcolare la durata dell'animazione
+  promises.push(this.repositionTrucksInPlace(newPlaceEntry.id, distance, truckName));
+
+  // Aspetta che tutte le animazioni siano completate
+  await Promise.all(promises);
+}
+    ,
+
+    async repositionTrucksInPlace(placeId, distance = 0, movingTruckName = null) {
+  const placePos = this.positions.places[placeId];
+  if (!placePos) return;
+
+  const trucksHere = this.getTrucksInPlace(this.getPlaceById(placeId));
+  const numTrucks = trucksHere.length;
+
+  // Crea un array di Promise per tutte le animazioni
+  const animationPromises = trucksHere.map((truck, k) => {
+    const { x: truckX, y: truckY } = this.getTruckPositionInPlace(
+      this.getPlaceById(placeId),
+      k,
+      numTrucks
+    );
+
+    // Calcola la durata dell'animazione solo per il truck che si sta muovendo
+    const animationDistance = (truck.name === movingTruckName) ? distance : 0;
+
+    // Restituisce la Promise dell'animazione
+    return this.animateTruck(truck.name, truckX, truckY, animationDistance);
+  });
+
+  // Aspetta che tutte le animazioni siano completate
+  await Promise.all(animationPromises);
+},
     async processDriveTruckStep(actionPart) {
   const tokens = actionPart.replace(/[()]/g, '').split(' ');
   const truckName = tokens[1];   // secondo parametro
@@ -587,7 +634,20 @@ async processUnloadTruckStep(actionPart) {
   } else {
     if (callback) callback();
   }
-},
+    },
+calculateAnimationDuration(distance) {
+      const BASE_DURATION = 500; // Durata base in ms per movimenti locali
+      const DISTANCE_MULTIPLIER = 10; // Moltiplicatore per la distanza (ms per unità di distanza)
+      const MAX_DURATION = 5000; // Durata massima in ms
+      const MIN_DURATION = 300; // Durata minima in ms
+
+      if (distance === 0) {
+        return BASE_DURATION; // Movimento locale nella stessa città
+      }
+
+      const calculatedDuration = BASE_DURATION + (distance * DISTANCE_MULTIPLIER);
+      return Math.min(Math.max(calculatedDuration, MIN_DURATION), MAX_DURATION);
+    },
 repositionPackagesInPlace(placeId) {
   const place = Object.values(this.places).find(p => p.id === placeId);
   const packagesHere = Object.values(this.packages).filter(p => p.location && p.location.id === placeId);
@@ -671,6 +731,7 @@ repositionPackagesInPlace(placeId) {
     },
 
   },
+  
 };
 </script>
 

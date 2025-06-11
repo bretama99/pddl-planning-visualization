@@ -1,11 +1,11 @@
 <template>
   <div class="app">
-        <MapVisualizer :cities="cities" :places="places" :trucks="trucks" :packages="packages" :steps="steps" />
+        <MapVisualizer :cities="cities" :places="places" :trucks="trucks" :packages="packages" :steps="steps" :distances="distances" />
   </div>
 </template>
 
 <script setup>
-import extractPDDLSections from './pddlParser.js';
+import extractPDDLSections, { getDistances, getPredicatesByType, parseInitLegacy } from './pddlParser.js';
 import { parseObjects, parseInit, extractPlanRobust } from './pddlParser.js';
 import MapVisualizer from './components/GraphVisualization.vue';
 
@@ -46,7 +46,7 @@ console.log('📦 Packages:', packages);
 
 
 
-const predicates = parseInit(extracted.init);
+const predicates = parseInitLegacy(extracted.init);
 // Parsing e aggiornamento
 
 for (const [predicate, arg1, arg2] of predicates) {
@@ -107,8 +107,17 @@ console.log('Extracted Steps:', steps);
 
 
 
+// Il tuo init complesso
+const initStr = `(:init (at tru1 pos1) (at obj11 pos1) (in-city pos1 cit1) (in-city pos2 cit2) (= (distance cit1 cit2) 100) (= (distance cit2 cit1) 100))`;
 
+// Parsing completo
+const parsed = parseInit(initStr);
+console.log(parsed);
 
+const distances = getDistances(parsed);
+const atPredicates = getPredicatesByType(parsed, 'at');
+console.log('Distances:', distances);
+console.log('At Predicates:', atPredicates);
 
 </script>
 
