@@ -135,18 +135,26 @@ export default {
     },
 
     initializeDistances() {
-      // Ora puoi usare this.distances direttamente
       console.log('Distanze ricevute:', this.distances);
       
       // Crea una mappa delle distanze per accesso rapido
       this.distanceMap = new Map();
-      this.distances.forEach(dist => {
-        this.distanceMap.set(`${dist.from}-${dist.to}`, dist.distance);
-        // Aggiungi anche la direzione opposta se non esiste
-        if (!this.distanceMap.has(`${dist.to}-${dist.from}`)) {
-          this.distanceMap.set(`${dist.to}-${dist.from}`, dist.distance);
-        }
-      });
+      this.hasDistances = false;
+      
+      // Controlla se ci sono distanze valide
+      if (this.distances && Array.isArray(this.distances) && this.distances.length > 0) {
+        this.hasDistances = true;
+        this.distances.forEach(dist => {
+          this.distanceMap.set(`${dist.from}-${dist.to}`, dist.distance);
+          // Aggiungi anche la direzione opposta se non esiste
+          if (!this.distanceMap.has(`${dist.to}-${dist.from}`)) {
+            this.distanceMap.set(`${dist.to}-${dist.from}`, dist.distance);
+          }
+        });
+        console.log('Distanze inizializzate:', this.distanceMap.size, 'connessioni');
+      } else {
+        console.log('Nessuna distanza trovata, usando durata fissa per le animazioni');
+      }
     },
     drawGraph() {
       const svg = d3.select(this.$refs.svg);
@@ -350,8 +358,18 @@ pkgGroup
       return pkg ? pkg.id : null;
     },
   calculateDistanceBetweenPlaces(fromPlace, toPlace) {
+      // Se non ci sono distanze definite, restituisce 0 (durata fissa)
+      if (!this.hasDistances) {
+        return 0;
+      }
+      
       // Se sono nella stessa città, distanza 0 (movimento locale)
-      if (fromPlace.city.id === toPlace.city.id) {
+      if (fromPlace.city && toPlace.city && fromPlace.city.id === toPlace.city.id) {
+        return 0;
+      }
+
+      // Se i places non hanno città definite, usa durata fissa
+      if (!fromPlace.city || !toPlace.city) {
         return 0;
       }
 
@@ -362,7 +380,7 @@ pkgGroup
       const distance = this.distanceMap.get(`${fromCityName}-${toCityName}`) || 
                       this.distanceMap.get(`${toCityName}-${fromCityName}`);
       
-      return distance || 0; // Valore di default se non trovata
+      return distance || 0; // Restituisce 0 se non trovata (durata fissa)
     },  
     async moveTruckToPos(truckName, placeName) {
   const truckEntry = Object.values(this.trucks).find(
