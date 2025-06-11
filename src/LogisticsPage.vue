@@ -108,7 +108,7 @@ console.log('Extracted Steps:', steps);
 
 
 // Il tuo init complesso
-const initStr = `(:init (at tru1 pos1) (at obj11 pos1) (in-city pos1 cit1) (in-city pos2 cit2) (= (distance cit1 cit2) 100) (= (distance cit2 cit1) 100))`;
+const initStr = `(:init (at tru1 pos1) (at obj11 pos1) (in-city pos1 cit1) (in-city pos2 cit2) (= (distance cit1 cit2) 3) (= (distance cit2 cit1) 3))`;
 
 // Parsing completo
 const parsed = parseInit(initStr);

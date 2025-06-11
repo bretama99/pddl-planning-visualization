@@ -362,7 +362,7 @@ pkgGroup
       const distance = this.distanceMap.get(`${fromCityName}-${toCityName}`) || 
                       this.distanceMap.get(`${toCityName}-${fromCityName}`);
       
-      return distance || 100; // Valore di default se non trovata
+      return distance || 0; // Valore di default se non trovata
     },  
     async moveTruckToPos(truckName, placeName) {
   const truckEntry = Object.values(this.trucks).find(
@@ -636,16 +636,14 @@ async processUnloadTruckStep(actionPart) {
   }
     },
 calculateAnimationDuration(distance) {
-      const BASE_DURATION = 500; // Durata base in ms per movimenti locali
-      const DISTANCE_MULTIPLIER = 10; // Moltiplicatore per la distanza (ms per unità di distanza)
-      const MAX_DURATION = 5000; // Durata massima in ms
-      const MIN_DURATION = 300; // Durata minima in ms
+      const MAX_DURATION = 10000; // Durata massima in ms
+      const MIN_DURATION = 1000; // Durata minima in ms
 
       if (distance === 0) {
-        return BASE_DURATION; // Movimento locale nella stessa città
+        return MIN_DURATION; // Movimento locale nella stessa città
       }
 
-      const calculatedDuration = BASE_DURATION + (distance * DISTANCE_MULTIPLIER);
+      const calculatedDuration = (distance * MIN_DURATION);
       return Math.min(Math.max(calculatedDuration, MIN_DURATION), MAX_DURATION);
     },
 repositionPackagesInPlace(placeId) {
