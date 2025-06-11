@@ -1,6 +1,6 @@
-// Common Enhanced PDDL Parser - src/utils/enhancedPDDLParser.js
+// Common Enhanced PDDL Parser - Complete Version with ALL Domains
+// File: src/utils/enhancedPDDLParser.js
 // This is the base parser used by all domains (Robot, Elevator, Logistics)
-// Domain-specific parsers extend this functionality
 
 /**
  * Enhanced PDDL Plan Parser with support for Classical, Temporal, Numerical, and PDDL+ plans
@@ -391,7 +391,7 @@ function parseContinuousEffects(effectsString) {
  * Generic entity extraction (basic patterns for all domains)
  */
 function extractEntitiesFromAction(action, entitySets) {
-  const {  parameters } = action
+  const { parameters } = action
   
   parameters.forEach((param) => {
     const paramLower = param.toLowerCase()
