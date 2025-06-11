@@ -50,7 +50,7 @@ export const PLACE_IMAGE_HEIGHT = 40;
 export const IMAGE_PATHS = {
   PLACE: "https://png.pngtree.com/png-vector/20230428/ourmid/pngtree-location-point-icon-on-map-vector-png-image_6735196.png",
   PACKAGE: "https://cdn.pixabay.com/photo/2024/06/26/23/36/package-8856091_1280.png",
-  TRUCK: "https://art.pixilart.com/sr5z3def10587eaws3.png"
+  TRUCK: "https://static.vecteezy.com/system/resources/thumbnails/027/182/338/small_2x/trailler-truck-isolated-on-a-transparent-background-png.png"
 };
 
 export const IMAGE_SIZES = {
