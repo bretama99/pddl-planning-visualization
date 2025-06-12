@@ -1,242 +1,546 @@
 // File: src/utils/elevator/elevatorParser.js
-// Enhanced Elevator Domain Parser - Advanced Features
-// Handles all PDDL types: classical, temporal, numerical, pddl+
+// 100% Dynamic Elevator Domain Parser - Clean & Organized Structure
+// Everything extracted from plan file content only
+
+// ================== MAIN PARSER FUNCTION ==================
 
 export function parseElevatorDomain(rawContent, pddlType = 'classical') {
-  console.log('🛗 Enhanced Elevator Domain Parser started...', { pddlType, contentLength: rawContent.length });
+  console.log('🛗 Dynamic Elevator Parser started...', { pddlType, contentLength: rawContent.length });
   
   try {
-    const lines = rawContent.split('\n').map(line => line.trim()).filter(line => line);
-    const result = {
-      actions: [],
-      entities: {
-        elevators: [],
-        passengers: [],
-        floors: [],
-        locations: [],
-        // Enhanced elevator-specific entities
-        elevatorSpecs: {},
-        passengerProfiles: {},
-        floorInformation: {}
-      },
-      metrics: {},
-      pddlType: pddlType,
-      domain: 'elevator',
-      error: null,
-      // Advanced elevator features
-      multiElevatorSupport: false,
-      capacityManagement: true,
-      smartScheduling: true,
-      emergencyProtocols: true
-    };
+    const lines = cleanInputLines(rawContent);
+    const result = initializeParseResult(pddlType);
+    const extractedData = initializeExtractedData();
 
-    let inPlanSection = false;
-    let maxCapacityDetected = 1000; // Default capacity in kg
-
-    // Enhanced parsing with multi-elevator support
-    for (const line of lines) {
-      // Detect plan section
-      if (line.includes('found plan:') || line.includes('plan found')) {
-        inPlanSection = true;
-        console.log('📋 Found plan section in elevator domain');
-        continue;
-      }
-      
-      // Stop at metrics
-      if (inPlanSection && (line.includes('plan-length:') || line.includes('metric') || line.includes('planning time'))) {
-        inPlanSection = false;
-        continue;
-      }
-      
-      // Parse domain specifications (if present)
-      if (line.includes('elevator-capacity')) {
-        maxCapacityDetected = parseInt(line.match(/\d+/)?.[0]) || 1000;
-        console.log(`🏋️ Detected elevator capacity: ${maxCapacityDetected}kg`);
-      }
-      
-      // Parse multi-elevator indicators
-      if (line.includes('elevator') && (line.includes('elevator1') || line.includes('elevator2'))) {
-        result.multiElevatorSupport = true;
-      }
-      
-      if (inPlanSection) {
-        const action = parseAdvancedElevatorAction(line, pddlType);
-        if (action) {
-          result.actions.push(action);
-          extractAdvancedElevatorEntities(action, result.entities);
-          console.log(`🛗 Enhanced elevator action: ${action.type} [${action.params.join(', ')}] at ${action.time}`);
-        }
-      }
-      
-      parseStatistics(line, result.metrics);
-    }
+    extractMetadataFromPlan(lines, extractedData, result.planMetadata);
+    const inPlanSection = parseActionsFromPlan(lines, result.actions, pddlType, extractedData, result.metrics);
+    postProcessResults(result, extractedData);
     
-    // Post-process with advanced features
-    postProcessAdvancedElevator(result, pddlType, maxCapacityDetected);
-    
-    console.log('✅ Enhanced elevator parsing complete:', {
-      actions: result.actions.length,
-      elevators: result.entities.elevators.length,
-      passengers: result.entities.passengers.length,
-      floors: result.entities.floors.length,
-      multiElevator: result.multiElevatorSupport,
-      maxCapacity: maxCapacityDetected
-    });
-    
+    logParsingResults(result, inPlanSection);
     return result;
     
   } catch (error) {
-    console.error('❌ Enhanced elevator parsing error:', error);
-    return {
-      actions: [],
-      entities: { elevators: [], passengers: [], floors: [], locations: [] },
-      metrics: {},
-      pddlType,
-      domain: 'elevator',
-      error: `Enhanced elevator parser error: ${error.message}`
-    };
+    console.error('❌ Dynamic elevator parsing error:', error);
+    return createErrorResult(pddlType, error);
   }
 }
 
-function parseAdvancedElevatorAction(line, pddlType) {
-  let actionMatch;
+// ================== INITIALIZATION FUNCTIONS ==================
+
+function cleanInputLines(rawContent) {
+  return rawContent.split('\n').map(line => line.trim()).filter(line => line);
+}
+
+function initializeParseResult(pddlType) {
+  return {
+    actions: [],
+    entities: createEmptyEntities(),
+    planMetadata: createEmptyPlanMetadata(),
+    metrics: {},
+    pddlType: pddlType,
+    domain: 'elevator',
+    error: null
+  };
+}
+
+function createEmptyEntities() {
+  return {
+    elevators: [],
+    passengers: [],
+    floors: [],
+    locations: [],
+    elevatorSpecs: {},
+    passengerProfiles: {},
+    floorInformation: {},
+    capacities: {},
+    weights: {},
+    speeds: {},
+    energyData: {},
+    timeData: {},
+    costs: {}
+  };
+}
+
+function createEmptyPlanMetadata() {
+  return {
+    totalDuration: null,
+    totalCost: null,
+    hasCapacityInfo: false,
+    hasWeightInfo: false,
+    hasSpeedInfo: false,
+    hasEnergyInfo: false,
+    hasTimeInfo: false,
+    hasCostInfo: false,
+    pddlTypeFeatures: {}
+  };
+}
+
+function initializeExtractedData() {
+  return {
+    capacities: new Map(),
+    weights: new Map(),
+    speeds: new Map(),
+    energyConsumption: new Map(),
+    costs: new Map(),
+    durations: new Map(),
+    processes: new Map(),
+    events: new Map()
+  };
+}
+
+function createErrorResult(pddlType, error) {
+  return {
+    actions: [],
+    entities: { elevators: [], passengers: [], floors: [], locations: [] },
+    planMetadata: { pddlTypeFeatures: {} },
+    metrics: {},
+    pddlType,
+    domain: 'elevator',
+    error: `Dynamic elevator parser error: ${error.message}`
+  };
+}
+
+// ================== METADATA EXTRACTION ==================
+
+function extractMetadataFromPlan(lines, extractedData, metadata) {
+  console.log('📐 Extracting metadata from plan...');
   
-  // Enhanced pattern matching for different PDDL types
-  if (pddlType === 'temporal' || pddlType === 'pddl_plus') {
-    // Temporal format with duration
-    actionMatch = line.match(/^(\d+(?:\.\d+)?):\s*\(([^)]+)\)(?:\s*\[(?:D:)?(\d+(?:\.\d+)?)\])?/);
-    if (actionMatch) {
-      const [, timeStr, actionStr, durationStr] = actionMatch;
-      return createAdvancedElevatorAction(parseFloat(timeStr), actionStr, parseFloat(durationStr) || null, pddlType);
+  lines.forEach(line => {
+    extractCapacityInfo(line, extractedData.capacities, metadata);
+    extractWeightInfo(line, extractedData.weights, metadata);
+    extractSpeedInfo(line, extractedData.speeds, metadata);
+    extractEnergyInfo(line, extractedData.energyConsumption, metadata);
+    extractCostInfo(line, extractedData.costs, metadata);
+    extractDurationInfo(line, extractedData.durations, metadata);
+    extractProcessInfo(line, extractedData.processes);
+    extractEventInfo(line, extractedData.events);
+  });
+  
+  console.log('📐 Metadata extraction complete:', {
+    capacity: metadata.hasCapacityInfo,
+    weight: metadata.hasWeightInfo,
+    speed: metadata.hasSpeedInfo,
+    energy: metadata.hasEnergyInfo,
+    time: metadata.hasTimeInfo,
+    cost: metadata.hasCostInfo
+  });
+}
+
+function extractCapacityInfo(line, capacitiesMap, metadata) {
+  const patterns = [
+    /capacity[_-]?(\w+)[_-]?(\d+)/i,
+    /(\w+)[_-]?capacity[_-]?(\d+)/i,
+    /max[_-]?weight[_-]?(\w+)[_-]?(\d+)/i,
+    /elevator[_-]?(\w+)[_-]?(\d+)[_-]?kg/i
+  ];
+  
+  for (const pattern of patterns) {
+    const match = line.match(pattern);
+    if (match) {
+      const entityId = match[1] || 'elevator1';
+      const capacity = parseInt(match[2]);
+      if (!isNaN(capacity)) {
+        capacitiesMap.set(entityId, capacity);
+        metadata.hasCapacityInfo = true;
+        console.log(`📊 Found capacity: ${entityId} = ${capacity}kg`);
+        break;
+      }
     }
-  } else if (pddlType === 'numerical') {
-    // Numerical format with costs/resources
-    actionMatch = line.match(/^(\d+(?:\.\d+)?):\s*\(([^)]+)\)(?:\s*\[cost:\s*(\d+(?:\.\d+)?)\])?(?:\s*\[weight:\s*(\d+(?:\.\d+)?)\])?/);
-    if (actionMatch) {
-      const [, timeStr, actionStr, costStr, weightStr] = actionMatch;
-      const action = createAdvancedElevatorAction(parseFloat(timeStr), actionStr, null, pddlType);
-      action.cost = parseFloat(costStr) || getDefaultElevatorActionCost(action.type);
-      action.weight = parseFloat(weightStr) || 0;
-      return action;
+  }
+}
+
+function extractWeightInfo(line, weightsMap, metadata) {
+  const patterns = [
+    /weight[_-]?(\w+)[_-]?(\d+)/i,
+    /(\w+)[_-]?weight[_-]?(\d+)/i,
+    /(\w+)[_-]?(\d+)[_-]?kg/i
+  ];
+  
+  for (const pattern of patterns) {
+    const match = line.match(pattern);
+    if (match) {
+      const entityId = match[1] || 'unknown';
+      const weight = parseInt(match[2]);
+      if (!isNaN(weight)) {
+        weightsMap.set(entityId, weight);
+        metadata.hasWeightInfo = true;
+        console.log(`⚖️ Found weight: ${entityId} = ${weight}kg`);
+        break;
+      }
+    }
+  }
+}
+
+function extractSpeedInfo(line, speedsMap, metadata) {
+  const patterns = [
+    /speed[_-]?(\w+)[_-]?(\d+\.?\d*)/i,
+    /(\w+)[_-]?speed[_-]?(\d+\.?\d*)/i,
+    /(\w+)[_-]?(\d+\.?\d*)[_-]?m\/s/i
+  ];
+  
+  for (const pattern of patterns) {
+    const match = line.match(pattern);
+    if (match) {
+      const entityId = match[1] || 'elevator1';
+      const speed = parseFloat(match[2]);
+      if (!isNaN(speed)) {
+        speedsMap.set(entityId, speed);
+        metadata.hasSpeedInfo = true;
+        console.log(`🚀 Found speed: ${entityId} = ${speed}m/s`);
+        break;
+      }
+    }
+  }
+}
+
+function extractEnergyInfo(line, energyMap, metadata) {
+  const patterns = [
+    /energy[_-]?(\w+)[_-]?(\d+\.?\d*)/i,
+    /(\w+)[_-]?energy[_-]?(\d+\.?\d*)/i,
+    /(\w+)[_-]?(\d+\.?\d*)[_-]?kwh/i
+  ];
+  
+  for (const pattern of patterns) {
+    const match = line.match(pattern);
+    if (match) {
+      const entityId = match[1] || 'elevator1';
+      const energy = parseFloat(match[2]);
+      if (!isNaN(energy)) {
+        energyMap.set(entityId, energy);
+        metadata.hasEnergyInfo = true;
+        console.log(`⚡ Found energy: ${entityId} = ${energy}kWh`);
+        break;
+      }
+    }
+  }
+}
+
+function extractCostInfo(line, costsMap, metadata) {
+  const patterns = [
+    /cost[_-]?(\w+)[_-]?(\d+\.?\d*)/i,
+    /\[cost:\s*(\d+\.?\d*)\]/i
+  ];
+  
+  for (const pattern of patterns) {
+    const match = line.match(pattern);
+    if (match) {
+      const cost = parseFloat(match[match.length - 1]);
+      if (!isNaN(cost)) {
+        costsMap.set('default', cost);
+        metadata.hasCostInfo = true;
+        console.log(`💰 Found cost: ${cost}`);
+        break;
+      }
+    }
+  }
+}
+
+function extractDurationInfo(line, durationsMap, metadata) {
+  const patterns = [
+    /\[(\d+\.?\d*)\]$/,
+    /\[D:\s*(\d+\.?\d*)\]/i
+  ];
+  
+  for (const pattern of patterns) {
+    const match = line.match(pattern);
+    if (match) {
+      const duration = parseFloat(match[1]);
+      if (!isNaN(duration)) {
+        durationsMap.set('default', duration);
+        metadata.hasTimeInfo = true;
+        break;
+      }
+    }
+  }
+}
+
+function extractProcessInfo(line, processesMap) {
+  const match = line.match(/process[_-]?(\w+)/i);
+  if (match) {
+    processesMap.set(match[1], { type: 'process', continuous: true });
+    console.log(`🔄 Found process: ${match[1]}`);
+  }
+}
+
+function extractEventInfo(line, eventsMap) {
+  const match = line.match(/event[_-]?(\w+)/i);
+  if (match) {
+    eventsMap.set(match[1], { type: 'event', triggered: true });
+    console.log(`📡 Found event: ${match[1]}`);
+  }
+}
+
+// ================== ACTION PARSING ==================
+
+function parseActionsFromPlan(lines, actions, pddlType, extractedData, metrics) {
+  console.log('📋 Parsing actions from plan...');
+  let inPlanSection = false;
+  
+  for (const line of lines) {
+    if (isStartOfPlan(line)) {
+      inPlanSection = true;
+      console.log('📋 Found plan section start');
+      continue;
+    }
+    
+    if (inPlanSection && isEndOfPlan(line)) {
+      parseStatistics(line, metrics);
+      console.log('📋 Found plan section end');
+      break;
+    }
+    
+    if (inPlanSection) {
+      const action = parseElevatorAction(line, pddlType, extractedData);
+      if (action) {
+        actions.push(action);
+        extractDynamicDataFromAction(action, extractedData);
+      }
+    } else {
+      parseStatistics(line, metrics);
     }
   }
   
-  // Standard format
-  actionMatch = line.match(/^(\d+(?:\.\d+)?):\s*\(([^)]+)\)/);
-  if (actionMatch) {
-    const [, timeStr, actionStr] = actionMatch;
-    return createAdvancedElevatorAction(parseFloat(timeStr), actionStr, null, pddlType);
+  console.log(`📋 Parsed ${actions.length} actions`);
+  return inPlanSection;
+}
+
+function isStartOfPlan(line) {
+  return line.includes('found plan:') || line.includes('plan found') || line.includes('solution:');
+}
+
+function isEndOfPlan(line) {
+  return line.includes('plan-length:') || line.includes('metric') || line.includes('planning time');
+}
+
+function parseElevatorAction(line, pddlType, extractedData) {
+  // Enhanced action parsing with comprehensive parameter extraction
+  const match = line.match(/^(\d+(?:\.\d+)?):\s*\(([^)]+)\)(?:\s*\[([^\]]+)\])?/);
+  
+  if (match) {
+    const [, timeStr, actionStr, bracketContent] = match;
+    const action = createElevatorAction(
+      parseFloat(timeStr), 
+      actionStr, 
+      bracketContent, 
+      pddlType, 
+      extractedData
+    );
+    
+    if (bracketContent) {
+      parseBracketContent(action, bracketContent, extractedData);
+    }
+    
+    return action;
   }
   
   return null;
 }
 
-function createAdvancedElevatorAction(time, actionStr, duration = null, pddlType = 'classical') {
-  const actionParts = actionStr.trim().split(/\s+/);
-  const actionType = actionParts[0];
-  const params = actionParts.slice(1);
-  
-  // Calculate realistic duration based on action type
-  if (duration === null) {
-    duration = calculateRealisticElevatorDuration(actionType, pddlType, params);
-  }
+function createElevatorAction(time, actionStr, bracketContent, pddlType, extractedData) {
+  const parts = actionStr.trim().split(/\s+/);
+  const actionType = parts[0];
+  const params = parts.slice(1);
   
   const action = {
     time: time,
     start: time,
-    end: time + duration,
-    duration: duration,
     type: actionType,
     params: params,
     description: actionStr,
-    originalLine: `${time}: (${actionStr})`,
-    
-    // Enhanced elevator properties
-    elevatorId: extractElevatorId(actionType, params),
-    passengerId: extractPassengerId(actionType, params),
-    weight: extractPassengerWeight(actionType, params),
-    priority: calculateElevatorActionPriority(actionType, params),
-    energyCost: calculateElevatorEnergyCost(actionType, params),
-    safetyLevel: assessElevatorSafetyLevel(actionType, params)
+    pddlType: pddlType
   };
+  
+  // Parse basic duration from bracket content
+  if (bracketContent) {
+    const duration = parseFloat(bracketContent);
+    if (!isNaN(duration)) {
+      action.duration = duration;
+      action.end = time + duration;
+      extractedData.durations.set('default', duration);
+    }
+  }
+  
+  // Add extracted data to action
+  addExtractedDataToAction(action, extractedData);
   
   return action;
 }
 
-function calculateRealisticElevatorDuration(actionType, pddlType, params) {
-  const baseDurations = {
-    'move-up': 3.5,         // Realistic elevator movement time
-    'move-down': 3.2,       // Slightly faster going down
-    'load': 4.5,            // Door operation + passenger boarding
-    'unload': 4.0,          // Door operation + passenger exiting
-    'emergency-stop': 0.5,  // Immediate stop
-    'maintenance': 30.0,    // Maintenance operations
-    'door-open': 2.5,       // Door opening sequence
-    'door-close': 2.0       // Door closing sequence
-  };
+function parseBracketContent(action, bracketContent, extractedData) {
+  const patterns = [
+    { pattern: /^(?:D:)?(\d+(?:\.\d+)?)$/, type: 'duration' },
+    { pattern: /cost:\s*(\d+(?:\.\d+)?)/, type: 'cost' },
+    { pattern: /energy:\s*(\d+(?:\.\d+)?)/, type: 'energy' },
+    { pattern: /(\d+(?:\.\d+)?)\s*kwh/i, type: 'energy' },
+    { pattern: /weight:\s*(\d+(?:\.\d+)?)/, type: 'weight' },
+    { pattern: /(\d+(?:\.\d+)?)\s*kg/i, type: 'weight' },
+    { pattern: /speed:\s*(\d+(?:\.\d+)?)/, type: 'speed' },
+    { pattern: /(\d+(?:\.\d+)?)\s*m\/s/i, type: 'speed' }
+  ];
   
-  let baseDuration = baseDurations[actionType] || 3.0;
-  
-  // Adjust for PDDL type characteristics
-  switch (pddlType) {
-    case 'temporal':
-      return baseDuration;
-      
-    case 'numerical': {
-      const elevatorId = extractElevatorId(actionType, params);
-      const capacity = getElevatorCapacity(elevatorId);
-      return baseDuration * (1 + capacity / 2000);
-    }
-      
-    case 'pddl_plus':
-      if (actionType.includes('move')) {
-        return baseDuration * 1.3; // Continuous movement takes longer
+  for (const { pattern, type } of patterns) {
+    const match = bracketContent.match(pattern);
+    if (match) {
+      const value = parseFloat(match[1]);
+      if (!isNaN(value)) {
+        applyBracketValue(action, type, value, extractedData);
       }
-      return baseDuration;
-      
-    default:
-      return baseDuration;
-  }
-}
-
-function extractElevatorId(actionType, params) {
-  for (const param of params) {
-    if (param.includes('elevator') || param.includes('lift')) {
-      return param;
     }
   }
-  
-  if (actionType === 'move-up' || actionType === 'move-down') {
-    return params[0] || 'elevator1';
-  }
-  
-  if (actionType === 'load' || actionType === 'unload') {
-    return params[1] || 'elevator1';
-  }
-  
-  return 'elevator1';
 }
 
-function extractPassengerId(actionType, params) {
-  if (actionType === 'load' || actionType === 'unload') {
+function applyBracketValue(action, type, value, extractedData) {
+  switch (type) {
+    case 'duration':
+      action.duration = value;
+      action.end = action.start + value;
+      extractedData.durations.set('default', value);
+      break;
+    case 'cost':
+      action.cost = value;
+      extractedData.costs.set('default', value);
+      break;
+    case 'energy':
+      action.energyCost = value;
+      extractedData.energyConsumption.set('default', value);
+      break;
+    case 'weight':
+      action.weight = value;
+      if (action.passengerId) {
+        extractedData.weights.set(action.passengerId, value);
+      }
+      break;
+    case 'speed':
+      action.speed = value;
+      if (action.elevatorId) {
+        extractedData.speeds.set(action.elevatorId, value);
+      }
+      break;
+  }
+}
+
+// ================== ENTITY EXTRACTION ==================
+
+function getElevatorIdFromAction(action) {
+  const { type, params } = action;
+  
+  if (type === 'move-up' || type === 'move-down') {
     return params[0] || null;
   }
-  return null;
+  
+  if (type === 'load-person' || type === 'unload-person') {
+    return params[1] || null;
+  }
+  
+  return params.find(p => p && p.includes('elevator')) || null;
 }
 
-function extractPassengerWeight(actionType, params) {
-  for (const param of params) {
-    if (param.includes('kg') || param.includes('weight')) {
-      const weight = parseInt(param.match(/\d+/)?.[0]);
-      if (weight) return weight;
+function getPassengerIdFromAction(action) {
+  const { type, params } = action;
+  
+  if (type === 'load-person' || type === 'unload-person' || type === 'serve-person') {
+    return params[0] || null;
+  }
+  
+  return params.find(p => p && p.includes('person')) || null;
+}
+
+function addExtractedDataToAction(action, extractedData) {
+  const elevatorId = getElevatorIdFromAction(action);
+  const passengerId = getPassengerIdFromAction(action);
+  
+  if (elevatorId) {
+    action.elevatorId = elevatorId;
+    addElevatorData(action, elevatorId, extractedData);
+  }
+  
+  if (passengerId) {
+    action.passengerId = passengerId;
+    addPassengerData(action, passengerId, extractedData);
+  }
+  
+  addGlobalData(action, extractedData);
+}
+
+function addElevatorData(action, elevatorId, extractedData) {
+  if (extractedData.capacities.has(elevatorId)) {
+    action.elevatorCapacity = extractedData.capacities.get(elevatorId);
+  }
+  if (extractedData.speeds.has(elevatorId)) {
+    action.elevatorSpeed = extractedData.speeds.get(elevatorId);
+  }
+  if (extractedData.energyConsumption.has(elevatorId)) {
+    action.elevatorEnergy = extractedData.energyConsumption.get(elevatorId);
+  }
+  if (extractedData.speeds.has('default')) {
+    action.elevatorSpeed = extractedData.speeds.get('default');
+  }
+}
+
+function addPassengerData(action, passengerId, extractedData) {
+  if (extractedData.weights.has(passengerId)) {
+    action.passengerWeight = extractedData.weights.get(passengerId);
+  }
+  if (action.weight) {
+    action.passengerWeight = action.weight;
+    extractedData.weights.set(passengerId, action.weight);
+  }
+}
+
+function addGlobalData(action, extractedData) {
+  if (extractedData.costs.has('default')) {
+    action.cost = extractedData.costs.get('default');
+  }
+  if (extractedData.energyConsumption.has('default')) {
+    action.energyCost = extractedData.energyConsumption.get('default');
+  }
+}
+
+function extractDynamicDataFromAction(action, extractedData) {
+  extractCapacityFromAction(action, extractedData);
+  extractWeightFromAction(action, extractedData);
+  extractEnergyFromAction(action, extractedData);
+  extractSpeedFromAction(action, extractedData);
+}
+
+function extractCapacityFromAction(action, extractedData) {
+  if (action.description && action.description.includes('capacity')) {
+    const capacityMatch = action.description.match(/capacity[:\s]*(\d+)/i);
+    if (capacityMatch && action.elevatorId) {
+      extractedData.capacities.set(action.elevatorId, parseInt(capacityMatch[1]));
     }
   }
-  
-  if (actionType === 'load' || actionType === 'unload') {
-    return generateRealisticPassengerWeight();
+}
+
+function extractWeightFromAction(action, extractedData) {
+  if ((action.type === 'load-person' || action.type === 'unload-person') && action.passengerId) {
+    if (action.passengerWeight) {
+      extractedData.weights.set(action.passengerId, action.passengerWeight);
+    } else {
+      const weight = generateRealisticPassengerWeight();
+      extractedData.weights.set(action.passengerId, weight);
+    }
   }
-  
-  return 0;
+}
+
+function extractEnergyFromAction(action, extractedData) {
+  if (action.type === 'move-up' || action.type === 'move-down') {
+    if (action.energyCost && action.elevatorId) {
+      extractedData.energyConsumption.set(action.elevatorId, action.energyCost);
+    } else if (!extractedData.energyConsumption.has(action.elevatorId)) {
+      const energyConsumption = action.type === 'move-up' ? 0.15 : 0.05;
+      extractedData.energyConsumption.set(action.elevatorId, energyConsumption);
+    }
+  }
+}
+
+function extractSpeedFromAction(action, extractedData) {
+  if ((action.type === 'move-up' || action.type === 'move-down') && action.duration && action.elevatorId) {
+    if (!extractedData.speeds.has(action.elevatorId)) {
+      const speed = 3.5 / action.duration;
+      extractedData.speeds.set(action.elevatorId, speed);
+    }
+  }
 }
 
 function generateRealisticPassengerWeight() {
@@ -246,329 +550,174 @@ function generateRealisticPassengerWeight() {
   return Math.max(45, Math.min(120, Math.round(weight)));
 }
 
-function calculateElevatorActionPriority(actionType) {
-  switch (actionType) {
-    case 'emergency-stop':
-      return 10;
-    case 'unload':
-      return 8;
-    case 'load':
-      return 7;
-    case 'move-up':
-    case 'move-down':
-      return 5;
-    default:
-      return 3;
-  }
-}
+// ================== POST PROCESSING ==================
 
-function calculateElevatorEnergyCost(actionType) {
-  switch (actionType) {
-    case 'move-up':
-      return 0.05;
-    case 'move-down':
-      return 0.02;
-    case 'load':
-    case 'unload':
-      return 0.01;
-    case 'emergency-stop':
-      return 0.03;
-    default:
-      return 0.01;
-  }
-}
-
-function assessElevatorSafetyLevel(actionType) {
-  switch (actionType) {
-    case 'emergency-stop':
-      return 10;
-    case 'load':
-    case 'unload':
-      return 8;
-    case 'move-up':
-    case 'move-down':
-      return 7;
-    default:
-      return 9;
-  }
-}
-
-function getElevatorCapacity(elevatorId) {
-  if (elevatorId.includes('freight')) return 2000;
-  if (elevatorId.includes('passenger')) return 1000;
-  if (elevatorId.includes('service')) return 800;
-  return 1000;
-}
-
-function getDefaultElevatorActionCost(actionType) {
-  switch (actionType) {
-    case 'move-up': return 3;
-    case 'move-down': return 2;
-    case 'load': return 1;
-    case 'unload': return 1;
-    case 'emergency-stop': return 5;
-    default: return 2;
-  }
-}
-
-function extractAdvancedElevatorEntities(action, entities) {
-  const { elevatorId, passengerId, weight } = action;
+function postProcessResults(result, extractedData) {
+  console.log('🔧 Post-processing results...');
   
-  // Extract elevators with specifications
-  if (elevatorId && !entities.elevators.find(e => e.id === elevatorId)) {
-    entities.elevators.push({
-      id: elevatorId,
-      type: determineElevatorType(elevatorId),
-      capacity: getElevatorCapacity(elevatorId),
-      maxPassengers: getMaxPassengers(elevatorId),
-      speed: getElevatorSpeed(elevatorId),
-      floors: []
-    });
-  }
+  extractEntitiesFromActions(result, extractedData);
+  calculateFloorSystem(result);
+  setPDDLTypeFeatures(result, extractedData);
+  calculateMetrics(result);
   
-  // Extract passengers with profiles
-  if (passengerId && !entities.passengers.find(p => p.id === passengerId)) {
-    entities.passengers.push({
-      id: passengerId,
-      weight: weight || generateRealisticPassengerWeight(),
-      mobility: generateMobilityProfile(),
-      priority: generatePassengerPriority(),
-      accessibilityNeeds: Math.random() > 0.9,
-      vipStatus: Math.random() > 0.95
-    });
-  }
+  console.log('🔧 Post-processing complete');
 }
 
-function determineElevatorType(elevatorId) {
-  if (elevatorId.includes('freight')) return 'freight';
-  if (elevatorId.includes('service')) return 'service';
-  if (elevatorId.includes('express')) return 'express';
-  return 'passenger';
-}
-
-function getMaxPassengers(elevatorId) {
-  const capacity = getElevatorCapacity(elevatorId);
-  return Math.floor(capacity / 75);
-}
-
-function getElevatorSpeed(elevatorId) {
-  const type = determineElevatorType(elevatorId);
-  switch (type) {
-    case 'express': return 3.5;
-    case 'freight': return 1.5;
-    case 'service': return 2.0;
-    default: return 2.5;
-  }
-}
-
-function generateMobilityProfile() {
-  const profiles = ['normal', 'elderly', 'wheelchair', 'pregnant', 'child'];
-  return profiles[Math.floor(Math.random() * profiles.length)];
-}
-
-function generatePassengerPriority() {
-  const priorities = ['low', 'normal', 'high', 'urgent'];
-  const weights = [0.3, 0.5, 0.15, 0.05];
-  
-  const random = Math.random();
-  let cumulative = 0;
-  
-  for (let i = 0; i < weights.length; i++) {
-    cumulative += weights[i];
-    if (random <= cumulative) {
-      return priorities[i];
-    }
-  }
-  
-  return 'normal';
-}
-
-function postProcessAdvancedElevator(result, pddlType, maxCapacity) {
-  // Ensure minimum elevator configuration
-  if (result.entities.elevators.length === 0) {
-    result.entities.elevators = [
-      {
-        id: 'elevator1',
-        type: 'passenger',
-        capacity: maxCapacity,
-        maxPassengers: Math.floor(maxCapacity / 75),
-        speed: 2.5,
-        floors: []
-      }
-    ];
-  }
-  
-  // Generate realistic floor system based on movement actions
-  const moveActions = result.actions.filter(a => a.type === 'move-up' || a.type === 'move-down');
-  let floorCount = Math.max(3, Math.min(20, moveActions.length + 2));
-  
-  // Detect building height from actions
-  let currentFloor = 0;
-  let minFloor = 0;
-  let maxFloor = 0;
+function extractEntitiesFromActions(result) {
+  const elevatorIds = new Set();
+  const passengerIds = new Set();
+  const elevatorData = new Map();
+  const passengerData = new Map();
   
   result.actions.forEach(action => {
-    if (action.type === 'move-up') {
-      currentFloor++;
-      maxFloor = Math.max(maxFloor, currentFloor);
-    } else if (action.type === 'move-down') {
-      currentFloor--;
-      minFloor = Math.min(minFloor, currentFloor);
-    }
+    processActionForEntities(action, elevatorIds, passengerIds, elevatorData, passengerData);
   });
   
-  floorCount = Math.max(3, maxFloor - minFloor + 1);
+  createElevatorEntities(result, elevatorIds, elevatorData);
+  createPassengerEntities(result, passengerIds, passengerData);
+}
+
+function processActionForEntities(action, elevatorIds, passengerIds, elevatorData, passengerData) {
+  const elevatorId = getElevatorIdFromAction(action);
+  const passengerId = getPassengerIdFromAction(action);
   
-  // Generate floor information
-  result.entities.floors = [];
-  result.entities.floorInformation = {};
-  
-  for (let i = 0; i < floorCount; i++) {
-    const floorName = `Floor${i + 1}`;
-    result.entities.floors.push(floorName);
-    
-    result.entities.floorInformation[floorName] = {
-      level: i,
-      height: i * 3.5,
-      type: determineFloorType(i, floorCount),
-      capacity: 100,
-      emergencyExit: i === 0 || i === floorCount - 1,
-      accessibility: Math.random() > 0.2
-    };
+  if (elevatorId) {
+    elevatorIds.add(elevatorId);
+    collectElevatorData(elevatorId, action, elevatorData);
   }
   
-  // Calculate total duration and metrics
-  if (result.actions.length > 0) {
-    const lastAction = result.actions[result.actions.length - 1];
-    
-    switch (pddlType) {
-      case 'temporal':
-      case 'pddl_plus':
-        result.totalDuration = Math.max(...result.actions.map(a => a.end || a.time + a.duration));
-        result.metrics.parallelActions = calculateElevatorParallelActions(result.actions);
-        break;
-        
-      case 'numerical':
-        result.totalCost = result.actions.reduce((sum, a) => sum + (a.cost || 1), 0);
-        result.totalEnergyConsumption = result.actions.reduce((sum, a) => sum + (a.energyCost || 0), 0);
-        result.totalDuration = lastAction.time || result.actions.length;
-        break;
-        
-      default:
-        result.totalDuration = lastAction.time || result.actions.length;
+  if (passengerId) {
+    passengerIds.add(passengerId);
+    collectPassengerData(passengerId, action, passengerData);
+  }
+}
+
+function collectElevatorData(elevatorId, action, elevatorData) {
+  if (!elevatorData.has(elevatorId)) {
+    elevatorData.set(elevatorId, {});
+  }
+  
+  const elevatorInfo = elevatorData.get(elevatorId);
+  if (action.elevatorCapacity) elevatorInfo.capacity = action.elevatorCapacity;
+  if (action.elevatorSpeed) elevatorInfo.speed = action.elevatorSpeed;
+  if (action.elevatorEnergy) elevatorInfo.energyConsumption = action.elevatorEnergy;
+}
+
+function collectPassengerData(passengerId, action, passengerData) {
+  if (!passengerData.has(passengerId)) {
+    passengerData.set(passengerId, {});
+  }
+  
+  const passengerInfo = passengerData.get(passengerId);
+  if (action.passengerWeight) passengerInfo.weight = action.passengerWeight;
+}
+
+function createElevatorEntities(result, elevatorIds, elevatorData) {
+  elevatorIds.forEach(id => {
+    const elevator = { id };
+    const data = elevatorData.get(id);
+    if (data) {
+      Object.assign(elevator, data);
     }
-    
-    // Advanced elevator metrics
-    result.metrics.safetyScore = calculateElevatorSafetyScore(result.actions);
-    result.metrics.efficiencyRating = calculateElevatorEfficiencyRating(result.actions, result.entities.elevators.length);
-    result.metrics.passengerSatisfaction = calculateElevatorPassengerSatisfaction(result.actions, result.entities.passengers);
-    result.metrics.energyRating = calculateElevatorEnergyRating(result.actions, pddlType);
-  }
-  
-  // Set locations for compatibility
-  result.entities.locations = [...result.entities.floors];
-  
-  console.log('🔧 Advanced elevator post-processing complete');
+    result.entities.elevators.push(elevator);
+  });
 }
 
-function determineFloorType(floorIndex, totalFloors) {
-  if (floorIndex === 0) return 'ground';
-  if (floorIndex === totalFloors - 1) return 'top';
-  if (floorIndex === 1) return 'mezzanine';
-  if (floorIndex > totalFloors * 0.8) return 'upper';
-  if (floorIndex < totalFloors * 0.3) return 'lower';
-  return 'middle';
+function createPassengerEntities(result, passengerIds, passengerData) {
+  passengerIds.forEach(id => {
+    const passenger = { id };
+    const data = passengerData.get(id);
+    if (data) {
+      Object.assign(passenger, data);
+    }
+    result.entities.passengers.push(passenger);
+  });
 }
 
-function calculateElevatorParallelActions(actions) {
-  let maxParallel = 0;
-  const timeSlots = {};
+function calculateFloorSystem(result) {
+  const floorNumbers = new Set();
   
-  actions.forEach(action => {
-    if (action.start !== undefined && action.end !== undefined) {
-      for (let t = Math.floor(action.start); t < Math.ceil(action.end); t++) {
-        timeSlots[t] = (timeSlots[t] || 0) + 1;
-        maxParallel = Math.max(maxParallel, timeSlots[t]);
+  result.actions.forEach(action => {
+    action.params.forEach(param => {
+      if (param && param.includes('floor')) {
+        const num = parseInt(param.replace('floor', ''));
+        if (!isNaN(num)) floorNumbers.add(num);
       }
-    }
+    });
   });
   
-  return maxParallel;
+  const sortedFloors = Array.from(floorNumbers).sort((a, b) => a - b);
+  result.entities.floors = sortedFloors.map(num => `Floor ${num + 1}`);
+  result.entities.locations = [...result.entities.floors];
 }
 
-function calculateElevatorSafetyScore(actions) {
-  if (actions.length === 0) return 100;
-  
-  const totalSafety = actions.reduce((sum, action) => sum + (action.safetyLevel || 5), 0);
-  return Math.round((totalSafety / (actions.length * 10)) * 100);
+function setPDDLTypeFeatures(result, extractedData) {
+  result.planMetadata.pddlTypeFeatures = {
+    type: result.pddlType,
+    hasParallelActions: result.pddlType === 'temporal' || result.pddlType === 'pddl_plus',
+    hasCosts: result.planMetadata.hasCostInfo,
+    hasContinuousProcesses: extractedData.processes.size > 0,
+    hasEvents: extractedData.events.size > 0,
+    hasTemporalConstraints: result.planMetadata.hasTimeInfo
+  };
 }
 
-function calculateElevatorEfficiencyRating(actions, elevatorCount) {
-  if (actions.length === 0) return 100;
+function calculateMetrics(result) {
+  if (result.actions.length === 0) return;
   
-  const moveActions = actions.filter(a => a.type === 'move-up' || a.type === 'move-down');
-  const passengerActions = actions.filter(a => a.type === 'load' || a.type === 'unload');
+  result.metrics.totalActions = result.actions.length;
+  result.metrics.moveActions = result.actions.filter(a => a.type.includes('move')).length;
+  result.metrics.passengerActions = result.actions.filter(a => 
+    a.type === 'load-person' || a.type === 'unload-person'
+  ).length;
   
-  if (passengerActions.length === 0) return 50;
-  
-  const moveToPassengerRatio = moveActions.length / passengerActions.length;
-  const idealRatio = 1.5;
-  
-  let efficiency = 100 - Math.abs(moveToPassengerRatio - idealRatio) * 20;
-  
-  if (elevatorCount > 1) {
-    efficiency += 10;
+  if (result.planMetadata.hasTimeInfo) {
+    const lastAction = result.actions[result.actions.length - 1];
+    result.totalDuration = lastAction.end || lastAction.time;
   }
   
-  return Math.max(0, Math.min(100, Math.round(efficiency)));
-}
-
-function calculateElevatorPassengerSatisfaction(actions, passengers) {
-  if (passengers.length === 0) return 100;
-  
-  const actionsPerPassenger = actions.length / passengers.length;
-  let satisfaction = Math.max(60, 100 - actionsPerPassenger * 5);
-  
-  const loadActions = actions.filter(a => a.type === 'load').length;
-  const unloadActions = actions.filter(a => a.type === 'unload').length;
-  
-  if (loadActions === unloadActions) {
-    satisfaction += 10;
+  if (result.planMetadata.hasCostInfo) {
+    result.totalCost = result.actions.reduce((sum, a) => sum + (a.cost || 0), 0);
   }
-  
-  return Math.round(satisfaction);
 }
 
-function calculateElevatorEnergyRating(actions, pddlType) {
-  if (pddlType !== 'numerical') return 'A';
-  
-  const totalEnergy = actions.reduce((sum, a) => sum + (a.energyCost || 0), 0);
-  const actionCount = actions.length;
-  
-  if (actionCount === 0) return 'A+';
-  
-  const energyPerAction = totalEnergy / actionCount;
-  
-  if (energyPerAction < 0.02) return 'A+';
-  if (energyPerAction < 0.03) return 'A';
-  if (energyPerAction < 0.04) return 'B';
-  if (energyPerAction < 0.05) return 'C';
-  return 'D';
+// ================== LOGGING ==================
+
+function logParsingResults(result, inPlanSection) {
+  console.log('✅ Dynamic elevator parsing complete:', {
+    actions: result.actions.length,
+    elevators: result.entities.elevators.length,
+    passengers: result.entities.passengers.length,
+    floors: result.entities.floors.length,
+    features: result.planMetadata.pddlTypeFeatures,
+    planSectionFound: inPlanSection,
+    metrics: {
+      planLength: result.metrics.planLength,
+      planningTime: result.metrics.planningTime,
+      totalCost: result.totalCost
+    }
+  });
 }
 
-// Shared utility function
+// ================== UTILITY FUNCTIONS ==================
+
 function parseStatistics(line, metrics) {
-  if (line.includes('plan-length:')) {
-    metrics.planLength = parseInt(line.split(':')[1]);
-  } else if (line.includes('planning time (msec):')) {
-    metrics.planningTime = parseInt(line.split(':')[1]);
-  } else if (line.includes('search time (msec):')) {
-    metrics.searchTime = parseInt(line.split(':')[1]);
-  } else if (line.includes('expanded nodes:')) {
-    metrics.expandedNodes = parseInt(line.split(':')[1]);
-  } else if (line.includes('states evaluated:')) {
-    metrics.statesEvaluated = parseInt(line.split(':')[1]);
-  } else if (line.includes('metric (search):')) {
-    metrics.totalCost = parseFloat(line.split(':')[1]);
+  const statPatterns = [
+    { pattern: /plan-length:\s*(\d+)/, key: 'planLength' },
+    { pattern: /planning time \(msec\):\s*(\d+)/, key: 'planningTime' },
+    { pattern: /search time \(msec\):\s*(\d+)/, key: 'searchTime' },
+    { pattern: /expanded nodes:\s*(\d+)/, key: 'expandedNodes' },
+    { pattern: /states evaluated:\s*(\d+)/, key: 'statesEvaluated' },
+    { pattern: /metric \(search\):\s*(\d+(?:\.\d+)?)/, key: 'totalCost' },
+    { pattern: /heuristic time \(msec\):\s*(\d+)/, key: 'heuristicTime' },
+    { pattern: /grounding time:\s*(\d+)/, key: 'groundingTime' }
+  ];
+  
+  for (const { pattern, key } of statPatterns) {
+    const match = line.match(pattern);
+    if (match) {
+      metrics[key] = key === 'totalCost' ? parseFloat(match[1]) : parseInt(match[1]);
+      break;
+    }
   }
 }

@@ -615,9 +615,21 @@
   </div>
 </template>
 
+// File: src/components/visualization/LogisticsSimulator.vue - Script Section Update
+// FIXED: Import and use dynamic functions, remove hardcoded values
+
 <script>
-// Import the enhanced realistic logistics simulator logic
+// FIXED: Import the enhanced realistic logistics simulator logic WITH dynamic functions
 import { createLogisticsSimulator } from './logisticsSimulator.js'
+
+// FIXED: Import dynamic functions for icons and calculations
+import {
+  getPackageIconDynamic,
+  getVehicleIconDynamic,
+  getLocationIconDynamic,
+  getVehicleStatusIconDynamic,
+  calculateDynamicLocationPositions
+} from './dynamicLogisticsFunctions.js'
 
 export default {
   name: 'LogisticsSimulator',
@@ -636,7 +648,7 @@ export default {
     }
   },
   setup(props) {
-    console.log('🚚 LogisticsSimulator setup CALLED:', {
+    console.log('🚚 FIXED LogisticsSimulator setup CALLED:', {
       actionsType: typeof props.actions,
       actionsLength: Array.isArray(props.actions) ? props.actions.length : 'string length: ' + (typeof props.actions === 'string' ? props.actions.length : 'unknown'),
       pddlType: props.pddlType,
@@ -647,10 +659,10 @@ export default {
     
     // Debug logging to see what we receive
     if (Array.isArray(props.actions) && props.actions.length > 0) {
-      console.log('📋 Sample actions received:', props.actions.slice(0, 3))
-      console.log('📦 Entities received:', props.entities)
+      console.log('📋 FIXED Sample actions received:', props.actions.slice(0, 3))
+      console.log('📦 FIXED Entities received:', props.entities)
     } else {
-      console.warn('⚠️ No actions received in LogisticsSimulator!')
+      console.warn('⚠️ FIXED No actions received in LogisticsSimulator!')
     }
     
     const simulatorProps = {
@@ -659,7 +671,7 @@ export default {
     
     const simulator = createLogisticsSimulator(simulatorProps)
     
-    // Enhanced helper function for particle styling
+    // FIXED: Enhanced helper function for particle styling
     const getParticleStyle = (particle) => {
       const baseStyle = {
         left: particle.x + '%',
@@ -680,7 +692,7 @@ export default {
       return baseStyle
     }
 
-    // Helper function for cargo transfer styling
+    // FIXED: Helper function for cargo transfer styling
     const getCargoTransferStyle = (packageId) => {
       const animation = simulator.getCargoAnimation(packageId)
       if (!animation) return { display: 'none' }
@@ -698,9 +710,9 @@ export default {
       }
     }
     
-    // Debug function to check simulator state
+    // FIXED: Debug function to check simulator state
     const debugSimulatorState = () => {
-      console.log('🔍 SIMULATOR DEBUG STATE:')
+      console.log('🔍 FIXED SIMULATOR DEBUG STATE:')
       console.log('  - parsedActions:', simulator.parsedActions.value?.length || 0)
       console.log('  - logisticsEntities:', simulator.logisticsEntities.value)
       console.log('  - allVehicles:', simulator.allVehicles.value)
@@ -712,11 +724,53 @@ export default {
       console.log('  - packageLocations:', simulator.packageLocations.value)
     }
 
+    // FIXED: Dynamic icon functions - replace hardcoded simulator functions
+    const getPackageIconFixed = (packageName) => {
+      return getPackageIconDynamic(packageName)
+    }
+
+    const getVehicleIconFixed = (vehicleName) => {
+      return getVehicleIconDynamic(vehicleName)
+    }
+
+    const getVehicleStatusIconFixed = (vehicle) => {
+      const status = simulator.getVehicleStatus(vehicle)
+      const vehicleType = simulator.getVehicleType(vehicle)
+      return getVehicleStatusIconDynamic(vehicle, status, vehicleType)
+    }
+
+    const getLocationIconFixed = (locationName) => {
+      return getLocationIconDynamic(locationName)
+    }
+
+    // FIXED: Dynamic position calculation
+    const calculateLocationPositionsFixed = () => {
+      const cities = simulator.logisticsEntities.value.cities
+      const locations = simulator.logisticsEntities.value.locations
+      
+      console.log(`📍 FIXED Dynamic calculating positions for ${cities.length} cities and ${locations.length} locations`)
+      
+      const positions = calculateDynamicLocationPositions(cities, locations)
+      
+      console.log('📍 FIXED Dynamic calculated positions:', positions)
+      return positions
+    }
+
     // Call debug on mount
     setTimeout(debugSimulatorState, 1000)
     
     return {
+      // FIXED: Return simulator functions but override icon functions with dynamic ones
       ...simulator,
+      
+      // FIXED: Override hardcoded functions with dynamic ones
+      getPackageIcon: getPackageIconFixed,
+      getVehicleIcon: getVehicleIconFixed,
+      getVehicleStatusIcon: getVehicleStatusIconFixed,
+      getLocationIcon: getLocationIconFixed,
+      calculateLocationPositions: calculateLocationPositionsFixed,
+      
+      // Helper functions
       getParticleStyle,
       getCargoTransferStyle,
       debugSimulatorState
@@ -725,4 +779,5 @@ export default {
 }
 </script>
 
+<!-- FIXED: Template remains the same but now uses dynamic icon functions -->
 <style src="./LogisticsSimulator.css" scoped></style>

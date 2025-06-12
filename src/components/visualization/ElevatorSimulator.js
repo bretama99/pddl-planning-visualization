@@ -1,143 +1,95 @@
-export default {
+
+    export default {
   name: 'ElevatorSimulator',
   props: {
-    actions: { 
-      type: Array, 
-      default: () => []
-    },
-    entities: { 
-      type: Object, 
-      default: () => ({}) 
-    },
-    pddlType: {
-      type: String,
-      default: 'classical'
-    }
+    actions: { type: Array, default: () => [] },
+    entities: { type: Object, default: () => ({}) },
+    pddlType: { type: String, default: 'classical' }
   },
+
+  // ================== REACTIVE DATA ==================
+  
   data() {
     return {
-      // Simulation state
+      // Core Simulation State
       isPlaying: false,
       currentStep: 0,
       speed: 1,
+      timer: null,
       
-      // Enhanced Multi-Elevator System
-      elevators: [],           // Array of elevator objects
-      activeElevatorId: 0,     // Currently selected elevator for main view
+      // Dynamic System Components
+      elevators: [],
+      passengers: [],
+      activeElevatorId: 0,
       
-      // Floor system
+      // Building Structure
       minPosition: 0,
       maxPosition: 0,
       floorLabels: [],
-      floorHeights: [],        // Physical floor heights for realistic movement
       
-      // Enhanced Passenger System
-      passengers: [],
-      passengerQueue: [],      // Queue of passengers waiting
+      // Plan-Based Constraints
+      planConstraints: this.createEmptyConstraints(),
+      availableFeatures: this.createEmptyFeatures(),
       
-      // Real-world constraints
-      elevatorSpecs: {
-        maxCapacity: 1000,     // kg
-        maxPassengers: 8,      // people
-        maxSpeed: 2.5,         // m/s
-        acceleration: 1.0,     // m/s²
-        doorOpenTime: 3.0,     // seconds
-        doorCloseTime: 2.0,    // seconds
-        floorHeight: 3.5,      // meters per floor
-        emergencyMode: false
-      },
-      
-      // Advanced features
+      // UI State Management
+      emergencyStop: false,
       showCapacityWarning: false,
       showOverloadAlert: false,
-      emergencyStop: false,
-      maintenanceMode: false,
-      energyConsumption: 0,
-      totalTrips: 0,
-      averageWaitTime: 0,
-      
-      // Animation and UI
       movingPassenger: null,
-      animationQueue: [],
-      currentActionDuration: 1000,
       showSuccess: false,
       successMessage: '',
       
-      // Performance metrics
-      metrics: {
-        totalEnergyUsed: 0,
-        totalPassengersServed: 0,
-        averageJourneyTime: 0,
-        peakUsageTime: 0,
-        elevatorEfficiency: 100,
-        maintenanceAlerts: []
-      },
+      // Performance Metrics
+      metrics: this.createEmptyMetrics(),
+      currentActionDuration: 1000,
       
-      // Smart scheduling
-      pendingCalls: [],        // Floor call requests
-      elevatorAlgorithm: 'SCAN', // FCFS, SCAN, LOOK, etc.
-      
-      // Timer
-      timer: null,
-      
-      // Emergency scenarios
-      emergencyScenarios: [
-        'Fire alarm - All elevators return to ground floor',
-        'Power outage - Emergency backup power activated',
-        'Overload detected - Passenger evacuation required',
-        'Mechanical failure - Maintenance mode activated',
-        'Seismic activity - Safety protocols engaged'
-      ]
-    }
+      // Advanced Features
+      pendingCalls: [],
+      elevatorAlgorithm: null
+    };
   },
+
+  // ================== COMPUTED PROPERTIES ==================
+  
   computed: {
-    // Main elevator for primary display
     mainElevator() {
-      return this.elevators[this.activeElevatorId] || this.elevators[0] || this.createDefaultElevator();
+      if (this.elevators.length === 0) {
+        return this.createOfflineElevator();
+      }
+      return this.elevators[this.activeElevatorId] || this.elevators[0];
     },
     
-    // Current floor name for main elevator
     currentFloorName() {
       const floorIndex = this.mainElevator.position - this.minPosition;
-      return this.floorLabels[floorIndex] || 'Floor?';
+      return this.floorLabels[floorIndex] || `Position ${this.mainElevator.position}`;
     },
     
-    // Visual position for main elevator
-    elevatorVisualPosition() {
-      const floorIndex = this.mainElevator.position - this.minPosition;
-      return floorIndex * 150 + 20;
-    },
-    
-    // Capacity utilization percentage
     capacityUtilization() {
-      const currentWeight = this.mainElevator.passengers.reduce((total, p) => total + p.weight, 0);
-      return Math.round((currentWeight / this.elevatorSpecs.maxCapacity) * 100);
+      if (!this.availableFeatures.showCapacity || !this.planConstraints.maxCapacity) return 0;
+      const currentWeight = this.calculateCurrentWeight(this.mainElevator);
+      return Math.round((currentWeight / this.planConstraints.maxCapacity) * 100);
     },
     
-    // Passenger count in main elevator
     passengerCount() {
       return this.mainElevator.passengers.length;
     },
     
-    // Show duration info for PDDL types that support it
     showDurationInfo() {
-      return this.pddlType === 'temporal' || this.pddlType === 'pddl_plus' || this.pddlType === 'numerical';
+      return this.availableFeatures.showTime;
     },
     
-    // Advanced elevator status
-    elevatorStatus() {
+     elevatorStatus() {
       if (this.emergencyStop) return 'EMERGENCY';
-      if (this.maintenanceMode) return 'MAINTENANCE';
+      if (this.mainElevator.status === 'offline') return 'OFFLINE';
       if (this.mainElevator.isMoving) return 'MOVING';
       if (this.mainElevator.doorsOpen) return 'DOORS OPEN';
       if (this.mainElevator.passengers.length === 0) return 'IDLE';
       return 'OCCUPIED';
     },
     
-    // Energy efficiency rating
     energyRating() {
-      if (this.metrics.totalEnergyUsed === 0) return 'A+';
-      const efficiency = this.metrics.elevatorEfficiency;
+      if (!this.availableFeatures.showEnergy || !this.metrics.hasEnergyMetrics) return null;
+      const efficiency = this.metrics.elevatorEfficiency || 50;
       if (efficiency >= 90) return 'A+';
       if (efficiency >= 80) return 'A';
       if (efficiency >= 70) return 'B';
@@ -145,79 +97,1177 @@ export default {
       return 'D';
     },
     
-    // Smart passenger animation styles
     movingPassengerStyle() {
       if (!this.movingPassenger) return { display: 'none' };
       
-      const floorIndex = this.mainElevator.position - this.minPosition;
-      const baseY = floorIndex * 150 + 70;
-      
-      if (this.movingPassenger.animationState === 'boarding') {
-        return {
-          position: 'absolute',
-          left: '200px',
-          bottom: baseY + 'px',
-          transform: 'translateX(150px)',
-          transition: 'transform 2.5s cubic-bezier(0.4, 0.0, 0.2, 1)',
-          zIndex: 100,
-          opacity: 1
-        };
-      } else if (this.movingPassenger.animationState === 'exiting') {
-        return {
-          position: 'absolute', 
-          left: '350px',
-          bottom: baseY + 'px',
-          transform: 'translateX(200px)',
-          transition: 'transform 2.5s cubic-bezier(0.4, 0.0, 0.2, 1)',
-          zIndex: 100,
-          opacity: 1
-        };
-      }
-      
-      return { display: 'none' };
+      return this.calculatePassengerAnimationStyle(this.movingPassenger);
     }
   },
+
+  // ================== WATCHERS ==================
+  
   watch: {
-    actions: {
-      handler: 'initialize',
-      immediate: true,
-      deep: true
-    },
-    entities: {
-      handler: 'initialize', 
-      immediate: true,
-      deep: true
-    },
-    pddlType: {
-      handler: 'initialize',
-      immediate: true
-    },
-    // Monitor capacity for safety
+    actions: { handler: 'initializeDynamic', immediate: true, deep: true },
+    entities: { handler: 'initializeDynamic', immediate: true, deep: true },
+    pddlType: { handler: 'initializeDynamic', immediate: true },
+    
     capacityUtilization: {
       handler(newVal) {
-        if (newVal > 100) {
-          this.showOverloadAlert = true;
-          this.triggerEmergencyProtocol('overload');
-        } else if (newVal > 85) {
-          this.showCapacityWarning = true;
-        } else {
-          this.showCapacityWarning = false;
-          this.showOverloadAlert = false;
-        }
+        this.handleCapacityChange(newVal);
       },
       immediate: true
     }
   },
+
+  // ================== LIFECYCLE HOOKS ==================
+  
   mounted() {
-    this.initialize();
-    // Start performance monitoring
-    this.startPerformanceMonitoring();
+    this.initializeDynamic();
   },
+  
   beforeUnmount() {
     this.cleanup();
   },
+
+  // ================== MAIN METHODS ==================
+  
   methods: {
-    // PDDL Type utilities
+    
+    // === INITIALIZATION SECTION ===
+    
+    initializeDynamic() {
+      console.log('🛗 Initializing 100% dynamic elevator system...');
+      this.resetDynamicState();
+      
+      if (!this.hasValidActions()) {
+        this.setupEmptyState();
+        return;
+      }
+      
+      this.executeInitializationSequence();
+      this.logInitializationResults();
+    },
+    
+    executeInitializationSequence() {
+      this.extractPlanConstraints();
+      this.detectAvailableFeatures();
+      this.calculateBuildingStructure();
+      this.createSystemComponents();
+      this.initializeAdvancedFeatures();
+    },
+    
+    resetDynamicState() {
+      this.clearAllArrays();
+      this.resetCounters();
+      this.resetFlags();
+      this.resetConstraintsAndFeatures();
+      this.cleanup();
+    },
+    
+    clearAllArrays() {
+      this.elevators = [];
+      this.passengers = [];
+      this.floorLabels = [];
+      this.pendingCalls = [];
+    },
+    
+    resetCounters() {
+      this.currentStep = 0;
+      this.currentActionDuration = 1000;
+    },
+    
+    resetFlags() {
+      this.isPlaying = false;
+      this.emergencyStop = false;
+      this.movingPassenger = null;
+      this.showSuccess = false;
+      this.elevatorAlgorithm = null;
+    },
+    
+    resetConstraintsAndFeatures() {
+      this.planConstraints = this.createEmptyConstraints();
+      this.availableFeatures = this.createEmptyFeatures();
+      this.metrics = this.createEmptyMetrics();
+    },
+    
+    // === HELPER CREATION METHODS ===
+    
+    createEmptyConstraints() {
+      return {
+        hasCapacity: false,
+        hasWeight: false,
+        hasSpeed: false,
+        hasEnergy: false,
+        hasTime: false,
+        hasCost: false,
+        maxCapacity: null,
+        maxWeight: null,
+        maxSpeed: null,
+        energyLimit: null
+      };
+    },
+    
+    createEmptyFeatures() {
+      return {
+        showCapacity: false,
+        showWeight: false,
+        showSpeed: false,
+        showEnergy: false,
+        showTime: false,
+        showCost: false,
+        showParallel: false,
+        showContinuous: false,
+        showEvents: false
+      };
+    },
+    
+    createEmptyMetrics() {
+      return {
+        totalActions: 0,
+        hasTimeMetrics: false,
+        hasCostMetrics: false,
+        hasEnergyMetrics: false,
+        hasCapacityMetrics: false,
+        totalDuration: null,
+        totalCost: null,
+        totalEnergy: null,
+        averageCapacityUtilization: null,
+        elevatorEfficiency: null,
+        passengerThroughput: null,
+        safetyScore: 100,
+        maintenanceAlerts: []
+      };
+    },
+    
+    createOfflineElevator() {
+      return {
+        id: 'no-elevator',
+        position: 0,
+        isMoving: false,
+        direction: null,
+        doorsOpen: false,
+        passengers: [],
+        currentWeight: 0,
+        status: 'offline',
+        color: '#95a5a6'
+      };
+    },
+    
+    // === PLAN ANALYSIS SECTION ===
+    
+    hasValidActions() {
+      return this.actions && this.actions.length > 0;
+    },
+    
+    setupEmptyState() {
+      this.minPosition = 0;
+      this.maxPosition = 2;
+      this.floorLabels = ['Floor 1', 'Floor 2', 'Floor 3'];
+      this.elevators = [];
+      this.passengers = [];
+      console.warn('⚠️ No plan data - showing empty building structure');
+    },
+    
+    extractPlanConstraints() {
+      console.log('📐 Extracting constraints from plan...');
+      
+      this.analyzeElevatorEntities();
+      this.analyzePassengerEntities();
+      this.analyzeActionConstraints();
+      
+      console.log('📐 Extracted constraints:', this.planConstraints);
+    },
+    
+    analyzeElevatorEntities() {
+      if (!this.entities.elevators) return;
+      
+      this.entities.elevators.forEach(elevator => {
+        this.processElevatorEntity(elevator);
+      });
+    },
+    
+    processElevatorEntity(elevator) {
+      if (elevator.capacity !== undefined) {
+        this.planConstraints.hasCapacity = true;
+        this.planConstraints.maxCapacity = Math.max(
+          this.planConstraints.maxCapacity || 0, 
+          elevator.capacity
+        );
+      }
+      
+      if (elevator.speed !== undefined) {
+        this.planConstraints.hasSpeed = true;
+        this.planConstraints.maxSpeed = Math.max(
+          this.planConstraints.maxSpeed || 0, 
+          elevator.speed
+        );
+      }
+      
+      if (elevator.energyConsumption !== undefined) {
+        this.planConstraints.hasEnergy = true;
+      }
+    },
+    
+    analyzePassengerEntities() {
+      if (!this.entities.passengers) return;
+      
+      this.entities.passengers.forEach(passenger => {
+        this.processPassengerEntity(passenger);
+      });
+    },
+    
+    processPassengerEntity(passenger) {
+      if (passenger.weight !== undefined) {
+        this.planConstraints.hasWeight = true;
+        this.planConstraints.maxWeight = Math.max(
+          this.planConstraints.maxWeight || 0, 
+          passenger.weight
+        );
+      }
+    },
+    
+    analyzeActionConstraints() {
+      this.actions.forEach(action => {
+        this.processActionConstraints(action);
+      });
+    },
+    
+    processActionConstraints(action) {
+      if (action.duration !== undefined || action.start !== undefined || action.end !== undefined) {
+        this.planConstraints.hasTime = true;
+      }
+      
+      if (action.cost !== undefined) {
+        this.planConstraints.hasCost = true;
+      }
+      
+      if (action.energyCost !== undefined || action.energy !== undefined) {
+        this.planConstraints.hasEnergy = true;
+      }
+    },
+    
+    detectAvailableFeatures() {
+      console.log('🔍 Detecting available features...');
+      
+      this.setBasicFeatures();
+      this.setPDDLTypeFeatures();
+      
+      console.log('🔍 Available features:', this.availableFeatures);
+    },
+    
+    setBasicFeatures() {
+      this.availableFeatures.showCapacity = this.planConstraints.hasCapacity;
+      this.availableFeatures.showWeight = this.planConstraints.hasWeight;
+      this.availableFeatures.showSpeed = this.planConstraints.hasSpeed;
+      this.availableFeatures.showEnergy = this.planConstraints.hasEnergy;
+      this.availableFeatures.showTime = this.planConstraints.hasTime;
+      this.availableFeatures.showCost = this.planConstraints.hasCost;
+    },
+    
+    setPDDLTypeFeatures() {
+      switch (this.pddlType) {
+        case 'temporal':
+          this.availableFeatures.showParallel = this.planConstraints.hasTime;
+          break;
+        case 'numerical':
+          this.availableFeatures.showCost = this.planConstraints.hasCost;
+          break;
+        case 'pddl_plus':
+          this.availableFeatures.showParallel = this.planConstraints.hasTime;
+          this.availableFeatures.showContinuous = true;
+          this.availableFeatures.showEvents = this.checkForEvents();
+          break;
+      }
+    },
+    
+    checkForEvents() {
+      return this.actions.some(action => 
+        action.isEvent || 
+        action.type?.includes('event') || 
+        action.triggered
+      );
+    },
+    
+    // === BUILDING STRUCTURE SECTION ===
+    
+    calculateBuildingStructure() {
+      this.calculateDynamicPositionRange();
+      this.createDynamicFloorLabels();
+    },
+    
+    calculateDynamicPositionRange() {
+      let minPos = 0, maxPos = 0;
+      const elevatorPositions = this.trackElevatorMovements();
+      
+      // Update min/max from movements
+      elevatorPositions.forEach(pos => {
+        minPos = Math.min(minPos, pos);
+        maxPos = Math.max(maxPos, pos);
+      });
+      
+      // Also check floor parameters in actions
+      this.updateRangeFromFloorParameters(minPos, maxPos);
+      
+      this.minPosition = minPos;
+      this.maxPosition = maxPos;
+      
+      console.log(`📐 Position range: ${minPos} to ${maxPos} (${maxPos - minPos + 1} floors)`);
+    },
+    
+    trackElevatorMovements() {
+      const elevatorPositions = new Map();
+      const allPositions = [];
+      
+      this.actions.forEach(action => {
+        if (action.type === 'move-up' || action.type === 'move-down') {
+          const elevatorId = action.params[0];
+          
+          if (!elevatorPositions.has(elevatorId)) {
+            elevatorPositions.set(elevatorId, 0);
+          }
+          
+          let currentPos = elevatorPositions.get(elevatorId);
+          
+          if (action.type === 'move-up') {
+            currentPos++;
+          } else if (action.type === 'move-down') {
+            currentPos--;
+          }
+          
+          elevatorPositions.set(elevatorId, currentPos);
+          allPositions.push(currentPos);
+        }
+      });
+      
+      return allPositions;
+    },
+    
+    updateRangeFromFloorParameters(minPos, maxPos) {
+      this.actions.forEach(action => {
+        if (action.params) {
+          action.params.forEach(param => {
+            if (param && param.includes('floor')) {
+              const floorNum = parseInt(param.replace('floor', ''));
+              if (!isNaN(floorNum)) {
+                minPos = Math.min(minPos, floorNum);
+                maxPos = Math.max(maxPos, floorNum);
+              }
+            }
+          });
+        }
+      });
+    },
+    
+    createDynamicFloorLabels() {
+      const floorCount = this.maxPosition - this.minPosition + 1;
+      this.floorLabels = [];
+      
+      for (let i = 0; i < floorCount; i++) {
+        const position = this.minPosition + i;
+        this.floorLabels.push(`Floor ${position + 1}`);
+      }
+      
+      console.log(`🏢 Created ${floorCount} floors:`, this.floorLabels);
+    },
+    
+    // === SYSTEM COMPONENTS SECTION ===
+    
+    createSystemComponents() {
+      this.createDynamicElevators();
+      this.createDynamicPassengers();
+    },
+    
+    createDynamicElevators() {
+      const elevatorIds = this.extractElevatorIds();
+      
+      this.elevators = Array.from(elevatorIds).map((id, index) => 
+        this.createElevatorObject(id, index)
+      );
+      
+      console.log(`🛗 Created ${this.elevators.length} elevators from plan:`, 
+        this.elevators.map(e => e.id));
+      
+      if (this.elevators.length === 0) {
+        console.warn('⚠️ No elevators detected in plan actions');
+      }
+    },
+    
+    extractElevatorIds() {
+      const elevatorIds = new Set();
+      
+      this.actions.forEach(action => {
+        this.extractElevatorFromAction(action, elevatorIds);
+      });
+      
+      this.addEntityElevators(elevatorIds);
+      
+      if (elevatorIds.size === 0) {
+        console.warn('⚠️ No elevators found in plan - this may indicate a parsing issue');
+      }
+      
+      return elevatorIds;
+    },
+    
+    extractElevatorFromAction(action, elevatorIds) {
+      if ((action.type === 'move-up' || action.type === 'move-down') && action.params[0]) {
+        elevatorIds.add(action.params[0]);
+      } else if ((action.type === 'load-person' || action.type === 'unload-person') && action.params[1]) {
+        elevatorIds.add(action.params[1]);
+      }
+      
+      if (action.params) {
+        action.params.forEach(param => {
+          if (param && param.includes('elevator')) {
+            elevatorIds.add(param);
+          }
+        });
+      }
+    },
+    
+    addEntityElevators(elevatorIds) {
+      if (this.entities.elevators && this.entities.elevators.length > 0) {
+        this.entities.elevators.forEach(elevator => {
+          elevatorIds.add(elevator.id);
+        });
+      }
+    },
+    
+    createElevatorObject(id, index) {
+      const elevator = this.createBaseElevator(id, index);
+      this.addElevatorEntityData(elevator, id);
+      this.addElevatorActionData(elevator, id);
+      return elevator;
+    },
+    
+    createBaseElevator(id, index) {
+      return {
+        id: id,
+        position: 0,
+        isMoving: false,
+        direction: null,
+        doorsOpen: false,
+        passengers: [],
+        currentWeight: 0,
+        status: 'idle',
+        color: this.getElevatorColor(index)
+      };
+    },
+    
+    addElevatorEntityData(elevator, id) {
+      const entityElevator = this.entities.elevators?.find(e => e.id === id);
+      if (!entityElevator) return;
+      
+      this.addElevatorCapacity(elevator, entityElevator);
+      this.addElevatorSpeed(elevator, entityElevator);
+      this.addElevatorEnergy(elevator, entityElevator);
+    },
+    
+    addElevatorCapacity(elevator, entityElevator) {
+      if (entityElevator.capacity !== undefined) {
+        elevator.maxCapacity = entityElevator.capacity;
+        console.log(`🛗 ${elevator.id} capacity: ${entityElevator.capacity}kg`);
+      }
+    },
+    
+    addElevatorSpeed(elevator, entityElevator) {
+      if (entityElevator.speed !== undefined) {
+        elevator.speed = entityElevator.speed;
+        console.log(`🛗 ${elevator.id} speed: ${entityElevator.speed}m/s`);
+      }
+    },
+    
+    addElevatorEnergy(elevator, entityElevator) {
+      if (entityElevator.energyConsumption !== undefined) {
+        elevator.energyConsumption = entityElevator.energyConsumption;
+        elevator.energyUsed = 0;
+        console.log(`🛗 ${elevator.id} energy consumption: ${entityElevator.energyConsumption}kWh/floor`);
+      }
+    },
+    
+    addElevatorActionData(elevator, id) {
+      this.actions.forEach(action => {
+        if (action.elevatorId === id) {
+          this.processElevatorAction(elevator, action);
+        }
+      });
+    },
+    
+    processElevatorAction(elevator, action) {
+      if (action.elevatorCapacity && !elevator.maxCapacity) {
+        elevator.maxCapacity = action.elevatorCapacity;
+        console.log(`🛗 ${elevator.id} capacity from action: ${action.elevatorCapacity}kg`);
+      }
+      
+      if (action.elevatorSpeed && !elevator.speed) {
+        elevator.speed = action.elevatorSpeed;
+        console.log(`🛗 ${elevator.id} speed from action: ${action.elevatorSpeed}m/s`);
+      }
+      
+      if (action.elevatorEnergy && !elevator.energyConsumption) {
+        elevator.energyConsumption = action.elevatorEnergy;
+        elevator.energyUsed = 0;
+        console.log(`🛗 ${elevator.id} energy from action: ${action.elevatorEnergy}kWh`);
+      }
+    },
+    
+    createDynamicPassengers() {
+      const passengerNames = this.extractPassengerNames();
+      
+      let id = 1;
+      this.passengers = Array.from(passengerNames).map(name => 
+        this.createPassengerObject(id++, name)
+      );
+      
+      console.log(`👥 Created ${this.passengers.length} passengers:`, 
+        Array.from(passengerNames));
+    },
+    
+    extractPassengerNames() {
+      const passengerNames = new Set();
+      
+      this.actions.forEach(action => {
+        this.extractPassengerFromAction(action, passengerNames);
+      });
+      
+      this.addEntityPassengers(passengerNames);
+      
+      return passengerNames;
+    },
+    
+    extractPassengerFromAction(action, passengerNames) {
+      if ((action.type === 'load-person' || action.type === 'unload-person') && action.params[0]) {
+        passengerNames.add(action.params[0]);
+      } else if (action.type === 'serve-person' && action.params[0]) {
+        passengerNames.add(action.params[0]);
+      }
+      
+      if (action.params) {
+        action.params.forEach(param => {
+          if (param && param.includes('person')) {
+            passengerNames.add(param);
+          }
+        });
+      }
+    },
+    
+    addEntityPassengers(passengerNames) {
+      if (this.entities.passengers && this.entities.passengers.length > 0) {
+        this.entities.passengers.forEach(passenger => {
+          passengerNames.add(passenger.id);
+        });
+      }
+    },
+    
+    createPassengerObject(id, name) {
+      const passenger = this.createBasePassenger(id, name);
+      this.addPassengerEntityData(passenger, name);
+      this.addPassengerActionData(passenger, name);
+      return passenger;
+    },
+    
+    createBasePassenger(id, name) {
+      return {
+        id: id,
+        name: name,
+        position: this.getPassengerInitialPosition(name),
+        state: 'waiting',
+        avatar: this.generatePassengerAvatar(),
+        color: this.generatePassengerColor()
+      };
+    },
+    
+    addPassengerEntityData(passenger, name) {
+      const entityPassenger = this.entities.passengers?.find(p => p.id === name);
+      if (entityPassenger && entityPassenger.weight !== undefined) {
+        passenger.weight = entityPassenger.weight;
+        console.log(`👤 ${name} weight: ${entityPassenger.weight}kg`);
+      }
+    },
+    
+    addPassengerActionData(passenger, name) {
+      const passengerAction = this.actions.find(action => 
+        action.passengerId === name && action.passengerWeight
+      );
+      if (passengerAction) {
+        passenger.weight = passengerAction.passengerWeight;
+        console.log(`👤 ${name} weight from action: ${passengerAction.passengerWeight}kg`);
+      }
+    },
+    
+    getPassengerInitialPosition(passengerName) {
+      const loadAction = this.actions.find(a => 
+        a.type === 'load-person' && a.params && a.params[0] === passengerName
+      );
+      
+      if (!loadAction) return 0;
+      
+      if (loadAction.params.length >= 3) {
+        const floorParam = loadAction.params[2];
+        if (floorParam && floorParam.includes('floor')) {
+          const floorNum = parseInt(floorParam.replace('floor', ''));
+          return isNaN(floorNum) ? 0 : floorNum;
+        }
+      }
+      
+      return 0;
+    },
+    
+    // === ADVANCED FEATURES SECTION ===
+    
+    initializeAdvancedFeatures() {
+      this.initializeDynamicScheduling();
+    },
+    
+    initializeDynamicScheduling() {
+      if (this.elevators.length > 1) {
+        this.elevatorAlgorithm = 'DYNAMIC_DISPATCH';
+        console.log(`🧠 Multi-elevator scheduling: ${this.elevatorAlgorithm}`);
+      }
+    },
+    
+    logInitializationResults() {
+      console.log('✅ Dynamic elevator system initialized:', {
+        elevators: this.elevators.length,
+        floors: this.floorLabels.length,
+        passengers: this.passengers.length,
+        availableFeatures: this.availableFeatures,
+        pddlType: this.pddlType
+      });
+    },
+    
+    // === SIMULATION CONTROL SECTION ===
+    
+    play() {
+      if (this.currentStep >= this.actions.length || !this.actions.length) return;
+      
+      this.isPlaying = true;
+      this.executeActionSequentially();
+    },
+    
+    pause() {
+      this.isPlaying = false;
+      if (this.timer) {
+        clearInterval(this.timer);
+        this.timer = null;
+      }
+    },
+    
+    reset() {
+      this.pause();
+      this.initializeDynamic();
+    },
+    
+    executeActionSequentially() {
+      if (!this.isPlaying || this.currentStep >= this.actions.length) {
+        this.handleSimulationComplete();
+        return;
+      }
+      
+      const action = this.actions[this.currentStep];
+      const actionDuration = this.getDynamicActionDuration(action);
+      
+      this.executeNextAction();
+      
+      setTimeout(() => {
+        if (this.isPlaying) {
+          this.executeActionSequentially();
+        }
+      }, actionDuration / this.speed);
+    },
+    
+    handleSimulationComplete() {
+      if (this.currentStep >= this.actions.length) {
+        this.pause();
+        this.showSuccessMessage('🎉 All actions completed!');
+        this.generateDynamicReport();
+      }
+    },
+    
+    // === ACTION EXECUTION SECTION ===
+    
+    executeNextAction() {
+      if (this.currentStep >= this.actions.length) {
+        this.pause();
+        return;
+      }
+      
+      const action = this.actions[this.currentStep];
+      console.log(`🛗 Executing: ${action.type} [${action.params?.join(', ') || ''}]`);
+      
+      this.currentActionDuration = this.getDynamicActionDuration(action);
+      this.routeActionExecution(action);
+      
+      this.currentStep++;
+      this.updateDynamicMetrics();
+    },
+    
+    routeActionExecution(action) {
+      const executionMap = {
+        'move-up': () => this.executeDynamicMovement('up', action),
+        'move-down': () => this.executeDynamicMovement('down', action),
+        'load-person': () => this.executeDynamicLoad(action),
+        'unload-person': () => this.executeDynamicUnload(action),
+        'serve-person': () => this.executeServePerson(action)
+      };
+      
+      const executeAction = executionMap[action.type];
+      if (executeAction) {
+        executeAction();
+      } else {
+        console.log(`🔄 Unknown action: ${action.type}`);
+      }
+    },
+    
+    getDynamicActionDuration(action) {
+      // Priority 1: Explicit duration in action
+      if (action.duration !== undefined) {
+        console.log(`⏱️ Using action duration: ${action.duration}s for ${action.type}`);
+        return action.duration * 1000;
+      }
+      
+      // Priority 2: Calculate from start/end times
+      if (this.availableFeatures.showTime && action.start !== undefined && action.end !== undefined) {
+        const duration = action.end - action.start;
+        console.log(`⏱️ Using calculated duration: ${duration}s for ${action.type}`);
+        return duration * 1000;
+      }
+      
+      // Priority 3: Speed-based calculation
+      const speedBasedDuration = this.calculateSpeedBasedDuration(action);
+      if (speedBasedDuration) {
+        return speedBasedDuration;
+      }
+      
+      // Priority 4: PDDL type-specific defaults
+      const typeBasedDuration = this.getPDDLTypeActionDuration(action.type);
+      console.log(`⏱️ Using PDDL type duration: ${typeBasedDuration/1000}s for ${action.type}`);
+      return typeBasedDuration;
+    },
+    
+    calculateSpeedBasedDuration(action) {
+      if (!this.availableFeatures.showSpeed) return null;
+      
+      const elevator = this.getElevatorFromAction(action);
+      const speed = (elevator && elevator.speed) || action.elevatorSpeed;
+      
+      if (speed) {
+        const duration = this.calculatePhysicalDuration(action, speed);
+        console.log(`⏱️ Using speed-based duration: ${duration/1000}s for ${action.type} (speed: ${speed}m/s)`);
+        return duration;
+      }
+      
+      return null;
+    },
+    
+    getPDDLTypeActionDuration(actionType) {
+      const baseDurations = {
+        'move-up': { classical: 3000, temporal: 3000, numerical: 4000, pddl_plus: 3500 },
+        'move-down': { classical: 3000, temporal: 2800, numerical: 3500, pddl_plus: 3200 },
+        'load-person': { classical: 2000, temporal: 4500, numerical: 5000, pddl_plus: 4800 },
+        'unload-person': { classical: 2000, temporal: 4000, numerical: 4500, pddl_plus: 4200 },
+        'serve-person': { classical: 1000, temporal: 1000, numerical: 1500, pddl_plus: 1200 }
+      };
+      
+      const actionDurations = baseDurations[actionType];
+      if (actionDurations) {
+        return actionDurations[this.pddlType] || actionDurations.classical;
+      }
+      
+      return 2000;
+    },
+    
+    calculatePhysicalDuration(action, speed) {
+      const distance = 3.5;
+      
+      switch (action.type) {
+        case 'move-up':
+        case 'move-down':
+          return (distance / speed) * 1000;
+        case 'load-person':
+        case 'unload-person':
+          return 4000;
+        default:
+          return 2000;
+      }
+    },
+    
+    // === MOVEMENT ACTIONS SECTION ===
+    
+    executeDynamicMovement(direction, action) {
+      const elevator = this.getElevatorFromAction(action);
+      if (!elevator) {
+        this.showWarning(`Elevator not found for ${action.type} action`);
+        return;
+      }
+      
+      if (this.emergencyStop) {
+        this.showWarning('Movement blocked - Emergency stop active');
+        return;
+      }
+      
+      if (!this.validateMovement(elevator, direction)) {
+        return;
+      }
+      
+      this.executeMovement(elevator, direction, action);
+    },
+    
+    validateMovement(elevator, direction) {
+      if (direction === 'up' && elevator.position >= this.maxPosition) {
+        this.showWarning(`${elevator.id} cannot move up - at top floor`);
+        return false;
+      }
+      
+      if (direction === 'down' && elevator.position <= this.minPosition) {
+        this.showWarning(`${elevator.id} cannot move down - at bottom floor`);
+        return false;
+      }
+      
+      return true;
+    },
+    
+    executeMovement(elevator, direction, action) {
+      const oldPosition = elevator.position;
+      
+      // Update position
+      if (direction === 'up') {
+        elevator.position++;
+      } else {
+        elevator.position--;
+      }
+      
+      // Update elevator state
+      this.updateElevatorMovementState(elevator, direction, action);
+      
+      // Calculate and log energy/speed/cost
+      this.processMovementMetrics(elevator, oldPosition, direction, action);
+      
+      // Update passenger positions
+      this.updatePassengerPositions(elevator);
+      
+      // Schedule movement completion
+      this.scheduleMovementCompletion(elevator, action);
+    },
+    
+    updateElevatorMovementState(elevator, direction, action) {
+      elevator.direction = direction;
+      elevator.isMoving = true;
+      elevator.status = 'moving';
+      
+      const speed = action.elevatorSpeed || elevator.speed;
+      if (speed && this.availableFeatures.showSpeed) {
+        console.log(`🛗 ${elevator.id} moving ${direction} at ${speed}m/s`);
+      }
+    },
+    
+    processMovementMetrics(elevator, oldPosition, direction, action) {
+      // Calculate and show energy consumption
+      if (this.availableFeatures.showEnergy) {
+        const energyUsed = this.calculateMovementEnergy(elevator, oldPosition, direction, action);
+        elevator.energyUsed = (elevator.energyUsed || 0) + energyUsed;
+      }
+      
+      // Show cost information if available
+      if (action.cost && this.availableFeatures.showCost) {
+        console.log(`💰 Movement cost: ${action.cost}`);
+      }
+    },
+    
+    calculateMovementEnergy(elevator, oldPosition, direction, action) {
+      const distance = Math.abs(elevator.position - oldPosition) * 3.5;
+      let energyUsed = 0;
+      
+      if (action.energyCost) {
+        energyUsed = action.energyCost;
+        console.log(`⚡ Energy from action: ${energyUsed}kWh`);
+      } else if (elevator.energyConsumption !== undefined) {
+        energyUsed = distance * elevator.energyConsumption;
+        console.log(`⚡ Energy calculated: ${energyUsed.toFixed(3)}kWh (${distance}m × ${elevator.energyConsumption}kWh/m)`);
+      } else {
+        const baseEnergy = direction === 'up' ? 0.15 : 0.05;
+        const loadFactor = 1 + (elevator.currentWeight / 1000);
+        energyUsed = baseEnergy * loadFactor;
+        console.log(`⚡ Energy estimated: ${energyUsed.toFixed(3)}kWh (${direction}, load: ${elevator.currentWeight}kg)`);
+      }
+      
+      return energyUsed;
+    },
+    
+    updatePassengerPositions(elevator) {
+      elevator.passengers.forEach(p => {
+        p.position = elevator.position;
+      });
+    },
+    
+    scheduleMovementCompletion(elevator) {
+      const moveDuration = this.currentActionDuration / this.speed;
+      setTimeout(() => {
+        elevator.isMoving = false;
+        elevator.direction = null;
+        elevator.status = 'idle';
+        
+        console.log(`🛗 ${elevator.id} completed movement to position ${elevator.position} (${this.getFloorName(elevator.position)})`);
+      }, moveDuration);
+    },
+    
+    // === PASSENGER ACTIONS SECTION ===
+    
+    executeDynamicLoad(action) {
+      const { passenger, elevator } = this.getLoadActionEntities(action);
+      if (!passenger || !elevator) return;
+      
+      const passengerWeight = this.getPassengerWeight(action, passenger);
+      console.log(`👤 Loading ${passenger.name} (${passengerWeight}kg) into ${elevator.id}`);
+      
+      if (!this.validateCapacity(elevator, passengerWeight)) {
+        return;
+      }
+      
+      this.logActionMetrics(action);
+      this.executeLoadSequence(passenger, elevator, passengerWeight);
+    },
+    
+    getLoadActionEntities(action) {
+      const passengerName = action.params?.[0];
+      const elevator = this.getElevatorFromAction(action);
+      const passenger = this.passengers.find(p => p.name === passengerName);
+      
+      if (!passenger || !elevator) {
+        this.showWarning(`Cannot load ${passengerName}`);
+        return { passenger: null, elevator: null };
+      }
+      
+      return { passenger, elevator };
+    },
+    
+    getPassengerWeight(action, passenger) {
+      return action.passengerWeight || passenger.weight || 75;
+    },
+    
+    validateCapacity(elevator, passengerWeight) {
+      if (this.availableFeatures.showCapacity && elevator.maxCapacity) {
+        const newWeight = elevator.currentWeight + passengerWeight;
+        if (newWeight > elevator.maxCapacity) {
+          console.log(`⚠️ Capacity exceeded: ${newWeight}kg > ${elevator.maxCapacity}kg`);
+          this.triggerOverloadAlert(elevator, { weight: passengerWeight });
+          return false;
+        } else {
+          console.log(`✅ Capacity OK: ${newWeight}kg / ${elevator.maxCapacity}kg (${((newWeight/elevator.maxCapacity)*100).toFixed(1)}%)`);
+        }
+      }
+      return true;
+    },
+    
+    logActionMetrics(action) {
+      if (action.cost && this.availableFeatures.showCost) {
+        console.log(`💰 Load cost: ${action.cost}`);
+      }
+      
+      if (action.energyCost && this.availableFeatures.showEnergy) {
+        console.log(`⚡ Load energy: ${action.energyCost}kWh`);
+      }
+    },
+    
+    executeLoadSequence(passenger, elevator, passengerWeight) {
+      const totalDuration = this.currentActionDuration / this.speed;
+      
+      this.openElevatorDoors(elevator);
+      
+      setTimeout(() => {
+        passenger.weight = passengerWeight;
+        this.boardPassenger(passenger, elevator);
+        setTimeout(() => {
+          this.closeElevatorDoors(elevator);
+        }, totalDuration * 0.6);
+      }, totalDuration * 0.2);
+    },
+    
+    executeDynamicUnload(action) {
+      const { passenger, elevator } = this.getUnloadActionEntities(action);
+      if (!passenger || !elevator) return;
+      
+      console.log(`🛗 Unloading ${passenger.name} from ${elevator.id}`);
+      this.executeUnloadSequence(passenger, elevator);
+    },
+    
+    getUnloadActionEntities(action) {
+      const passengerName = action.params?.[0];
+      const elevator = this.getElevatorFromAction(action);
+      const passenger = this.passengers.find(p => p.name === passengerName);
+      
+      if (!passenger || !elevator || passenger.state !== 'riding') {
+        this.showWarning(`Cannot unload ${passengerName}`);
+        return { passenger: null, elevator: null };
+      }
+      
+      return { passenger, elevator };
+    },
+    
+    executeUnloadSequence(passenger, elevator) {
+      const totalDuration = this.currentActionDuration / this.speed;
+      
+      this.openElevatorDoors(elevator);
+      
+      setTimeout(() => {
+        this.disembarkPassenger(passenger, elevator);
+        setTimeout(() => {
+          this.closeElevatorDoors(elevator);
+        }, totalDuration * 0.6);
+      }, totalDuration * 0.2);
+    },
+    
+    executeServePerson(action) {
+      const passengerName = action.params?.[0];
+      const passenger = this.passengers.find(p => p.name === passengerName);
+      
+      if (passenger) {
+        passenger.state = 'served';
+        this.showSuccessMessage(`🎉 ${passengerName} successfully served!`);
+        console.log(`✅ ${passengerName} served`);
+      }
+    },
+    
+    // === DOOR OPERATIONS SECTION ===
+    
+    openElevatorDoors(elevator) {
+      elevator.doorsOpen = true;
+      elevator.status = 'doors_open';
+      console.log(`🚪 ${elevator.id} doors opened`);
+    },
+    
+    closeElevatorDoors(elevator) {
+      elevator.doorsOpen = false;
+      elevator.status = 'idle';
+      console.log(`🚪 ${elevator.id} doors closed`);
+    },
+    
+    // === PASSENGER BOARDING SECTION ===
+    
+    boardPassenger(passenger, elevator) {
+      passenger.animationState = 'boarding';
+      this.movingPassenger = passenger;
+      
+      setTimeout(() => {
+        this.completeBoarding(passenger, elevator);
+      }, 2000);
+    },
+    
+    completeBoarding(passenger, elevator) {
+      passenger.state = 'riding';
+      passenger.position = elevator.position;
+      
+      elevator.passengers.push(passenger);
+      if (passenger.weight) {
+        elevator.currentWeight += passenger.weight;
+      }
+      
+      this.movingPassenger = null;
+      console.log(`👤 ${passenger.name} boarded ${elevator.id}`);
+    },
+    
+    disembarkPassenger(passenger, elevator) {
+      passenger.animationState = 'exiting';
+      this.movingPassenger = passenger;
+      
+      setTimeout(() => {
+        this.completeDisembarking(passenger, elevator);
+      }, 2000);
+    },
+    
+    completeDisembarking(passenger, elevator) {
+      passenger.state = 'delivered';
+      
+      const index = elevator.passengers.indexOf(passenger);
+      if (index > -1) {
+        elevator.passengers.splice(index, 1);
+        if (passenger.weight) {
+          elevator.currentWeight -= passenger.weight;
+        }
+      }
+      
+      this.movingPassenger = null;
+      this.showSuccessMessage(`✅ ${passenger.name} delivered to ${this.currentFloorName}!`);
+      console.log(`👤 ${passenger.name} delivered`);
+    },
+    
+    // === UTILITY METHODS SECTION ===
+    
+    getElevatorFromAction(action) {
+      if (action.type === 'move-up' || action.type === 'move-down') {
+        const elevatorId = action.params[0];
+        return this.elevators.find(e => e.id === elevatorId) || null;
+      }
+      
+      if (action.type === 'load-person' || action.type === 'unload-person') {
+        const elevatorId = action.params[1];
+        return this.elevators.find(e => e.id === elevatorId) || null;
+      }
+      
+      if (action.params) {
+        for (const param of action.params) {
+          if (param && param.includes('elevator')) {
+            return this.elevators.find(e => e.id === param) || null;
+          }
+        }
+      }
+      
+      return this.elevators.length > 0 ? this.elevators[0] : null;
+    },
+    
+    getPassengersAtFloor(position) {
+      return this.passengers.filter(p => 
+        p.position === position && (p.state === 'waiting' || p.state === 'delivered')
+      );
+    },
+    
+    getPositionForFloor(floorIndex) {
+      return this.minPosition + floorIndex;
+    },
+    
+    calculateCurrentWeight(elevator) {
+      return elevator.passengers.reduce((total, p) => total + (p.weight || 0), 0);
+    },
+    
+    calculatePassengerAnimationStyle(passenger) {
+      const floorIndex = this.mainElevator.position - this.minPosition;
+      const baseY = floorIndex * 150 + 70;
+      
+      const baseStyle = {
+        position: 'absolute',
+        bottom: baseY + 'px',
+        zIndex: 100,
+        opacity: 1,
+        transition: 'transform 2.5s cubic-bezier(0.4, 0.0, 0.2, 1)'
+      };
+      
+      if (passenger.animationState === 'boarding') {
+        return { ...baseStyle, left: '200px', transform: 'translateX(150px)' };
+      } else if (passenger.animationState === 'exiting') {
+        return { ...baseStyle, left: '350px', transform: 'translateX(200px)' };
+      }
+      
+      return { display: 'none' };
+    },
+    
+    // === HELPER METHODS SECTION ===
+    
+    generatePassengerAvatar() {
+      const avatars = ['👤', '🧑‍💼', '👩‍⚕️', '👨‍🎓', '👩‍🔬'];
+      return avatars[Math.floor(Math.random() * avatars.length)];
+    },
+    
+    generatePassengerColor() {
+      const colors = ['#3498db', '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6'];
+      return colors[Math.floor(Math.random() * colors.length)];
+    },
+    
+    getElevatorColor(index) {
+      const colors = ['#3498db', '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6'];
+      return colors[index % colors.length];
+    },
+    
+    // === PDDL UTILITIES SECTION ===
+    
     getPDDLTypeName(type) {
       const types = {
         classical: 'Classical',
@@ -237,1273 +1287,108 @@ export default {
       };
       return descriptions[type] || 'Unknown PDDL type';
     },
-
-    // Enhanced initialization with multi-elevator support
-    initialize() {
-      console.log('🛗 Initializing advanced elevator system...');
-      console.log('📋 Actions received:', this.actions?.length || 0);
-      console.log('📦 Entities received:', this.entities);
-      console.log('🔧 PDDL Type:', this.pddlType);
+    
+    getActionDesc(action) {
+      const { type, params } = action;
+      let desc = this.getBaseActionDescription(type, params);
       
-      this.resetSimulationState();
-      
-      if (!this.actions || this.actions.length === 0) {
-        this.setupDefaults();
-        return;
+      const details = this.collectActionDetails(action);
+      if (details.length > 0) {
+        desc += ` (${details.join(', ')})`;
       }
       
-      // Enhanced initialization steps
-      this.calculatePositionRange();
-      this.createFloorLabels();
-      this.detectAndCreateElevators();
-      this.createEnhancedPassengers();
-      this.setupRealisticConstraints();
-      this.initializeSmartScheduling();
-      
-      this.currentStep = 0;
-      this.isPlaying = false;
-      
-      console.log('🛗 Advanced elevator system initialized:', {
-        elevators: this.elevators.length,
-        floors: this.floorLabels.length,
-        passengers: this.passengers.length,
-        algorithm: this.elevatorAlgorithm,
-        maxCapacity: this.elevatorSpecs.maxCapacity + 'kg',
-        pddlType: this.pddlType
-      });
+      return desc;
     },
-
-    // Reset all simulation state
-    resetSimulationState() {
-      this.elevators = [];
-      this.passengers = [];
-      this.passengerQueue = [];
-      this.pendingCalls = [];
-      this.floorLabels = [];
-      this.floorHeights = [];
-      this.currentStep = 0;
-      this.isPlaying = false;
-      this.emergencyStop = false;
-      this.maintenanceMode = false;
-      this.movingPassenger = null;
-      this.animationQueue = [];
-      this.showSuccess = false;
-      this.successMessage = '';
-      this.energyConsumption = 0;
-      this.totalTrips = 0;
-      
-      // Reset metrics
-      this.metrics = {
-        totalEnergyUsed: 0,
-        totalPassengersServed: 0,
-        averageJourneyTime: 0,
-        peakUsageTime: 0,
-        elevatorEfficiency: 100,
-        maintenanceAlerts: []
+    
+    getBaseActionDescription(type, params) {
+      const descriptions = {
+        'move-up': `🛗 ${params[0]} moves up`,
+        'move-down': `🛗 ${params[0]} moves down`,
+        'load-person': `👤 ${params[0]} boards ${params[1]}`,
+        'unload-person': `👤 ${params[0]} exits ${params[1]}`,
+        'serve-person': `✅ ${params[0]} served`
       };
       
-      this.cleanup();
+      return descriptions[type] || `${type} ${params?.join(' ') || ''}`;
     },
-
-    // Calculate floor range from actions
-    calculatePositionRange() {
-      let pos = 0;
-      let min = 0, max = 0;
+    
+    collectActionDetails(action) {
+      const details = [];
       
-      console.log('📐 Calculating position range from actions...');
-      
-      this.actions.forEach((action) => {
-        if (action.type === 'move-up') {
-          pos++;
-          max = Math.max(max, pos);
-        } else if (action.type === 'move-down') {
-          pos--;
-          min = Math.min(min, pos);
-        }
-      });
-      
-      this.minPosition = min;
-      this.maxPosition = max;
-      
-      console.log(`📐 Position range: ${min} to ${max} (${max - min + 1} floors)`);
-    },
-
-    // Create realistic floor labels and heights
-    createFloorLabels() {
-      const floorCount = this.maxPosition - this.minPosition + 1;
-      this.floorLabels = [];
-      this.floorHeights = [];
-      
-      for (let i = 0; i < floorCount; i++) {
-        const floorNum = i + 1;
-        this.floorLabels.push(`Floor ${floorNum}`);
-        this.floorHeights.push(this.elevatorSpecs.floorHeight * i);
+      if (this.availableFeatures.showTime && action.duration !== undefined) {
+        details.push(`⏱️${action.duration}s`);
       }
       
-      console.log(`🏢 Created ${floorCount} floors:`, this.floorLabels);
-    },
-
-    // Detect and create multiple elevators from actions
-    detectAndCreateElevators() {
-      const elevatorIds = new Set();
-      
-      // Extract elevator IDs from actions
-      this.actions.forEach(action => {
-        if ((action.type === 'move-up' || action.type === 'move-down') && action.params[0]) {
-          elevatorIds.add(action.params[0]);
-        } else if ((action.type === 'load' || action.type === 'unload') && action.params[1]) {
-          elevatorIds.add(action.params[1]);
-        }
-      });
-      
-      // Create elevator objects
-      if (elevatorIds.size === 0) {
-        elevatorIds.add('elevator1'); // Default elevator
+      if (this.availableFeatures.showCost && action.cost !== undefined) {
+        details.push(`💰${action.cost}`);
       }
       
-      this.elevators = Array.from(elevatorIds).map((id, index) => 
-        this.createElevatorObject(id, index)
-      );
-      
-      console.log(`🛗 Created ${this.elevators.length} elevators:`, 
-        this.elevators.map(e => e.id));
-    },
-
-    // Create advanced elevator object
-    createElevatorObject(id, index) {
-      return {
-        id: id,
-        position: 0,
-        isMoving: false,
-        direction: null,
-        doorsOpen: false,
-        passengers: [],
-        currentWeight: 0,
-        targetFloors: [],
-        lastMaintenanceTime: 0,
-        totalDistance: 0,
-        energyUsed: 0,
-        trips: 0,
-        status: 'idle',
-        emergency: false,
-        
-        // Physical specifications
-        maxCapacity: this.elevatorSpecs.maxCapacity,
-        maxPassengers: this.elevatorSpecs.maxPassengers,
-        speed: this.elevatorSpecs.maxSpeed,
-        
-        // Performance metrics
-        efficiency: 100,
-        lastInspection: Date.now(),
-        nextMaintenance: Date.now() + (30 * 24 * 60 * 60 * 1000), // 30 days
-        
-        // Smart features
-        preferredFloors: [0], // Ground floor preference
-        usage: new Array(24).fill(0), // Hourly usage tracking
-        
-        // Visual properties
-        color: this.getElevatorColor(index),
-        theme: this.getElevatorTheme(index)
-      };
-    },
-
-    // Get elevator color theme
-    getElevatorColor(index) {
-      const colors = ['#3498db', '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6'];
-      return colors[index % colors.length];
-    },
-
-    // Get elevator theme
-    getElevatorTheme(index) {
-      const themes = ['modern', 'classic', 'futuristic', 'luxury', 'industrial'];
-      return themes[index % themes.length];
-    },
-
-    // Create default elevator when no actions
-    createDefaultElevator() {
-      return this.createElevatorObject('elevator1', 0);
-    },
-
-    // Create enhanced passengers with realistic attributes
-    createEnhancedPassengers() {
-      this.passengers = [];
-      const passengerNames = new Set();
-      
-      // Extract passenger names
-      this.actions.forEach(action => {
-        if ((action.type === 'load' || action.type === 'unload') && action.params[0]) {
-          passengerNames.add(action.params[0]);
-        }
-      });
-      
-      // Create realistic passenger objects
-      let id = 1;
-      passengerNames.forEach(name => {
-        const passenger = this.createPassengerObject(id++, name);
-        this.passengers.push(passenger);
-      });
-      
-      console.log(`👥 Created ${this.passengers.length} enhanced passengers`);
-    },
-
-    // Create realistic passenger object
-    createPassengerObject(id, name) {
-      return {
-        id: id,
-        name: name,
-        position: this.getPassengerInitialPosition(name),
-        state: 'waiting',
-        
-        // Physical attributes
-        weight: this.generateRealisticWeight(),
-        height: this.generateRealisticHeight(),
-        mobility: this.generateMobilityLevel(),
-        
-        // Journey details
-        originFloor: 0,
-        destinationFloor: 0,
-        arrivalTime: 0,
-        waitingTime: 0,
-        journeyTime: 0,
-        
-        // Preferences and behavior
-        urgency: Math.random() > 0.8 ? 'high' : Math.random() > 0.5 ? 'medium' : 'low',
-        accessibilityNeeds: Math.random() > 0.9,
-        vipStatus: Math.random() > 0.95,
-        
-        // Visual representation
-        avatar: this.generatePassengerAvatar(),
-        color: this.generatePassengerColor(),
-        
-        // Behavioral attributes
-        patience: Math.random() * 100 + 50, // 50-150 seconds
-        satisfaction: 100,
-        
-        // Animation state
-        animationState: null
-      };
-    },
-
-    // Generate realistic passenger weight (40-120 kg)
-    generateRealisticWeight() {
-      return Math.floor(Math.random() * 80) + 40;
-    },
-
-    // Generate realistic height (150-200 cm)
-    generateRealisticHeight() {
-      return Math.floor(Math.random() * 50) + 150;
-    },
-
-    // Generate mobility level
-    generateMobilityLevel() {
-      const levels = ['normal', 'wheelchair', 'elderly', 'pregnant'];
-      return levels[Math.floor(Math.random() * levels.length)];
-    },
-
-    // Generate passenger avatar
-    generatePassengerAvatar() {
-      const avatars = ['👤', '🧑‍💼', '👩‍⚕️', '🧓', '🤰', '♿', '👨‍🎓', '👩‍🔬'];
-      return avatars[Math.floor(Math.random() * avatars.length)];
-    },
-
-    // Generate passenger color
-    generatePassengerColor() {
-      const colors = ['#3498db', '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6', '#1abc9c'];
-      return colors[Math.floor(Math.random() * colors.length)];
-    },
-
-    // Get passenger initial position from actions
-    getPassengerInitialPosition(passengerName) {
-      const loadAction = this.actions.find(a => 
-        a.type === 'load' && a.params && a.params[0] === passengerName
-      );
-      
-      if (!loadAction) {
-        console.log(`⚠️ No load action found for ${passengerName}`);
-        return 0;
+      if (this.availableFeatures.showEnergy && action.energyCost !== undefined) {
+        details.push(`⚡${action.energyCost}kWh`);
       }
       
-      const loadIndex = this.actions.indexOf(loadAction);
-      let pos = 0;
-      
-      for (let i = 0; i < loadIndex; i++) {
-        const action = this.actions[i];
-        if (action.type === 'move-up') {
-          pos++;
-        } else if (action.type === 'move-down') {
-          pos--;
-        }
+      if (this.availableFeatures.showWeight && action.passengerWeight !== undefined) {
+        details.push(`⚖️${action.passengerWeight}kg`);
       }
       
-      return pos;
+      if (this.availableFeatures.showSpeed && action.elevatorSpeed !== undefined) {
+        details.push(`🚀${action.elevatorSpeed}m/s`);
+      }
+      
+      if (this.availableFeatures.showCapacity && action.elevatorCapacity !== undefined) {
+        details.push(`📊${action.elevatorCapacity}kg`);
+      }
+      
+      return details;
     },
-
-    // Setup realistic elevator constraints
-    setupRealisticConstraints() {
-      // Adjust specs based on number of elevators and building height
-      const floorCount = this.floorLabels.length;
-      // const elevatorCount = this.elevators.length;
+    
+    // === EMERGENCY & SAFETY SECTION ===
+    
+    handleCapacityChange(newVal) {
+      if (!this.availableFeatures.showCapacity) return;
       
-      // Scale capacity based on building size
-      if (floorCount > 10) {
-        this.elevatorSpecs.maxCapacity = 1200; // High-rise building
-        this.elevatorSpecs.maxPassengers = 12;
-      } else if (floorCount > 5) {
-        this.elevatorSpecs.maxCapacity = 1000; // Medium building
-        this.elevatorSpecs.maxPassengers = 8;
-      } else {
-        this.elevatorSpecs.maxCapacity = 800; // Low-rise building
-        this.elevatorSpecs.maxPassengers = 6;
-      }
-      
-      // Adjust speed based on building height
-      this.elevatorSpecs.maxSpeed = Math.min(3.0, 1.5 + (floorCount * 0.1));
-      
-      console.log('⚙️ Realistic constraints configured:', {
-        maxCapacity: this.elevatorSpecs.maxCapacity + 'kg',
-        maxPassengers: this.elevatorSpecs.maxPassengers,
-        maxSpeed: this.elevatorSpecs.maxSpeed + 'm/s',
-        floorHeight: this.elevatorSpecs.floorHeight + 'm'
-      });
-    },
-
-    // Initialize smart scheduling algorithm
-    initializeSmartScheduling() {
-      // Choose algorithm based on building characteristics
-      const floorCount = this.floorLabels.length;
-      const elevatorCount = this.elevators.length;
-      
-      if (elevatorCount > 1) {
-        this.elevatorAlgorithm = 'DESTINATION_DISPATCH';
-      } else if (floorCount > 8) {
-        this.elevatorAlgorithm = 'SCAN';
-      } else {
-        this.elevatorAlgorithm = 'LOOK';
-      }
-      
-      console.log(`🧠 Smart scheduling initialized: ${this.elevatorAlgorithm}`);
-    },
-
-    // Default setup
-    setupDefaults() {
-      this.minPosition = 0;
-      this.maxPosition = 2;
-      this.floorLabels = ['Floor 1', 'Floor 2', 'Floor 3'];
-      this.elevators = [this.createDefaultElevator()];
-      this.passengers = [];
-    },
-
-    // SIMULATION CONTROLS
-
-    // Start simulation
-    play() {
-      if (this.currentStep >= this.actions.length) return;
-      
-      this.isPlaying = true;
-      this.executeActionSequentially();
-    },
-
-    // Execute actions sequentially with realistic timing
-    executeActionSequentially() {
-      if (!this.isPlaying || this.currentStep >= this.actions.length) {
-        if (this.currentStep >= this.actions.length) {
-          this.pause();
-          this.showSuccessMessage('🎉 All actions completed! Check system metrics.');
-          this.generateFinalReport();
-        }
-        return;
-      }
-      
-      const action = this.actions[this.currentStep];
-      const actionDuration = this.getRealisticActionDuration(action);
-      
-      this.executeNextAction();
-      
-      setTimeout(() => {
-        if (this.isPlaying) {
-          this.executeActionSequentially();
-        }
-      }, actionDuration / this.speed);
-    },
-
-    // Get realistic action duration with advanced calculations
-    getRealisticActionDuration(action) {
-      const elevator = this.getElevatorFromAction(action);
-      
-      switch (this.pddlType) {
-        case 'temporal':
-          if (action.duration !== undefined) {
-            return action.duration * 1000;
-          }
-          return this.calculatePhysicalDuration(action, elevator);
-          
-        case 'pddl_plus':
-          if (action.duration !== undefined) {
-            return action.duration * 1000 * 1.2; // More complex processes
-          }
-          return this.calculatePhysicalDuration(action, elevator) * 1.2;
-          
-        case 'numerical': {
-          const cost = action.cost || this.getDefaultCost(action.type);
-          return this.calculatePhysicalDuration(action, elevator) * (cost / 5.0);
-        }
-          
-        default:
-          return this.calculatePhysicalDuration(action, elevator);
-      }
-    },
-
-    // Calculate realistic physical duration
-    calculatePhysicalDuration(action, elevator) {
-      switch (action.type) {
-        case 'move-up':
-        case 'move-down': {
-          {
-            const distance = this.elevatorSpecs.floorHeight;
-            const acceleration = this.elevatorSpecs.acceleration;
-            const maxSpeed = elevator ? elevator.speed : this.elevatorSpecs.maxSpeed;
-            
-            // Physics: t = sqrt(2d/a) for acceleration phase
-            const accelTime = Math.sqrt(2 * distance / acceleration);
-            const accelDistance = 0.5 * acceleration * accelTime * accelTime;
-            
-            let totalTime;
-            if (accelDistance * 2 >= distance) {
-              // Never reach max speed
-              totalTime = 2 * accelTime;
-            } else {
-              // Reach max speed
-              const constantSpeedDistance = distance - (2 * accelDistance);
-              const constantSpeedTime = constantSpeedDistance / maxSpeed;
-              totalTime = (2 * accelTime) + constantSpeedTime;
-            }
-            
-            return Math.max(2000, totalTime * 1000); // Minimum 2 seconds
-          }
-        }
-        
-        case 'load':
-        case 'unload': {
-          {
-            const passengerCount = this.getPassengerCountFromAction(action);
-            const baseTime = this.elevatorSpecs.doorOpenTime + this.elevatorSpecs.doorCloseTime;
-            const boardingTime = passengerCount * 1.5; // 1.5 seconds per passenger
-            
-            return (baseTime + boardingTime) * 1000;
-          }
-        }
-        
-        default:
-          return 3000;
-      }
-    },
-
-    // Get elevator from action
-    getElevatorFromAction(action) {
-      if (action.params && action.params[1]) {
-        return this.elevators.find(e => e.id === action.params[1]);
-      }
-      return this.mainElevator;
-    },
-
-    // Get passenger count from action
-    getPassengerCountFromAction() {
-      // For now, assume 1 passenger per action
-      // This could be enhanced to parse multiple passengers
-      return 1;
-    },
-
-    // Get default cost for numerical PDDL
-    getDefaultCost(actionType) {
-      switch (actionType) {
-        case 'move-up':
-        case 'move-down':
-          return 5;
-        case 'load':
-        case 'unload':
-          return 2;
-        default:
-          return 3;
-      }
-    },
-
-    // Pause simulation
-    pause() {
-      this.isPlaying = false;
-      if (this.timer) {
-        clearInterval(this.timer);
-        this.timer = null;
-      }
-    },
-
-    // Reset simulation
-    reset() {
-      this.pause();
-      this.initialize();
-    },
-
-    // ADVANCED ACTION EXECUTION
-
-    // Execute next action with advanced logic
-    executeNextAction() {
-      if (this.currentStep >= this.actions.length) {
-        this.pause();
-        this.showSuccessMessage('All actions completed!');
-        return;
-      }
-      
-      const action = this.actions[this.currentStep];
-      console.log(`🛗 Executing advanced action: ${action.type} [${action.params?.join(', ') || ''}]`);
-      
-      this.currentActionDuration = this.getRealisticActionDuration(action);
-      
-      // Enhanced action execution
-      switch (action.type) {
-        case 'move-up':
-          this.executeAdvancedMovement('up', action);
-          break;
-        case 'move-down':
-          this.executeAdvancedMovement('down', action);
-          break;
-        case 'load':
-          this.executeAdvancedLoad(action);
-          break;
-        case 'unload':
-          this.executeAdvancedUnload(action);
-          break;
-      }
-      
-      this.currentStep++;
-      this.updateSystemMetrics();
-    },
-
-    // Advanced movement with physics and constraints
-    executeAdvancedMovement(direction, action) {
-      const elevator = this.getElevatorFromAction(action) || this.mainElevator;
-      
-      if (this.emergencyStop) {
-        this.showWarning('Movement blocked - Emergency stop active');
-        return;
-      }
-      
-      const oldPosition = elevator.position;
-      
-      if (direction === 'up' && elevator.position < this.maxPosition) {
-        elevator.position++;
-      } else if (direction === 'down' && elevator.position > this.minPosition) {
-        elevator.position--;
-      } else {
-        this.showWarning('Invalid movement - Floor limit reached');
-        return;
-      }
-      
-      // Update elevator state
-      elevator.direction = direction;
-      elevator.isMoving = true;
-      elevator.status = 'moving';
-      
-      // Calculate energy consumption
-      const distance = Math.abs(elevator.position - oldPosition) * this.elevatorSpecs.floorHeight;
-      const weight = elevator.currentWeight + 500; // Elevator car weight
-      const energyUsed = this.calculateEnergyConsumption(distance, weight, direction);
-      
-      elevator.energyUsed += energyUsed;
-      elevator.totalDistance += distance;
-      this.energyConsumption += energyUsed;
-      
-      // Update passenger positions
-      elevator.passengers.forEach(p => {
-        p.position = elevator.position;
-      });
-      
-      // Smart scheduling - update calls
-      this.updateElevatorCalls(elevator);
-      
-      const moveDuration = this.currentActionDuration / this.speed;
-      setTimeout(() => {
-        elevator.isMoving = false;
-        elevator.direction = null;
-        elevator.status = 'idle';
-        
-        // Check for maintenance needs
-        this.checkMaintenanceRequirements(elevator);
-        
-        console.log(`🛗 Movement completed: ${elevator.id} now at position ${elevator.position}`);
-      }, moveDuration);
-    },
-
-    // Calculate realistic energy consumption
-    calculateEnergyConsumption(distance, weight, direction) {
-      const baseConsumption = 0.05; // kWh per meter per kg
-      const directionMultiplier = direction === 'up' ? 1.2 : 0.8; // More energy going up
-      return distance * weight * baseConsumption * directionMultiplier;
-    },
-
-    // Advanced loading with capacity and safety checks
-    executeAdvancedLoad(action) {
-      const passengerName = action.params?.[0];
-      const elevator = this.getElevatorFromAction(action) || this.mainElevator;
-      const passenger = this.passengers.find(p => p.name === passengerName);
-      
-      if (!passenger) {
-        this.showWarning(`Passenger ${passengerName} not found`);
-        return;
-      }
-      
-      // Safety checks
-      if (!this.performSafetyChecks(elevator, passenger)) {
-        return;
-      }
-      
-      console.log(`🛗 Advanced load sequence for ${passengerName}`);
-      
-      const totalDuration = this.currentActionDuration / this.speed;
-      const phase1 = totalDuration * 0.2; // Door opening
-      const phase2 = totalDuration * 0.6; // Passenger boarding
-      // const phase3 = totalDuration * 0.2; // Door closing
-      
-      // Phase 1: Open doors with safety checks
-      this.openElevatorDoors(elevator);
-      
-      setTimeout(() => {
-        // Phase 2: Passenger boarding with animations
-        this.boardPassenger(passenger, elevator);
-        
-        setTimeout(() => {
-          // Phase 3: Close doors and update system
-          this.closeElevatorDoors(elevator);
-          this.updatePassengerMetrics(passenger, 'boarded');
-          
-        }, phase2);
-        
-      }, phase1);
-    },
-
-    // Advanced unloading with destination verification
-    executeAdvancedUnload(action) {
-      const passengerName = action.params?.[0];
-      const elevator = this.getElevatorFromAction(action) || this.mainElevator;
-      const passenger = this.passengers.find(p => p.name === passengerName);
-      
-      if (!passenger) {
-        this.showWarning(`Passenger ${passengerName} not found`);
-        return;
-      }
-      
-      if (passenger.state !== 'riding') {
-        this.showWarning(`Passenger ${passengerName} is not in elevator`);
-        return;
-      }
-      
-      console.log(`🛗 Advanced unload sequence for ${passengerName}`);
-      
-      const totalDuration = this.currentActionDuration / this.speed;
-      const phase1 = totalDuration * 0.2; // Door opening
-      const phase2 = totalDuration * 0.6; // Passenger exiting
-      // const phase3 = totalDuration * 0.2; // Door closing
-      
-      // Phase 1: Open doors
-      this.openElevatorDoors(elevator);
-      
-      setTimeout(() => {
-        // Phase 2: Passenger exiting
-        this.disembarkPassenger(passenger, elevator);
-        
-        setTimeout(() => {
-          // Phase 3: Close doors and update metrics
-          this.closeElevatorDoors(elevator);
-          this.updatePassengerMetrics(passenger, 'delivered');
-          this.checkDestinationReached(passenger);
-          
-        }, phase2);
-        
-      }, phase1);
-    },
-
-    // SAFETY AND CAPACITY MANAGEMENT
-
-    // Perform comprehensive safety checks
-    performSafetyChecks(elevator, passenger) {
-      // Weight capacity check
-      const newWeight = elevator.currentWeight + passenger.weight;
-      if (newWeight > elevator.maxCapacity) {
-        this.triggerOverloadAlert(elevator, passenger);
-        return false;
-      }
-      
-      // Passenger count check
-      if (elevator.passengers.length >= elevator.maxPassengers) {
-        this.showWarning(`Elevator ${elevator.id} at maximum passenger capacity`);
-        return false;
-      }
-      
-      // Emergency mode check
-      if (elevator.emergency || this.emergencyStop) {
-        this.showWarning('Cannot board passengers - Emergency mode active');
-        return false;
-      }
-      
-      // Maintenance mode check
-      if (this.maintenanceMode) {
-        this.showWarning('Cannot board passengers - Maintenance mode active');
-        return false;
-      }
-      
-      // Accessibility check
-      if (passenger.accessibilityNeeds && !this.checkAccessibilityCompliance(elevator)) {
-        this.showWarning('Accessibility requirements not met');
-        return false;
-      }
-      
-      return true;
-    },
-
-    // Trigger overload alert with detailed information
-    triggerOverloadAlert(elevator, passenger) {
-      this.showOverloadAlert = true;
-      const currentWeight = elevator.currentWeight;
-      const passengerWeight = passenger.weight;
-      const maxCapacity = elevator.maxCapacity;
-      const excess = (currentWeight + passengerWeight) - maxCapacity;
-      
-      this.showWarning(
-        `⚠️ OVERLOAD ALERT: ${elevator.id}\n` +
-        `Current: ${currentWeight}kg + Passenger: ${passengerWeight}kg = ${currentWeight + passengerWeight}kg\n` +
-        `Exceeds capacity by ${excess}kg (Max: ${maxCapacity}kg)`
-      );
-      
-      // Trigger emergency protocol
-      this.triggerEmergencyProtocol('overload');
-      
-      // Add to maintenance alerts
-      this.metrics.maintenanceAlerts.push({
-        type: 'overload',
-        elevator: elevator.id,
-        time: new Date().toISOString(),
-        details: `Attempted overload by ${excess}kg`
-      });
-    },
-
-    // Check accessibility compliance
-    checkAccessibilityCompliance() {
-      // Simulate accessibility features check
-      return Math.random() > 0.1; // 90% compliance rate
-    },
-
-    // Open elevator doors with safety protocols
-    openElevatorDoors(elevator) {
-      if (elevator.isMoving) {
-        this.showWarning('Cannot open doors while moving');
-        return false;
-      }
-      
-      elevator.doorsOpen = true;
-      elevator.status = 'doors_open';
-      
-      // Door open sensor simulation
-      setTimeout(() => {
-        if (elevator.doorsOpen) {
-          this.checkDoorObstruction(elevator);
-        }
-      }, 1000);
-      
-      console.log(`🚪 Doors opened: ${elevator.id}`);
-      return true;
-    },
-
-    // Close elevator doors with safety checks
-    closeElevatorDoors(elevator) {
-      // Door safety check
-      if (!this.performDoorSafetyCheck(elevator)) {
-        setTimeout(() => this.closeElevatorDoors(elevator), 1000);
-        return;
-      }
-      
-      elevator.doorsOpen = false;
-      elevator.status = 'idle';
-      console.log(`🚪 Doors closed: ${elevator.id}`);
-    },
-
-    // Check for door obstruction
-    checkDoorObstruction(elevator) {
-      // Simulate door sensor
-      const obstruction = Math.random() < 0.05; // 5% chance of obstruction
-      
-      if (obstruction) {
-        this.showWarning(`Door obstruction detected on ${elevator.id}`);
-        // Keep doors open longer
-        setTimeout(() => {
-          if (elevator.doorsOpen) {
-            this.checkDoorObstruction(elevator);
-          }
-        }, 2000);
-      }
-    },
-
-    // Perform door safety check
-    performDoorSafetyCheck() {
-      // Check for passengers still boarding/exiting
-      if (this.movingPassenger && this.movingPassenger.animationState) {
-        return false;
-      }
-      
-      // Simulate safety sensors
-      return Math.random() > 0.02; // 98% success rate
-    },
-
-    // PASSENGER MANAGEMENT
-
-    // Board passenger with detailed tracking
-    boardPassenger(passenger, elevator) {
-      passenger.animationState = 'boarding';
-      this.movingPassenger = passenger;
-      
-      setTimeout(() => {
-        // Complete boarding
-        passenger.state = 'riding';
-        passenger.position = elevator.position;
-        passenger.boardingTime = Date.now();
-        
-        // Add to elevator
-        elevator.passengers.push(passenger);
-        elevator.currentWeight += passenger.weight;
-        
-        // Update passenger journey
-        passenger.originFloor = elevator.position;
-        passenger.waitingTime = passenger.boardingTime - passenger.arrivalTime;
-        
-        this.movingPassenger = null;
-        
-        // Update capacity warning
-        this.updateCapacityWarning(elevator);
-        
-        console.log(`👤 ${passenger.name} boarded ${elevator.id} (Weight: ${passenger.weight}kg)`);
-      }, 2000);
-    },
-
-    // Disembark passenger with journey completion
-    disembarkPassenger(passenger, elevator) {
-      passenger.animationState = 'exiting';
-      this.movingPassenger = passenger;
-      
-      setTimeout(() => {
-        // Complete disembarking
-        passenger.state = 'delivered';
-        passenger.destinationFloor = elevator.position;
-        passenger.journeyTime = Date.now() - passenger.boardingTime;
-        
-        // Remove from elevator
-        const index = elevator.passengers.indexOf(passenger);
-        if (index > -1) {
-          elevator.passengers.splice(index, 1);
-          elevator.currentWeight -= passenger.weight;
-        }
-        
-        // Update trip counter
-        elevator.trips++;
-        this.totalTrips++;
-        
-        this.movingPassenger = null;
-        
-        // Update satisfaction based on journey time
-        this.updatePassengerSatisfaction(passenger);
-        
-        // Show success message
-        this.showSuccessMessage(
-          `✅ ${passenger.name} delivered to ${this.currentFloorName}! ` +
-          `Journey time: ${(passenger.journeyTime / 1000).toFixed(1)}s`
-        );
-        
-        console.log(`👤 ${passenger.name} delivered (Journey: ${passenger.journeyTime}ms)`);
-      }, 2000);
-    },
-
-    // Update passenger satisfaction based on experience
-    updatePassengerSatisfaction(passenger) {
-      let satisfaction = 100;
-      
-      // Deduct for long waiting time
-      if (passenger.waitingTime > 30000) { // 30 seconds
-        satisfaction -= 20;
-      }
-      
-      // Deduct for long journey time
-      if (passenger.journeyTime > 60000) { // 60 seconds
-        satisfaction -= 15;
-      }
-      
-      // Bonus for VIP passengers
-      if (passenger.vipStatus) {
-        satisfaction += 10;
-      }
-      
-      // Bonus for accessibility support
-      if (passenger.accessibilityNeeds && satisfaction > 80) {
-        satisfaction += 5;
-      }
-      
-      passenger.satisfaction = Math.max(0, Math.min(100, satisfaction));
-    },
-
-    // Update capacity warning status
-    updateCapacityWarning(elevator) {
-      const utilization = (elevator.currentWeight / elevator.maxCapacity) * 100;
-      
-      if (utilization > 90) {
+      if (newVal > 100) {
+        this.showOverloadAlert = true;
+        this.triggerEmergencyProtocol('overload');
+      } else if (newVal > 85) {
         this.showCapacityWarning = true;
-        this.showWarning(`Capacity warning: ${elevator.id} at ${utilization.toFixed(1)}%`);
       } else {
         this.showCapacityWarning = false;
+        this.showOverloadAlert = false;
       }
     },
-
-    // SMART SCHEDULING AND ALGORITHMS
-
-    // Update elevator calls for smart scheduling
-    updateElevatorCalls(elevator) {
-      // Remove completed calls
-      this.pendingCalls = this.pendingCalls.filter(call => 
-        call.floor !== elevator.position || call.elevator !== elevator.id
-      );
-      
-      // Add new calls based on passengers
-      this.passengers.forEach(passenger => {
-        if (passenger.state === 'waiting' && passenger.position !== elevator.position) {
-          this.addFloorCall(passenger.position, elevator.id);
-        }
-      });
-    },
-
-    // Add floor call to queue
-    addFloorCall(floor, elevatorId) {
-      const existingCall = this.pendingCalls.find(call => 
-        call.floor === floor && call.elevator === elevatorId
-      );
-      
-      if (!existingCall) {
-        this.pendingCalls.push({
-          floor: floor,
-          elevator: elevatorId,
-          timestamp: Date.now(),
-          priority: this.calculateCallPriority(floor)
-        });
-      }
-    },
-
-    // Calculate call priority for smart scheduling
-    calculateCallPriority(floor) {
-      // Higher priority for ground floor and high traffic floors
-      if (floor === 0) return 10; // Ground floor highest priority
-      if (floor === this.maxPosition) return 8; // Top floor high priority
-      
-      // Medium priority for middle floors
-      return 5;
-    },
-
-    // EMERGENCY AND MAINTENANCE SYSTEMS
-
-    // Trigger emergency protocol
+    
     triggerEmergencyProtocol(type) {
-      console.log(`🚨 Emergency protocol triggered: ${type}`);
-      
+      console.log(`🚨 Emergency: ${type}`);
       this.emergencyStop = true;
       
-      // Stop all elevators
       this.elevators.forEach(elevator => {
-        elevator.emergency = true;
         elevator.status = 'emergency';
-        
         if (elevator.isMoving) {
           elevator.isMoving = false;
           elevator.direction = null;
         }
       });
-      
-      // Show emergency scenario
-      this.showEmergencyScenario(type);
-      
-      // Add to alerts
-      this.metrics.maintenanceAlerts.push({
-        type: 'emergency',
-        subtype: type,
-        time: new Date().toISOString(),
-        details: `Emergency protocol activated: ${type}`
-      });
-    },
-
-    // Show emergency scenario
-    showEmergencyScenario(type) {
-      const scenarios = {
-        overload: 'Overload detected - Passenger evacuation required',
-        fire: 'Fire alarm - All elevators return to ground floor',
-        power: 'Power outage - Emergency backup power activated',
-        seismic: 'Seismic activity - Safety protocols engaged'
-      };
-      
-      const scenario = scenarios[type] || 'Emergency situation detected';
-      this.showWarning(`🚨 EMERGENCY: ${scenario}`);
-    },
-
-    // Check maintenance requirements
-    checkMaintenanceRequirements(elevator) {
-      // Check based on usage
-      if (elevator.totalDistance > 10000) { // 10km
-        this.scheduleMaintenance(elevator, 'distance');
-      }
-      
-      // Check based on time
-      if (Date.now() > elevator.nextMaintenance) {
-        this.scheduleMaintenance(elevator, 'scheduled');
-      }
-      
-      // Check based on trips
-      if (elevator.trips > 1000) {
-        this.scheduleMaintenance(elevator, 'usage');
-      }
-      
-      // Random component failures
-      if (Math.random() < 0.001) { // 0.1% chance
-        this.scheduleMaintenance(elevator, 'component_failure');
-      }
-    },
-
-    // Schedule maintenance
-    scheduleMaintenance(elevator, reason) {
-      this.metrics.maintenanceAlerts.push({
-        type: 'maintenance_required',
-        elevator: elevator.id,
-        reason: reason,
-        time: new Date().toISOString(),
-        details: `Maintenance required due to ${reason}`
-      });
-      
-      this.showWarning(`🔧 Maintenance required for ${elevator.id}: ${reason}`);
-    },
-
-    // PERFORMANCE MONITORING
-
-    // Start performance monitoring
-    startPerformanceMonitoring() {
-      // Update metrics every 5 seconds
-      this.performanceTimer = setInterval(() => {
-        this.updatePerformanceMetrics();
-      }, 5000);
-    },
-
-    // Update system metrics
-    updateSystemMetrics() {
-      // Update energy efficiency
-      if (this.totalTrips > 0) {
-        const baselineEnergy = this.totalTrips * 0.5; // Baseline energy per trip
-        this.metrics.elevatorEfficiency = Math.max(0, 
-          100 - ((this.energyConsumption - baselineEnergy) / baselineEnergy * 100)
-        );
-      }
-      
-      // Update passenger metrics
-      const deliveredPassengers = this.passengers.filter(p => p.state === 'delivered');
-      this.metrics.totalPassengersServed = deliveredPassengers.length;
-      
-      if (deliveredPassengers.length > 0) {
-        const avgJourney = deliveredPassengers.reduce((sum, p) => sum + p.journeyTime, 0) / deliveredPassengers.length;
-        this.metrics.averageJourneyTime = avgJourney / 1000; // Convert to seconds
-      }
-      
-      // Update total energy
-      this.metrics.totalEnergyUsed = this.energyConsumption;
-    },
-
-    // Update performance metrics
-    updatePerformanceMetrics() {
-      // Calculate average wait time
-      const waitingPassengers = this.passengers.filter(p => p.state === 'waiting');
-      if (waitingPassengers.length > 0) {
-        const avgWait = waitingPassengers.reduce((sum, p) => {
-          return sum + (Date.now() - (p.arrivalTime || Date.now()));
-        }, 0) / waitingPassengers.length;
-        this.averageWaitTime = avgWait / 1000; // Convert to seconds
-      }
-      
-      // Update peak usage tracking
-      const currentHour = new Date().getHours();
-      this.elevators.forEach(elevator => {
-        elevator.usage[currentHour]++;
-      });
-    },
-
-    // Generate final report
-    generateFinalReport() {
-      const report = {
-        simulation: {
-          totalActions: this.actions.length,
-          duration: this.calculateTotalDuration(),
-          pddlType: this.pddlType
-        },
-        elevators: {
-          count: this.elevators.length,
-          totalTrips: this.totalTrips,
-          totalDistance: this.elevators.reduce((sum, e) => sum + e.totalDistance, 0),
-          averageEfficiency: this.elevators.reduce((sum, e) => sum + e.efficiency, 0) / this.elevators.length
-        },
-        passengers: {
-          total: this.passengers.length,
-          served: this.metrics.totalPassengersServed,
-          averageJourneyTime: this.metrics.averageJourneyTime,
-          averageSatisfaction: this.passengers.reduce((sum, p) => sum + p.satisfaction, 0) / this.passengers.length
-        },
-        energy: {
-          totalConsumption: this.energyConsumption.toFixed(2) + ' kWh',
-          efficiency: this.energyRating,
-          costEstimate: (this.energyConsumption * 0.12).toFixed(2) + ' USD'
-        },
-        safety: {
-          emergencyActivations: this.metrics.maintenanceAlerts.filter(a => a.type === 'emergency').length,
-          maintenanceAlerts: this.metrics.maintenanceAlerts.length,
-          overloadIncidents: this.metrics.maintenanceAlerts.filter(a => a.subtype === 'overload').length
-        }
-      };
-      
-      console.log('📊 Final Simulation Report:', report);
-      this.showSuccessMessage('📊 Simulation complete! Check console for detailed report.');
-    },
-
-    // Calculate total simulation duration
-    calculateTotalDuration() {
-      if (this.actions.length === 0) return 0;
-      
-      const lastAction = this.actions[this.actions.length - 1];
-      switch (this.pddlType) {
-        case 'temporal':
-        case 'pddl_plus':
-          return Math.max(...this.actions.map(a => a.end || a.time + 2));
-        case 'numerical':
-          return lastAction.time || this.actions.length;
-        default:
-          return lastAction.time || this.actions.length;
-      }
-    },
-
-    // UTILITY FUNCTIONS
-
-    // Get passengers at specific floor
-    getPassengersAtFloor(position) {
-      return this.passengers.filter(p => 
-        p.position === position && (p.state === 'waiting' || p.state === 'delivered')
-      );
     },
     
-    // Get passengers currently riding
-    getRidingPassengers() {
-      return this.mainElevator.passengers || [];
-    },
-
-    // Get position for floor index
-    getPositionForFloor(floorIndex) {
-      return this.minPosition + floorIndex;
+    triggerOverloadAlert(elevator, passenger) {
+      this.showOverloadAlert = true;
+      const excess = (elevator.currentWeight + (passenger.weight || 75)) - elevator.maxCapacity;
+      this.showWarning(`⚠️ OVERLOAD: ${elevator.id} - Excess: ${excess}kg`);
+      this.triggerEmergencyProtocol('overload');
     },
     
-    // Format action description with PDDL type information
-    getActionDesc(action) {
-      const { type, params } = action;
-      let desc = '';
-      
-      switch (type) {
-        case 'move-up':
-          desc = `🛗 Elevator moves up`;
-          break;
-        case 'move-down':
-          desc = `🛗 Elevator moves down`;
-          break;
-        case 'load':
-          desc = `👤 ${params?.[0] || '?'} boards elevator`;
-          break;
-        case 'unload':
-          desc = `👤 ${params?.[0] || '?'} exits elevator`;
-          break;
-        default:
-          desc = `${type} ${params?.join(' ') || ''}`;
-      }
-      
-      // Add PDDL type specific information
-      switch (this.pddlType) {
-        case 'temporal':
-          if (action.duration !== undefined) {
-            desc += ` ⏱️(${action.duration}s)`;
-          }
-          break;
-          
-        case 'pddl_plus':
-          if (action.duration !== undefined) {
-            desc += ` 🌐(${action.duration}s)`;
-          }
-          if (action.process) {
-            desc += ` [process: ${action.process}]`;
-          }
-          break;
-          
-        case 'numerical':
-          if (action.cost !== undefined) {
-            desc += ` 💰[cost: ${action.cost}]`;
-          }
-          break;
-      }
-      
-      return desc;
-    },
-
-    // Update passenger metrics
-    updatePassengerMetrics(passenger, action) {
-      const timestamp = Date.now();
-      
-      switch (action) {
-        case 'boarded':
-          passenger.boardingTime = timestamp;
-          break;
-        case 'delivered':
-          passenger.deliveryTime = timestamp;
-          if (passenger.boardingTime) {
-            passenger.journeyTime = timestamp - passenger.boardingTime;
-          }
-          break;
-      }
-    },
-
-    // Check if passenger reached destination
-    checkDestinationReached(passenger) {
-      if (passenger.destinationFloor === passenger.position) {
-        passenger.satisfaction += 10; // Bonus for reaching correct destination
-      }
-    },
-
-    // Show success message
-    showSuccessMessage(message) {
-      this.successMessage = message;
-      this.showSuccess = true;
-      setTimeout(() => {
-        this.showSuccess = false;
-      }, 4000);
-    },
-
-    // Show warning message
-    showWarning(message) {
-      console.warn('⚠️', message);
-      // Could be enhanced to show in UI
-    },
-
-    // Additional Vue template methods
     resetEmergency() {
       this.emergencyStop = false;
       this.showOverloadAlert = false;
       
-      // Reset all elevators
       this.elevators.forEach(elevator => {
-        elevator.emergency = false;
         elevator.status = 'idle';
       });
       
       console.log('🔄 Emergency reset');
     },
-
+    
     toggleEmergency() {
       if (this.emergencyStop) {
         this.resetEmergency();
@@ -1511,75 +1396,152 @@ export default {
         this.triggerEmergencyProtocol('manual');
       }
     },
-
-    getWaitingTime(passenger) {
-      if (passenger.arrivalTime) {
-        return Math.floor((Date.now() - passenger.arrivalTime) / 1000);
+    
+    // === METRICS & REPORTING SECTION ===
+    
+    updateDynamicMetrics() {
+      this.metrics.totalActions = this.actions.length;
+      
+      this.updateTimeMetrics();
+      this.updateCostMetrics();
+      this.updateEnergyMetrics();
+    },
+    
+    updateTimeMetrics() {
+      if (this.availableFeatures.showTime) {
+        this.metrics.hasTimeMetrics = true;
+        const lastAction = this.actions[this.actions.length - 1];
+        this.metrics.totalDuration = lastAction.end || lastAction.time;
       }
-      return 0;
     },
-
-    hasUpCall(floor) {
-      return this.pendingCalls.some(call => call.floor === floor && call.direction === 'up');
+    
+    updateCostMetrics() {
+      if (this.availableFeatures.showCost) {
+        this.metrics.hasCostMetrics = true;
+        this.metrics.totalCost = this.actions.reduce((sum, a) => sum + (a.cost || 0), 0);
+      }
     },
-
-    hasDownCall(floor) {
-      return this.pendingCalls.some(call => call.floor === floor && call.direction === 'down');
+    
+    updateEnergyMetrics() {
+      if (this.availableFeatures.showEnergy) {
+        this.metrics.hasEnergyMetrics = true;
+        this.metrics.totalEnergy = this.elevators.reduce((sum, e) => sum + (e.energyUsed || 0), 0);
+      }
     },
-
+    
+    generateDynamicReport() {
+      const report = this.createBaseReport();
+      this.addOptionalReportSections(report);
+      
+      console.log('📊 Dynamic Report:', report);
+      this.showSuccessMessage('📊 Simulation complete! Check console for report.');
+    },
+    
+    createBaseReport() {
+      return {
+        simulation: {
+          totalActions: this.actions.length,
+          pddlType: this.pddlType,
+          availableFeatures: this.availableFeatures
+        },
+        elevators: {
+          count: this.elevators.length
+        },
+        passengers: {
+          total: this.passengers.length,
+          served: this.passengers.filter(p => p.state === 'delivered' || p.state === 'served').length
+        }
+      };
+    },
+    
+    addOptionalReportSections(report) {
+      if (this.metrics.hasTimeMetrics) {
+        report.simulation.duration = this.metrics.totalDuration;
+      }
+      
+      if (this.metrics.hasCostMetrics) {
+        report.simulation.totalCost = this.metrics.totalCost;
+      }
+      
+      if (this.metrics.hasEnergyMetrics) {
+        report.energy = {
+          totalConsumption: this.metrics.totalEnergy + ' kWh',
+          efficiency: this.energyRating
+        };
+      }
+    },
+    
+    // === UI HELPERS SECTION ===
+    
+    showSuccessMessage(message) {
+      this.successMessage = message;
+      this.showSuccess = true;
+      setTimeout(() => {
+        this.showSuccess = false;
+      }, 4000);
+    },
+    
+    showWarning(message) {
+      console.warn('⚠️', message);
+    },
+    
+    // === TEMPLATE HELPERS SECTION ===
+    
+    getWaitingTime() {
+      return 0; // Simplified for now
+    },
+    
     callElevator(floor, direction) {
-      this.addFloorCall(floor, this.mainElevator.id);
       console.log(`📞 Elevator called to floor ${floor + 1} (${direction})`);
     },
-
+    
     getFloorName(position) {
       const floorIndex = position - this.minPosition;
-      return this.floorLabels[floorIndex] || 'Floor?';
+      return this.floorLabels[floorIndex] || `Position ${position}`;
     },
-
+    
     getStatusIcon(status) {
       const icons = {
         idle: '🟢',
         moving: '🔵',
         doors_open: '🟡',
         emergency: '🔴',
-        maintenance: '🟠'
+        offline: '⚪'
       };
       return icons[status] || '⚪';
     },
-
+    
     getSystemHealth() {
-      if (this.emergencyStop || this.maintenanceMode) return 'critical';
-      if (this.metrics.maintenanceAlerts.length > 3) return 'warning';
-      if (this.capacityUtilization > 90) return 'warning';
+      if (this.emergencyStop) return 'critical';
+      if (this.availableFeatures.showCapacity && this.capacityUtilization > 90) return 'warning';
       return 'optimal';
     },
-
-    getAlertIcon(type) {
-      const icons = {
-        emergency: '🚨',
-        overload: '⚖️',
-        maintenance_required: '🔧',
-        component_failure: '⚠️'
+    
+    formatFeatureName(feature) {
+      const names = {
+        showCapacity: 'Capacity',
+        showWeight: 'Weight',
+        showSpeed: 'Speed', 
+        showEnergy: 'Energy',
+        showTime: 'Time',
+        showCost: 'Cost',
+        showParallel: 'Parallel',
+        showContinuous: 'Continuous',
+        showEvents: 'Events'
       };
-      return icons[type] || '📋';
+      return names[feature] || feature;
     },
-
-    formatAlertTime(timeString) {
-      return new Date(timeString).toLocaleTimeString();
-    },
-
-    // Cleanup resources
+    
+    // === CLEANUP SECTION ===
+    
     cleanup() {
       if (this.timer) {
         clearInterval(this.timer);
         this.timer = null;
       }
-      
-      if (this.performanceTimer) {
-        clearInterval(this.performanceTimer);
-        this.performanceTimer = null;
-      }
     }
   }
-}
+}// File: src/components/visualization/ElevatorSimulator.js  
+// 100% Dynamic Elevator Simulator - Clean & Organized Structure
+// Everything based on plan file content only
+  
