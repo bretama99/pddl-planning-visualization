@@ -323,8 +323,8 @@ function parsePlanWithDurations(outputText) {
  */
 
 //const { cities, places, trucks, packages, steps } = launchpddl1();
-//const { cities, places, trucks, packages, distances, steps } = launchpddl2();
-const { cities, places, trucks, packages, distances, steps } = launchpddlplus();
+const { cities, places, trucks, packages, distances, steps } = launchpddl2();
+//const { cities, places, trucks, packages, distances, steps } = launchpddlplus();
 
 
 function applyPredicates(predicates, places, trucks, packages, cities) {

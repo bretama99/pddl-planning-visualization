@@ -1,5 +1,5 @@
 <template>
-  <button @click="moveTruckToPos('tru1', 'pos2')">Sposta tru1 in pos2</button>
+  <!-- <button @click="moveTruckToPos('tru1', 'pos2')">Sposta tru1 in pos2</button>
   <button @click="moveTruckToPos('tru1', 'pos3')">Sposta tru1 in pos3</button>
   <button @click="moveTruckToPos('tru1', 'pos4')">Sposta tru1 in pos4</button>
   <button
@@ -12,7 +12,7 @@
   >
     Carica e anima obj11 su tru1
   </button>
-  <button @click="testUnloadPackage">Scarica pacco di test</button>
+  <button @click="testUnloadPackage">Scarica pacco di test</button> -->
 
 
   <button @click="playSteps">▶️ Play Steps</button>
@@ -25,6 +25,20 @@
       style="border: 1px solid #ccc"
       @click="handleSvgClick"
     ></svg>
+  </div>
+
+  <div class="steps-visualization">
+    <h3>Step del piano</h3>
+    <ol>
+      <li v-for="(step, idx) in steps" :key="idx" :class="{ current: idx === currentStepIndex }">
+        <span v-if="planFormat === 'PDDL+'">
+          {{ step.action }} <span v-if="step.duration">({{ step.duration }})</span>
+        </span>
+        <span v-else>
+          {{ step }}
+        </span>
+      </li>
+    </ol>
   </div>
 </template>
 
@@ -54,6 +68,7 @@ export default {
         trucks: {},
         packages: {},
       },
+      currentStepIndex: -1, // Indice dello step corrente
     };
   },
   mounted() {
@@ -566,7 +581,9 @@ calculateMovementDistance(actionPart) {
   };
 },
 async processStepsAndMoveTrucks(steps) {
-  for (const step of steps) {
+  for (let i = 0; i < steps.length; i++) {
+    this.currentStepIndex = i;
+    const step = steps[i];
     let actionPart;
     let duration = null;
     
@@ -594,15 +611,14 @@ async processStepsAndMoveTrucks(steps) {
     } else if (actionPart.startsWith('(unload-truck')) {
       await this.processUnloadTruckStep(actionPart, duration);
     } else if (actionPart.startsWith('(start-refuel') || actionPart.startsWith('(stop-refuel')) {
-      // Gestisci le azioni di rifornimento se necessario
       await this.processRefuelStep(actionPart, duration);
     } else {
       console.warn(`Tipo di step non riconosciuto: ${actionPart}`);
     }
-    
-    let delay = 300; // delay di default
+    let delay = 300;
     await new Promise(resolve => setTimeout(resolve, delay));
   }
+  this.currentStepIndex = -1; // Reset dopo la fine
 },
     handleSvgClick(event) {
       // Ottieni il punto del clic rispetto all'SVG
@@ -861,7 +877,7 @@ repositionPackagesInPlace(placeId) {
       return 'PDDL+';
     }
     
-    // Formato PDDL1/PDDL2 (array di stringhe)
+    // Formato PDDL1/PDDL2 - step è una stringa con formato "timestamp: action"
     if (typeof firstStep === 'string') {
       return this.distances ? 'PDDL2' : 'PDDL1';
     }
@@ -1016,5 +1032,33 @@ async stopRefuelAnimation(truckId, truckName) {
   overflow: hidden;
   width: 100%;
   height: 100%;
+}
+.steps-visualization {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(255,255,255,0.95);
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 12px 18px;
+  max-height: 80vh;
+  overflow-y: auto;
+  min-width: 260px;
+  z-index: 10;
+}
+.steps-visualization ol {
+  padding-left: 18px;
+  margin: 0;
+}
+.steps-visualization li {
+  margin-bottom: 6px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+.steps-visualization li.current {
+  background: #1976d2;
+  color: #fff;
+  font-weight: bold;
 }
 </style>
