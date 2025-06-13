@@ -1,44 +1,35 @@
 <template>
-  <!-- <button @click="moveTruckToPos('tru1', 'pos2')">Sposta tru1 in pos2</button>
-  <button @click="moveTruckToPos('tru1', 'pos3')">Sposta tru1 in pos3</button>
-  <button @click="moveTruckToPos('tru1', 'pos4')">Sposta tru1 in pos4</button>
-  <button
-    @click="
-      () => {
-        loadPackageOnTruck('obj11', 'tru1');
-        animatePackageToTruck('obj11', 'tru1');
-      }
-    "
-  >
-    Carica e anima obj11 su tru1
-  </button>
-  <button @click="testUnloadPackage">Scarica pacco di test</button> -->
-
-
-  <button @click="playSteps">▶️ Play Steps</button>
-
-  <div ref="container" class="graph-container">
-    <svg
-      ref="svg"
-      :width="width"
-      :height="height"
-      style="border: 1px solid #ccc"
-      @click="handleSvgClick"
-    ></svg>
-  </div>
-
-  <div class="steps-visualization">
-    <h3>Step del piano</h3>
-    <ol>
-      <li v-for="(step, idx) in steps" :key="idx" :class="{ current: idx === currentStepIndex }">
-        <span v-if="planFormat === 'PDDL+'">
-          {{ step.action }} <span v-if="step.duration">({{ step.duration }})</span>
-        </span>
-        <span v-else>
-          {{ step }}
-        </span>
-      </li>
-    </ol>
+  <div>
+    <h1 class="main-title">LOGISTICS PLANNING VISUALIZER</h1>
+    <div class="main-visualization-layout">
+      <div ref="container" class="graph-container">
+        <svg
+          ref="svg"
+          :width="width"
+          :height="height"
+          style="border: 1px solid #ccc"
+          @click="handleSvgClick"
+        ></svg>
+      </div>
+      <div class="steps-visualization">
+        <h3>Step del piano</h3>
+        <ol>
+          <li v-for="(step, idx) in steps" :key="idx" :class="{ current: idx === currentStepIndex }">
+            <span v-if="planFormat === 'PDDL+'">
+              {{ step.action }} <span v-if="step.duration">({{ step.duration }})</span>
+            </span>
+            <span v-else>
+              {{ step }}
+            </span>
+          </li>
+        </ol>
+        <div style="display: flex; gap: 8px;">
+          <button class="play-steps-btn" @click="playSteps" :disabled="isPlaying">▶️ </button>
+          <button class="pause-steps-btn" @click="pauseSteps" :disabled="!isPlaying || isPaused">⏸️ </button>
+          <button class="resume-steps-btn" @click="resumeSteps" :disabled="!isPaused">▶️ </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -69,6 +60,11 @@ export default {
         packages: {},
       },
       currentStepIndex: -1, // Indice dello step corrente
+      isPlaying: false, // Stato di riproduzione
+      isPaused: false, // Stato di pausa
+      pauseRequested: false, // Interno per la pausa
+      resumeRequested: false, // Interno per la ripresa
+      pausedStepIndex: null, // Step dove si è fermato
     };
   },
   mounted() {
@@ -117,15 +113,19 @@ export default {
   methods: {
     initPositions() {
       const cityIds = Object.keys(this.cities);
-      const citySpacing = 300;
+      const numCities = cityIds.length;
+      const centerX = this.width / 2;
+      const centerY = this.height / 2;
+      const circleRadius = Math.min(this.width, this.height) / 2.5;
+
       cityIds.forEach((cityId, i) => {
         const city = this.cities[cityId];
-        if (!this.positions.cities[city.name]) {
-          this.positions.cities[city.name] = {
-            x: 200 + i * citySpacing,
-            y: 200,
-          };
-        }
+        // Disposizione circolare
+        const angle = (2 * Math.PI * i) / numCities;
+        this.positions.cities[city.name] = {
+          x: centerX + circleRadius * Math.cos(angle),
+          y: centerY + circleRadius * Math.sin(angle),
+        };
       });
 
       const radius = 80;
@@ -143,10 +143,6 @@ export default {
               x: cityPos.x + radius * Math.cos(angle),
               y: cityPos.y + radius * Math.sin(angle),
             };
-            console.log(
-              `Posizione per il luogo ${place.name}:`,
-              this.positions.places[place.id]
-            );
           }
         }
       });
@@ -188,6 +184,24 @@ export default {
       svg.call(this.zoom);
       const g = svg.append("g");
 
+      // --- LINEE TRA LE CITTÀ CON DISTANZA ---
+      if (this.distances && this.distances.length > 0) {
+        const cityPos = this.positions.cities;
+        this.distances.forEach(dist => {
+          if (dist.from && dist.to && cityPos[dist.from] && cityPos[dist.to] && dist.from !== dist.to) {
+            g.append("line")
+              .attr("x1", cityPos[dist.from].x)
+              .attr("y1", cityPos[dist.from].y)
+              .attr("x2", cityPos[dist.to].x)
+              .attr("y2", cityPos[dist.to].y)
+              .attr("stroke", "#888")
+              .attr("stroke-width", 25)
+              .attr("opacity", 0.85)
+              .lower();
+          }
+        });
+      }
+
       // CITTÀ
       Object.entries(this.cities).forEach(([cityId, city], i) => {
         const pos = this.positions.cities[city.name];
@@ -195,21 +209,45 @@ export default {
 
         const cityGroup = g.append("g").attr("id", `city-${city.name}`);
 
-        cityGroup
-          .append("circle")
-          .attr("cx", pos.x)
-          .attr("cy", pos.y)
-          .attr("r", constants.CITY_RADIUS)
-          .attr("fill", constants.CITY_COLOR)
-          .attr("stroke", constants.CITY_STROKE);
+        // Crea un clipPath unico per ogni città
+  const clipId = `clip-${city.name}`;
+  g.append("clipPath")
+    .attr("id", clipId)
+    .append("circle")
+    .attr("cx", pos.x)
+    .attr("cy", pos.y)
+    .attr("r", constants.CITY_RADIUS);
 
-        cityGroup
-          .append("text")
-          .attr("x", pos.x)
-          .attr("y", pos.y)
-          .attr("text-anchor", "middle")
-          .attr("dominant-baseline", "middle")
-          .text(city.name);
+  // Immagine ritagliata nel cerchio
+  cityGroup
+    .append("image")
+    .attr("xlink:href", "https://mappemondo.com/italy/city/milan/milan-street-map-max.jpg")
+    .attr("x", pos.x - constants.CITY_RADIUS)
+    .attr("y", pos.y - constants.CITY_RADIUS)
+    .attr("width", constants.CITY_RADIUS * 2)
+    .attr("height", constants.CITY_RADIUS * 2)
+    .attr("clip-path", `url(#${clipId})`)
+    .attr("preserveAspectRatio", "xMidYMid slice");
+    ;
+
+  // Bordo del cerchio sopra
+  cityGroup
+    .append("circle")
+    .attr("cx", pos.x)
+    .attr("cy", pos.y)
+    .attr("r", constants.CITY_RADIUS)
+    .attr("fill", "none")
+    .attr("stroke", constants.CITY_STROKE)
+    .attr("stroke-width", 2);
+
+  // Testo sotto
+  cityGroup
+    .append("text")
+    .attr("x", pos.x)
+    .attr("y", pos.y)
+    .attr("text-anchor", "middle")
+    .attr("dominant-baseline", "hanging")
+    .text(city.name);
       });
 
       // LUOGHI (places)
@@ -580,46 +618,61 @@ calculateMovementDistance(actionPart) {
     toPlaceEntry
   };
 },
-async processStepsAndMoveTrucks(steps) {
-  for (let i = 0; i < steps.length; i++) {
-    this.currentStepIndex = i;
-    const step = steps[i];
-    let actionPart;
-    let duration = null;
-    
-    // Estrai l'azione e la durata in base al formato del plan
-    if (this.planFormat === 'PDDL+') {
-      // Formato PDDL+ - step è un oggetto con proprietà action e duration
-      actionPart = step.action.trim();
-      duration = step.duration;
-    } else {
-      // Formato PDDL1/PDDL2 - step è una stringa con formato "timestamp: action"
-      actionPart = step.split(': ')[1].trim();
-      if (actionPart.startsWith('(drive-truck') || actionPart.startsWith('(start-move')) {
-        const movementData = this.calculateMovementDistance(actionPart);
-        if (movementData) {
-          duration = movementData.distance; // Usa la distanza come durata
+async processStepsAndMoveTrucks(steps, startIndex = 0) {
+      this.isPlaying = true;
+      this.isPaused = false;
+      this.pauseRequested = false;
+      this.pausedStepIndex = null;
+      for (let i = startIndex; i < steps.length; i++) {
+        this.currentStepIndex = i;
+        if (this.pauseRequested) {
+          this.isPlaying = false;
+          this.isPaused = true;
+          this.pausedStepIndex = i;
+          break;
         }
-      }
-    }
+        const step = steps[i];
+        let actionPart;
+        let duration = null;
+        
+        // Estrai l'azione e la durata in base al formato del plan
+        if (this.planFormat === 'PDDL+') {
+          // Formato PDDL+ - step è un oggetto con proprietà action e duration
+          actionPart = step.action.trim();
+          duration = step.duration;
+        } else {
+          // Formato PDDL1/PDDL2 - step è una stringa con formato "timestamp: action"
+          actionPart = step.split(': ')[1].trim();
+          if (actionPart.startsWith('(drive-truck') || actionPart.startsWith('(start-move')) {
+            const movementData = this.calculateMovementDistance(actionPart);
+            if (movementData) {
+              duration = movementData.distance; // Usa la distanza come durata
+            }
+          }
+        }
 
-    // Processa l'azione in base al tipo
-    if (actionPart.startsWith('(drive-truck') || actionPart.startsWith('(start-move')) {
-      await this.processDriveTruckStep(actionPart, duration);
-    } else if (actionPart.startsWith('(load-truck')) {
-      await this.processLoadTruckStep(actionPart, duration);
-    } else if (actionPart.startsWith('(unload-truck')) {
-      await this.processUnloadTruckStep(actionPart, duration);
-    } else if (actionPart.startsWith('(start-refuel') || actionPart.startsWith('(stop-refuel')) {
-      await this.processRefuelStep(actionPart, duration);
-    } else {
-      console.warn(`Tipo di step non riconosciuto: ${actionPart}`);
-    }
-    let delay = 300;
-    await new Promise(resolve => setTimeout(resolve, delay));
-  }
-  this.currentStepIndex = -1; // Reset dopo la fine
-},
+        // Processa l'azione in base al tipo
+        if (actionPart.startsWith('(drive-truck') || actionPart.startsWith('(start-move')) {
+          await this.processDriveTruckStep(actionPart, duration);
+        } else if (actionPart.startsWith('(load-truck')) {
+          await this.processLoadTruckStep(actionPart, duration);
+        } else if (actionPart.startsWith('(unload-truck')) {
+          await this.processUnloadTruckStep(actionPart, duration);
+        } else if (actionPart.startsWith('(start-refuel') || actionPart.startsWith('(stop-refuel')) {
+          await this.processRefuelStep(actionPart, duration);
+        } else {
+          console.warn(`Tipo di step non riconosciuto: ${actionPart}`);
+        }
+        let delay = 300;
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+      if (!this.pauseRequested) {
+        this.currentStepIndex = -1; // Reset dopo la fine
+        this.isPlaying = false;
+        this.isPaused = false;
+        this.pausedStepIndex = null;
+      }
+    },
     handleSvgClick(event) {
       // Ottieni il punto del clic rispetto all'SVG
       const svg = event.currentTarget;
@@ -634,9 +687,24 @@ async processStepsAndMoveTrucks(steps) {
     },
     playSteps() {
       if (this.steps && this.steps.length > 0) {
+        this.isPlaying = true;
+        this.isPaused = false;
+        this.pauseRequested = false;
+        this.pausedStepIndex = null;
         this.processStepsAndMoveTrucks(this.steps);
       } else {
         console.warn("Non ci sono steps da processare!");
+      }
+    },
+    pauseSteps() {
+      this.pauseRequested = true;
+    },
+    resumeSteps() {
+      if (this.isPaused && this.pausedStepIndex !== null) {
+        this.isPlaying = true;
+        this.isPaused = false;
+        this.pauseRequested = false;
+        this.processStepsAndMoveTrucks(this.steps, this.pausedStepIndex);
       }
     },
     async loadPackageOnTruck(packageName, truckName) {
@@ -958,7 +1026,7 @@ repositionPackagesInPlace(placeId) {
       .attr("font-size", "10px")
       .attr("font-weight", "bold")
       .attr("fill", "#333")
-      .text("Rifornimento...");
+      .text("");
     
     // Anima la barra di progresso
     progressBar
@@ -966,7 +1034,7 @@ repositionPackagesInPlace(placeId) {
       .duration(duration*constants.MIN_ANIMATION_DURATION || 3000)
       .attr("width", 50)
       .on("end", () => {
-        statusText.text("Completato!");
+        statusText.text("");
         
         // Aggiorna lo stato del carburante
         /* if (this.trucks[truckName]) {
@@ -1028,23 +1096,99 @@ async stopRefuelAnimation(truckId, truckName) {
 </script>
 
 <style scoped>
-.graph-container {
-  overflow: hidden;
+.main-title {
+  font-size: 2.2em;
+  font-weight: bold;
+  margin-bottom: 18px;
+  margin-top: 18px;
+  text-align: center;
+  color: #000000;
+  letter-spacing: 1px;
+}
+
+.main-visualization-layout {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
   width: 100%;
   height: 100%;
+  min-height: 600px;
+}
+.graph-container {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 600px;
+  height: 100%;
+  position: relative;
+}
+.play-steps-btn {
+  /* Rimosso position: absolute per renderlo statico nel pannello laterale */
+  background: #1976d2;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 1.1em;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  margin-top: 12px;
+  margin-bottom: 8px;
+  width: 100%;
+  display: block;
+}
+.pause-steps-btn {
+  background: rgb(150, 150, 150);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 1.1em;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  margin-top: 12px;
+  margin-bottom: 8px;
+  width: 100%;
+  display: block;
+  opacity: 1;
+  transition: opacity 0.2s;
+}
+.pause-steps-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.resume-steps-btn {
+  background: #43a047;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 1.1em;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  margin-top: 12px;
+  margin-bottom: 8px;
+  width: 100%;
+  display: block;
+  opacity: 1;
+  transition: opacity 0.2s;
+}
+.resume-steps-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 .steps-visualization {
-  position: absolute;
-  top: 10px;
-  right: 10px;
+  flex: 0 0 300px;
+  max-width: 340px;
+  min-width: 220px;
   background: rgba(255,255,255,0.95);
   border: 1px solid #ccc;
   border-radius: 8px;
   padding: 12px 18px;
   max-height: 80vh;
   overflow-y: auto;
-  min-width: 260px;
+  margin-left: 16px;
   z-index: 10;
+  box-sizing: border-box;
 }
 .steps-visualization ol {
   padding-left: 18px;
@@ -1060,5 +1204,16 @@ async stopRefuelAnimation(truckId, truckName) {
   background: #1976d2;
   color: #fff;
   font-weight: bold;
+}
+@media (max-width: 900px) {
+  .main-visualization-layout {
+    flex-direction: column;
+  }
+  .steps-visualization {
+    margin-left: 0;
+    margin-top: 12px;
+    max-width: 100vw;
+    width: 100%;
+  }
 }
 </style>

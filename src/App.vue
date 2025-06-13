@@ -1,4 +1,3 @@
-
 <template>
   <div id="app">
     <router-view />
@@ -25,7 +24,7 @@ export default {
 }
 
 body {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #f5f6fa;
   min-height: 100vh;
 }
 </style>

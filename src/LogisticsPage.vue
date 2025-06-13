@@ -323,8 +323,8 @@ function parsePlanWithDurations(outputText) {
  */
 
 //const { cities, places, trucks, packages, steps } = launchpddl1();
-const { cities, places, trucks, packages, distances, steps } = launchpddl2();
-//const { cities, places, trucks, packages, distances, steps } = launchpddlplus();
+//const { cities, places, trucks, packages, distances, steps } = launchpddl2();
+const { cities, places, trucks, packages, distances, steps } = launchpddlplus();
 
 
 function applyPredicates(predicates, places, trucks, packages, cities) {
@@ -417,7 +417,7 @@ const problogpddl2 = `(define (problem logistics-4-0)
  obj11 - package)
 
 (:init (at tru1 pos1) (at tru2 pos2) (at obj11 pos1)
- (in-city pos1 cit1) (in-city pos5 cit2) (in-city pos6 cit3) (in-city pos7 cit4)  (in-city pos2 cit1) (in-city pos3 cit1) (in-city pos4 cit1) (= (distance cit1 cit2) 3) (= (distance cit2 cit1) 3)
+ (in-city pos1 cit1) (in-city pos5 cit2) (in-city pos6 cit3) (in-city pos7 cit4)  (in-city pos2 cit1) (in-city pos3 cit1) (in-city pos4 cit1) (= (distance cit1 cit2) 3) (= (distance cit3 cit1) 3) (= (distance cit2 cit4) 3)
  )
 
 (:goal (and (at obj11 pos2)))
@@ -629,6 +629,7 @@ function launchpddlplus() {
   const extracted = extractPDDLSections(problogpddlplus);
   const { cities, places, trucks, packages } = parseObjects(extracted.objects);
   const parsed = parseInit(extracted.init);
+  const distances = getDistances(parsed);
   
   // Converti i predicates nel formato legacy
   const legacyPredicates = parsed.predicates.map(p => [p.predicate, ...p.args]);
@@ -637,12 +638,9 @@ function launchpddlplus() {
   const steps = parsePlanWithDurations(planpddlplus);
   console.log('Extracted Steps:', steps);
   logWorldState(cities, places, trucks, packages, cities);
-  return { cities, places, trucks, packages, steps };
+  return { cities, places, trucks, packages, distances, steps };
 }
 
-// Esempio di utilizzo:
- /* const plan = parsePlanWithDurations(planpddlplus);
-console.log('eaaleeeerraaaa cazzooo' ,plan); */
 
 
 

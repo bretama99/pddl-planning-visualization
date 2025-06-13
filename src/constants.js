@@ -7,6 +7,7 @@ export const CITY_SPACING = 300;
 export const CITY_RADIUS = 80;
 export const CITY_COLOR = "#add8e6";
 export const CITY_STROKE = "#333";
+export const CITY_LABEL_OFFSET_Y = 50; // Offset verticale per il testo delle città
 
 // Posizionamento dei luoghi (places)
 export const PLACE_RADIUS = 15;
@@ -49,7 +50,7 @@ export const PLACE_IMAGE_WIDTH = 40;
 export const PLACE_IMAGE_HEIGHT = 40;
 
 export const IMAGE_PATHS = {
-  PLACE: "https://png.pngtree.com/png-vector/20230428/ourmid/pngtree-location-point-icon-on-map-vector-png-image_6735196.png",
+  PLACE: "https://cdn-icons-png.flaticon.com/512/1692/1692037.png",
   PACKAGE: "https://cdn.pixabay.com/photo/2024/06/26/23/36/package-8856091_1280.png",
   TRUCK: "https://static.vecteezy.com/system/resources/thumbnails/027/182/338/small_2x/trailler-truck-isolated-on-a-transparent-background-png.png",
   GAS_STATION: "https://cdn-icons-png.flaticon.com/512/5900/5900376.png"
