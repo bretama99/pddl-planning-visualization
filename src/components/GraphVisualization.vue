@@ -44,6 +44,7 @@ export default {
   },
   data() {
     return {
+      planFormat: null,
       width: 800,
       height: 600,
       zoom: null,
@@ -56,8 +57,10 @@ export default {
     };
   },
   mounted() {
-    this.initPositions();
     this.initializeDistances();
+    this.planFormat = this.determinePlanFormat();
+    console.log("Formato del piano:", this.planFormat);
+    this.initPositions();
     this.drawGraph();
   },
   watch: {
@@ -200,6 +203,9 @@ export default {
         if (!pos) return;
 
         const placeGroup = g.append("g").attr("id", `place-${place.id}`);
+        const imageHref = place.subtype === 'gasstation'
+    ? constants.IMAGE_PATHS.GAS_STATION
+    : constants.IMAGE_PATHS.PLACE;
 
         placeGroup
   .append("image")
@@ -207,7 +213,7 @@ export default {
   .attr("y", pos.y - constants.PLACE_IMAGE_HEIGHT / 2)
   .attr("width", constants.IMAGE_SIZES.PLACE_WIDTH)
   .attr("height", constants.IMAGE_SIZES.PLACE_HEIGHT)
-  .attr("href", constants.IMAGE_PATHS.PLACE);
+  .attr("href", imageHref);
 
         console.log(`constant: ${constants.PLACE_LABEL_OFFSET_Y} and pos`, pos);
         placeGroup
@@ -300,7 +306,7 @@ pkgGroup
       );
       return placeEntry ? placeEntry.id : null;
     },
-    animateTruck(truckName, newX, newY, distance = 0) {
+    animateTruck(truckName, newX, newY, duration = 0) {
   return new Promise((resolve) => {
     const truckGroup = d3.select(`#truck-${truckName}`);
     if (truckGroup.empty()) {
@@ -318,15 +324,15 @@ pkgGroup
     }
 
     // Calcola la durata dell'animazione basata sulla distanza
-    const duration = this.calculateAnimationDuration(distance);
+    const animationduration = this.calculateAnimationDuration(duration);
 
     console.log(
-      `Animazione del truck ${truckName} da (${this.positions.trucks[truckId].x},${this.positions.trucks[truckId].y}) a (${newX}, ${newY}) con durata ${duration}ms (distanza: ${distance})`
+      `Animazione del truck ${truckName} da (${this.positions.trucks[truckId].x},${this.positions.trucks[truckId].y}) a (${newX}, ${newY}) con durata ${animationduration}ms`
     );
 
     truckGroup
       .transition()
-      .duration(duration) // Usa la durata calcolata
+      .duration(animationduration) // Usa la durata calcolata
       .attr("transform", `translate(${newX}, ${newY})`)
       .on("end", () => {
         // Aggiorna la posizione nello stato
@@ -382,22 +388,32 @@ pkgGroup
       
       return distance || 0; // Restituisce 0 se non trovata (durata fissa)
     },  
-    async moveTruckToPos(truckName, placeName) {
-  const truckEntry = Object.values(this.trucks).find(
-    (t) => t.name === truckName
-  );
-  if (!truckEntry) return;
+    async moveTruckToPos(truckName, placeName, duration = null, preCalculatedData = null) {
+  let truckEntry, newPlaceEntry, oldPlace, distance;
+  
+  if (preCalculatedData) {
+    // Usa i dati già calcolati
+    truckEntry = preCalculatedData.truckEntry;
+    newPlaceEntry = preCalculatedData.toPlaceEntry;
+    oldPlace = preCalculatedData.fromPlaceEntry;
+    distance = preCalculatedData.distance;
+  } else {
+    // Calcola i dati (logica originale)
+    truckEntry = Object.values(this.trucks).find(
+      (t) => t.name === truckName
+    );
+    if (!truckEntry) return;
 
-  const newPlaceEntry = Object.values(this.places).find(
-    (p) => p.name === placeName
-  );
-  if (!newPlaceEntry) return;
+    newPlaceEntry = Object.values(this.places).find(
+      (p) => p.name === placeName
+    );
+    if (!newPlaceEntry) return;
+
+    oldPlace = truckEntry.location;
+    distance = this.calculateDistanceBetweenPlaces(oldPlace, newPlaceEntry);
+  }
 
   const oldPlaceId = truckEntry.location.id;
-  const oldPlace = truckEntry.location;
-
-  // Calcola la distanza tra le città PRIMA di aggiornare la location
-  const distance = this.calculateDistanceBetweenPlaces(oldPlace, newPlaceEntry);
 
   // Aggiorna la location del truck PRIMA di ricalcolare
   truckEntry.location = newPlaceEntry;
@@ -411,15 +427,16 @@ pkgGroup
   }
 
   // Ricalcola e riposiziona tutti i truck nel posto di destinazione
-  // Passa la distanza per calcolare la durata dell'animazione
-  promises.push(this.repositionTrucksInPlace(newPlaceEntry.id, distance, truckName));
+  // Usa la duration se fornita, altrimenti usa la distance per calcolare la durata dell'animazione
+  const animationDuration = duration !== null ? duration : distance;
+  promises.push(this.repositionTrucksInPlace(newPlaceEntry.id, animationDuration, truckName));
 
   // Aspetta che tutte le animazioni siano completate
   await Promise.all(promises);
 }
     ,
 
-    async repositionTrucksInPlace(placeId, distance = 0, movingTruckName = null) {
+    async repositionTrucksInPlace(placeId, duration = 0, movingTruckName = null) {
   const placePos = this.positions.places[placeId];
   if (!placePos) return;
 
@@ -435,16 +452,16 @@ pkgGroup
     );
 
     // Calcola la durata dell'animazione solo per il truck che si sta muovendo
-    const animationDistance = (truck.name === movingTruckName) ? distance : 0;
+    const animationDuration = (truck.name === movingTruckName) ? duration : 0;
 
     // Restituisce la Promise dell'animazione
-    return this.animateTruck(truck.name, truckX, truckY, animationDistance);
+    return this.animateTruck(truck.name, truckX, truckY, animationDuration);
   });
 
   // Aspetta che tutte le animazioni siano completate
   await Promise.all(animationPromises);
 },
-    async processDriveTruckStep(actionPart) {
+    async processDriveTruckStep(actionPart, duration = null, movementData = null) {
   const tokens = actionPart.replace(/[()]/g, '').split(' ');
   const truckName = tokens[1];   // secondo parametro
   const fromPlace = tokens[2];   // terzo parametro  
@@ -452,10 +469,11 @@ pkgGroup
 
   console.log(`🚛 Spostamento: Truck ${truckName} da ${fromPlace} a ${toPlace}`);
   
-  await this.moveTruckToPos(truckName, toPlace);
+  // Usa i dati pre-calcolati se disponibili
+  await this.moveTruckToPos(truckName, toPlace, duration,movementData);
   
   console.log(`✅ Movimento completato: Truck ${truckName} ora in ${toPlace}`);
-    },
+},
 async processLoadTruckStep(actionPart) {
   const tokens = actionPart.replace(/[()]/g, '').split(' ');
   const packageName = tokens[1];  // secondo parametro
@@ -479,26 +497,112 @@ async processUnloadTruckStep(actionPart) {
   await this.unloadPackageFromTruck(packageName, truckName);
   
   console.log(`✅ Scaricamento completato: Package ${packageName} scaricato da truck ${truckName} in ${placeName}`);
+    },
+async processRefuelStep(actionPart, duration) {
+  console.log(`Processando step di rifornimento: ${actionPart}`);
+  
+  // Parse per start-refuel (con truck e stazione)
+  let match = actionPart.match(/\(start-refuel\s+(\w+)\s+(\w+)\)/);
+  if (match) {
+    const [, truckName, stationName] = match;
+    const truckId = this.getTruckIdByName(truckName);
+    await this.startRefuelAnimation(truckId, truckName, stationName, duration);
+    return;
+  }
+  
+  // Parse per stop-refuel (solo truck)
+  match = actionPart.match(/\(stop-refuel\s+(\w+)\)/);
+  if (match) {
+    const [, truckName] = match;
+    const truckId = this.getTruckIdByName(truckName);
+    await this.stopRefuelAnimation(truckId, truckName);
+    return;
+  }
+  
+  console.warn(`Formato azione rifornimento non riconosciuto: ${actionPart}`);
 },
-    async processStepsAndMoveTrucks(steps) {
-  for (const step of steps) {
-    const actionPart = step.split(': ')[1].trim();
+calculateMovementDistance(actionPart) {
+  const tokens = actionPart.replace(/[()]/g, '').split(' ');
+  let truckName, fromPlace, toPlace;
+  
+  if (actionPart.startsWith('(drive-truck')) {
+    truckName = tokens[1];   // secondo parametro
+    fromPlace = tokens[2];   // terzo parametro  
+    toPlace = tokens[3];     // quarto parametro
+  } else if (actionPart.startsWith('(start-move')) {
+    truckName = tokens[1];   // secondo parametro
+    fromPlace = tokens[2];   // terzo parametro  
+    toPlace = tokens[3];     // quarto parametro
+  }
+  
+  if (!truckName || !fromPlace || !toPlace) return null;
 
-    if (actionPart.startsWith('(drive-truck')) {
-      await this.processDriveTruckStep(actionPart);
+  const truckEntry = Object.values(this.trucks).find(
+    (t) => t.name === truckName
+  );
+  if (!truckEntry) return null;
+
+  const fromPlaceEntry = Object.values(this.places).find(
+    (p) => p.name === fromPlace
+  );
+  if (!fromPlaceEntry) return null;
+
+  const toPlaceEntry = Object.values(this.places).find(
+    (p) => p.name === toPlace
+  );
+  if (!toPlaceEntry) return null;
+
+  // Calcola la distanza tra i luoghi
+  const distance = this.calculateDistanceBetweenPlaces(fromPlaceEntry, toPlaceEntry);
+  
+  return {
+    truckName,
+    fromPlace,
+    toPlace,
+    distance,
+    truckEntry,
+    fromPlaceEntry,
+    toPlaceEntry
+  };
+},
+async processStepsAndMoveTrucks(steps) {
+  for (const step of steps) {
+    let actionPart;
+    let duration = null;
+    
+    // Estrai l'azione e la durata in base al formato del plan
+    if (this.planFormat === 'PDDL+') {
+      // Formato PDDL+ - step è un oggetto con proprietà action e duration
+      actionPart = step.action.trim();
+      duration = step.duration;
+    } else {
+      // Formato PDDL1/PDDL2 - step è una stringa con formato "timestamp: action"
+      actionPart = step.split(': ')[1].trim();
+      if (actionPart.startsWith('(drive-truck') || actionPart.startsWith('(start-move')) {
+        const movementData = this.calculateMovementDistance(actionPart);
+        if (movementData) {
+          duration = movementData.distance; // Usa la distanza come durata
+        }
+      }
+    }
+
+    // Processa l'azione in base al tipo
+    if (actionPart.startsWith('(drive-truck') || actionPart.startsWith('(start-move')) {
+      await this.processDriveTruckStep(actionPart, duration);
     } else if (actionPart.startsWith('(load-truck')) {
-      await this.processLoadTruckStep(actionPart);
+      await this.processLoadTruckStep(actionPart, duration);
     } else if (actionPart.startsWith('(unload-truck')) {
-      await this.processUnloadTruckStep(actionPart);
+      await this.processUnloadTruckStep(actionPart, duration);
+    } else if (actionPart.startsWith('(start-refuel') || actionPart.startsWith('(stop-refuel')) {
+      // Gestisci le azioni di rifornimento se necessario
+      await this.processRefuelStep(actionPart, duration);
     } else {
       console.warn(`Tipo di step non riconosciuto: ${actionPart}`);
     }
     
-    // Piccola pausa tra un'azione e l'altra
-    await new Promise(resolve => setTimeout(resolve, 300));
+    let delay = 300; // delay di default
+    await new Promise(resolve => setTimeout(resolve, delay));
   }
-  
-  console.log('🎉 Tutti i movimenti e operazioni completati!');
 },
     handleSvgClick(event) {
       // Ottieni il punto del clic rispetto all'SVG
@@ -654,8 +758,8 @@ async processUnloadTruckStep(actionPart) {
   }
     },
 calculateAnimationDuration(distance) {
-      const MAX_DURATION = 10000; // Durata massima in ms
-      const MIN_DURATION = 1000; // Durata minima in ms
+      const MAX_DURATION = constants.MAX_ANIMATION_DURATION; // Durata massima in ms
+      const MIN_DURATION = constants.MIN_ANIMATION_DURATION; // Durata minima in ms
 
       if (distance === 0) {
         return MIN_DURATION; // Movimento locale nella stessa città
@@ -745,6 +849,162 @@ repositionPackagesInPlace(placeId) {
     }
   });
     },
+      // Rileva il formato degli steps
+    determinePlanFormat() {
+    console.log("Rilevamento del formato degli steps:", this.steps);
+    if (!this.steps || this.steps.length === 0) return 'UNKNOWN';
+    
+    const firstStep = this.steps[0];
+    
+    // Formato PDDL+ (oggetti con start, action, duration)
+    if (typeof firstStep === 'object' && firstStep.hasOwnProperty('start') && firstStep.hasOwnProperty('action')) {
+      return 'PDDL+';
+    }
+    
+    // Formato PDDL1/PDDL2 (array di stringhe)
+    if (typeof firstStep === 'string') {
+      return this.distances ? 'PDDL2' : 'PDDL1';
+    }
+    
+    return 'UNKNOWN';
+    },
+    async startRefuelAnimation(truckId, truckName, stationName, duration = 3000) {
+  const truckGroup = d3.select(`#truck-${truckName}`);
+  
+  if (truckGroup.empty()) {
+    console.warn(`Truck ${truckId} non trovato nel DOM`);
+    return;
+  }
+  
+  console.log(`Iniziando rifornimento per ${truckName} alla stazione ${stationName}`);
+  
+  return new Promise((resolve) => {
+    // Crea il gruppo per l'animazione di rifornimento
+    const refuelGroup = truckGroup
+      .append("g")
+      .attr("class", `refuel-animation-${truckId}`);
+    
+    // Icona della pompa di benzina
+    const fuelIcon = refuelGroup
+      .append("g")
+      .attr("transform", "translate(0, -35)");
+    
+    // Background dell'icona
+    fuelIcon
+      .append("circle")
+      .attr("r", 12)
+      .attr("fill", "#4CAF50")
+      .attr("stroke", "#2E7D32")
+      .attr("stroke-width", 2)
+      .attr("opacity", 0.9);
+    
+    // Emoji della pompa
+    fuelIcon
+      .append("text")
+      .attr("text-anchor", "middle")
+      .attr("dy", "0.3em")
+      .attr("font-size", "14px")
+      .text("⛽")
+      .attr("fill", "white");
+    
+    // Barra di progresso
+    const progressGroup = refuelGroup
+      .append("g")
+      .attr("transform", "translate(0, -20)");
+    
+    // Background della barra
+    progressGroup
+      .append("rect")
+      .attr("x", -25)
+      .attr("y", 0)
+      .attr("width", 50)
+      .attr("height", 6)
+      .attr("fill", "#E0E0E0")
+      .attr("stroke", "#BDBDBD")
+      .attr("stroke-width", 1)
+      .attr("rx", 3);
+    
+    // Barra di progresso
+    const progressBar = progressGroup
+      .append("rect")
+      .attr("x", -25)
+      .attr("y", 0)
+      .attr("width", 0)
+      .attr("height", 6)
+      .attr("fill", "#4CAF50")
+      .attr("rx", 3);
+    
+    // Testo di stato
+    const statusText = refuelGroup
+      .append("text")
+      .attr("y", -10)
+      .attr("text-anchor", "middle")
+      .attr("font-size", "10px")
+      .attr("font-weight", "bold")
+      .attr("fill", "#333")
+      .text("Rifornimento...");
+    
+    // Anima la barra di progresso
+    progressBar
+      .transition()
+      .duration(duration*constants.MIN_ANIMATION_DURATION || 3000)
+      .attr("width", 50)
+      .on("end", () => {
+        statusText.text("Completato!");
+        
+        // Aggiorna lo stato del carburante
+        /* if (this.trucks[truckName]) {
+          this.trucks[truckName].fuel = 100;
+        } */
+        
+        console.log(`Rifornimento completato per ${truckName}`);
+        resolve();
+      });
+    
+    // Animazione pulsante per l'icona
+    const pulseAnimation = () => {
+      fuelIcon
+        .transition()
+        .duration(1000)
+        .attr("transform", "translate(0, -35) scale(1.1)")
+        .transition()
+        .duration(1000)
+        .attr("transform", "translate(0, -35) scale(1)")
+        .on("end", () => {
+          // Continua il pulsing solo se l'animazione è ancora attiva
+          if (!refuelGroup.empty()) {
+            pulseAnimation();
+          }
+        });
+    };
+    
+    pulseAnimation();
+  });
+    },
+async stopRefuelAnimation(truckId, truckName) {
+  const truckGroup = d3.select(`#truck-${truckName}`);
+  const refuelAnimation = truckGroup.select(`.refuel-animation-${truckId}`);
+  
+  if (!refuelAnimation.empty()) {
+    console.log(`Terminando rifornimento per ${truckName}`);
+    
+    return new Promise((resolve) => {
+      // Ferma tutte le transizioni in corso
+      refuelAnimation.selectAll("*").interrupt();
+      
+      // Animazione di fade out
+      refuelAnimation
+        .transition()
+        .duration(500)
+        .attr("opacity", 0)
+        .on("end", () => {
+          refuelAnimation.remove();
+          console.log(`Animazione rifornimento rimossa per ${truckName}`);
+          resolve();
+        });
+    });
+  }
+},
 
   },
   

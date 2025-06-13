@@ -42,7 +42,8 @@ export const ZOOM_MIN_SCALE = 0.5;
 export const ZOOM_MAX_SCALE = 5;
 
 // Durata animazioni
-export const ANIMATION_DURATION = 1000;
+export const MAX_ANIMATION_DURATION = 20000;
+export const MIN_ANIMATION_DURATION = 1000;
 
 export const PLACE_IMAGE_WIDTH = 40;
 export const PLACE_IMAGE_HEIGHT = 40;
@@ -50,7 +51,8 @@ export const PLACE_IMAGE_HEIGHT = 40;
 export const IMAGE_PATHS = {
   PLACE: "https://png.pngtree.com/png-vector/20230428/ourmid/pngtree-location-point-icon-on-map-vector-png-image_6735196.png",
   PACKAGE: "https://cdn.pixabay.com/photo/2024/06/26/23/36/package-8856091_1280.png",
-  TRUCK: "https://static.vecteezy.com/system/resources/thumbnails/027/182/338/small_2x/trailler-truck-isolated-on-a-transparent-background-png.png"
+  TRUCK: "https://static.vecteezy.com/system/resources/thumbnails/027/182/338/small_2x/trailler-truck-isolated-on-a-transparent-background-png.png",
+  GAS_STATION: "https://cdn-icons-png.flaticon.com/512/5900/5900376.png"
 };
 
 export const IMAGE_SIZES = {

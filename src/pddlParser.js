@@ -56,7 +56,7 @@ export default function extractPDDLSections(fileContent) {
 }
 
 // Funzione per estrarre solo una sezione specifica
-function extractSingleSection(fileContent, sectionName) {
+export function extractSingleSection(fileContent, sectionName) {
     const startPattern = `(:${sectionName}`;
     const startIndex = fileContent.indexOf(startPattern);
     
@@ -219,7 +219,7 @@ export function parseObjects(objectsStr) {
     // Rimuovo parentesi e tag :objects
     let result = objectsStr.replace(/[()]/g, "").replace(":objects", "");
     // Trova blocchi come "pos2 pos1 - location"
-    const regex = /\s*((?:[a-zA-Z0-9]+\s*)+-\s*[a-zA-Z0-9]+)/g;
+    const regex = /\s*((?:[a-zA-Z0-9]+\s*)+-\s*[a-zA-Z0-9-]+)/g;
     const matches = result.match(regex);
 
     const cities = {};
@@ -230,26 +230,34 @@ export function parseObjects(objectsStr) {
     let idCounter = 1;
 
     matches.forEach(item => {
-        // Esempio item = " pos2 pos1 - location"
         const parts = item.trim().split("-");
-        const names = parts[0].trim().split(/\s+/); // [pos2, pos1]
-        const type = parts[1].trim(); // location
+        const names = parts[0].trim().split(/\s+/);
+        const type = parts[1].trim();
 
         names.forEach(name => {
-            if (type === 'city') {
-                cities[name] = new City(idCounter++, name);
-            } else if (type === 'location') {
-                places[name] = new Place(idCounter++, name);
-            } else if (type === 'truck') {
-                trucks[name] = new Truck(idCounter++, name);
-            } else if (type === 'package') {
-                packages[name] = new Package(idCounter++, name);
+            switch (type) {
+                case 'city':
+                    cities[name] = new City(idCounter++, name);
+                    break;
+                case 'location':
+                    places[name] = new Place(idCounter++, name, null, 'location');
+                    break;
+                    case 'gasstation':
+                    places[name] = new Place(idCounter++, name, null, 'gasstation');
+                    break;
+                case 'truck':
+                    trucks[name] = new Truck(idCounter++, name);
+                    break;
+                case 'package':
+                    packages[name] = new Package(idCounter++, name);
+                    break;
             }
         });
     });
 
     return { cities, places, trucks, packages };
 }
+
 
 export function extractPlanRobust(output) {
     const lines = output.split('\n');
