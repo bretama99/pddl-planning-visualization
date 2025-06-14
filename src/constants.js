@@ -1,5 +1,7 @@
 // constants.js
 
+import { axisRight } from "d3";
+
 // Posizionamento delle città
 export const CITY_START_X = 200;
 export const CITY_START_Y = 200;
@@ -53,7 +55,8 @@ export const IMAGE_PATHS = {
   PLACE: "https://cdn-icons-png.flaticon.com/512/1692/1692037.png",
   PACKAGE: "https://cdn.pixabay.com/photo/2024/06/26/23/36/package-8856091_1280.png",
   TRUCK: "https://static.vecteezy.com/system/resources/thumbnails/027/182/338/small_2x/trailler-truck-isolated-on-a-transparent-background-png.png",
-  GAS_STATION: "https://cdn-icons-png.flaticon.com/512/5900/5900376.png"
+  GAS_STATION: "https://cdn-icons-png.flaticon.com/512/5900/5900376.png",
+  AIRPORT: "https://cdn-icons-png.flaticon.com/512/8382/8382446.png"
 };
 
 export const IMAGE_SIZES = {
@@ -62,3 +65,8 @@ export const IMAGE_SIZES = {
   PACKAGE_SIZE: 25,
   TRUCK_SIZE: 35
 };
+
+// Subtypes dei Place
+export const PLACE_SUBTYPE_LOCATION = "location";
+export const PLACE_SUBTYPE_GASSTATION = "gasstation";
+export const PLACE_SUBTYPE_AIRPORT = "airport";

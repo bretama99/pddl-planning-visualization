@@ -2,6 +2,7 @@ import City from './models/City.js';
 import Place from './models/Place.js';
 import Truck from './models/Truck.js';
 import Package from './models/Package.js';
+import * as constants from "./constants.js";
 
 export default function extractPDDLSections(fileContent) {
     /**
@@ -240,10 +241,13 @@ export function parseObjects(objectsStr) {
                     cities[name] = new City(idCounter++, name);
                     break;
                 case 'location':
-                    places[name] = new Place(idCounter++, name, null, 'location');
+                    places[name] = new Place(idCounter++, name, null, constants.PLACE_SUBTYPE_LOCATION);
                     break;
-                    case 'gasstation':
-                    places[name] = new Place(idCounter++, name, null, 'gasstation');
+                case 'gasstation':
+                    places[name] = new Place(idCounter++, name, null, constants.PLACE_SUBTYPE_GASSTATION);
+                    break;
+                case 'airport':
+                    places[name] = new Place(idCounter++, name, null, constants.PLACE_SUBTYPE_AIRPORT);
                     break;
                 case 'truck':
                     trucks[name] = new Truck(idCounter++, name);
@@ -257,6 +261,7 @@ export function parseObjects(objectsStr) {
 
     return { cities, places, trucks, packages };
 }
+
 
 
 export function extractPlanRobust(output) {

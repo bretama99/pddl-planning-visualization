@@ -26,7 +26,7 @@
         <div style="display: flex; gap: 8px;">
           <button class="play-steps-btn" @click="playSteps" :disabled="isPlaying">▶️ </button>
           <button class="pause-steps-btn" @click="pauseSteps" :disabled="!isPlaying || isPaused">⏸️ </button>
-          <button class="resume-steps-btn" @click="resumeSteps" :disabled="!isPaused">▶️ </button>
+          <button class="resume-steps-btn" @click="resumeSteps" :disabled="!isPaused">⏯️ </button>
         </div>
       </div>
     </div>
@@ -256,9 +256,12 @@ export default {
         if (!pos) return;
 
         const placeGroup = g.append("g").attr("id", `place-${place.id}`);
-        const imageHref = place.subtype === 'gasstation'
-    ? constants.IMAGE_PATHS.GAS_STATION
-    : constants.IMAGE_PATHS.PLACE;
+        let imageHref = constants.IMAGE_PATHS.PLACE;  // default
+if (place.subtype === constants.PLACE_SUBTYPE_GASSTATION) {
+  imageHref = constants.IMAGE_PATHS.GAS_STATION;
+} else if (place.subtype === constants.PLACE_SUBTYPE_AIRPORT) {
+  imageHref = constants.IMAGE_PATHS.AIRPORT; // aggiungilo in constants.js se manca
+}
 
         placeGroup
   .append("image")

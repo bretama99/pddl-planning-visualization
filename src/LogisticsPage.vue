@@ -398,12 +398,14 @@ const problogpddl1 = `(define (problem logistics-4-0)
 (:domain logistics)
 (:objects
  pos2 pos1 pos3 pos4 pos5 pos6 pos7 - location
+ apt1 apt2 - airport
  cit1 cit2 cit3 cit4 - city
  tru1 tru2 - truck
  obj11 - package)
 
 (:init (at tru1 pos1) (at tru2 pos2) (at obj11 pos1)
- (in-city pos1 cit1) (in-city pos5 cit2) (in-city pos6 cit3) (in-city pos7 cit4)  (in-city pos2 cit1) (in-city pos3 cit1) (in-city pos4 cit1)
+ (in-city pos1 cit1) (in-city pos5 cit2) (in-city pos6 cit3) (in-city pos7 cit4)  (in-city pos2 cit1) (in-city pos3 cit1) (in-city pos4 cit1) (in-city apt1 cit1)
+    (in-city apt2 cit2) 
  )
 
 (:goal (and (at obj11 pos2)))
@@ -580,7 +582,198 @@ Number of Dead-Ends detected:18
 Number of Duplicates detected:156
 `;
 
+const testprogpddl1 = `(define (problem logistics-4-0)
+(:domain logistics)
+(:objects
+ pos2 pos1 pos3 pos4 pos5 pos6 pos7 - location
+ cit1 cit2 cit3 cit4 - city
+ tru1 tru2 - truck
+ obj11 obj12 obj13 obj14 - package)
+(:init 
+ (at tru1 pos1) 
+ (at tru2 pos2) 
+ (at obj11 pos1) 
+ (at obj12 pos3) 
+ (at obj13 pos5) 
+ (at obj14 pos6)
+ (in-city pos1 cit1) 
+ (in-city pos2 cit1) 
+ (in-city pos3 cit1) 
+ (in-city pos4 cit1)
+ (in-city pos5 cit2) 
+ (in-city pos6 cit3) 
+ (in-city pos7 cit4)
+ )
+(:goal 
+ (and 
+  (at obj11 pos2) 
+  (at obj12 pos7) 
+  (at obj13 pos4) 
+  (at obj14 pos1)
+ )
+)
+)`;
+const testplanpddl1 = `domain parsed
+problem parsed
+grounding..
+grounding time: 45
+aibr preprocessing
+|f|:9
+|x|:0
+|a|:20
+|p|:0
+|e|:0
+h1 setup time (msec): 15
+ g(n)= 1.0 h(n)=7.0
+ g(n)= 2.0 h(n)=6.0
+ g(n)= 3.0 h(n)=5.0
+ g(n)= 4.0 h(n)=4.0
+ g(n)= 5.0 h(n)=3.0
+ g(n)= 6.0 h(n)=2.0
+ g(n)= 7.0 h(n)=1.0
+ g(n)= 8.0 h(n)=0.0
+problem solved
 
+found plan:
+0.0: (load-truck obj11 tru1 pos1)
+1.0: (drive-truck tru1 pos1 pos2 cit1)
+2.0: (unload-truck obj11 tru1 pos2)
+3.0: (drive-truck tru1 pos2 pos3 cit1)
+4.0: (load-truck obj12 tru1 pos3)
+5.0: (drive-truck tru1 pos3 pos4 cit1)
+6.0: (drive-truck tru1 pos4 pos7 cit4)
+7.0: (unload-truck obj12 tru1 pos7)
+8.0: (drive-truck tru2 pos2 pos1 cit1)
+9.0: (drive-truck tru2 pos1 pos4 cit1)
+10.0: (drive-truck tru2 pos4 pos5 cit2)
+11.0: (load-truck obj13 tru2 pos5)
+12.0: (drive-truck tru2 pos5 pos4 cit1)
+13.0: (unload-truck obj13 tru2 pos4)
+14.0: (drive-truck tru2 pos4 pos6 cit3)
+15.0: (load-truck obj14 tru2 pos6)
+16.0: (drive-truck tru2 pos6 pos4 cit1)
+17.0: (drive-truck tru2 pos4 pos1 cit1)
+18.0: (unload-truck obj14 tru2 pos1)
+
+plan-length:19
+metric (search):19.0
+planning time (msec): 78
+heuristic time (msec): 12
+search time (msec): 58
+expanded nodes:15
+states evaluated:20
+number of dead-ends detected:8
+number of duplicates detected:12
+`;
+const testprogpddl2 = `(define (problem logistics-5-0)
+(:domain logistics)
+(:objects
+ pos2 pos1 pos3 pos4 pos5 pos6 pos7 pos8 pos9 - location
+ cit1 cit2 cit3 cit4 - city
+ tru1 tru2 tru3 - truck
+ obj11 obj12 obj13 obj14 obj15 - package)
+
+(:init 
+ (at tru1 pos1) 
+ (at tru2 pos5) 
+ (at tru3 pos6)
+ (at obj11 pos2) 
+ (at obj12 pos3) 
+ (at obj13 pos7) 
+ (at obj14 pos8) 
+ (at obj15 pos9)
+ (in-city pos1 cit1) 
+ (in-city pos2 cit1) 
+ (in-city pos3 cit1) 
+ (in-city pos4 cit1)
+ (in-city pos5 cit2) 
+ (in-city pos8 cit2)
+ (in-city pos6 cit3) 
+ (in-city pos9 cit3)
+ (in-city pos7 cit4)
+ (= (distance cit1 cit2) 4) 
+ (= (distance cit2 cit1) 4)
+ (= (distance cit1 cit3) 2) 
+ (= (distance cit3 cit1) 2)
+ (= (distance cit1 cit4) 5) 
+ (= (distance cit4 cit1) 5)
+ (= (distance cit2 cit3) 3) 
+ (= (distance cit3 cit2) 3)
+ (= (distance cit2 cit4) 2) 
+ (= (distance cit4 cit2) 2)
+ (= (distance cit3 cit4) 4) 
+ (= (distance cit4 cit3) 4)
+ )
+
+(:goal 
+ (and 
+  (at obj11 pos5)
+  (at obj12 pos7) 
+  (at obj13 pos1) 
+  (at obj14 pos6) 
+  (at obj15 pos4)
+ )
+)
+)`;
+const testplanpddl2 = `domain parsed
+problem parsed
+grounding..
+grounding time: 62
+aibr preprocessing
+|f|:12
+|x|:0
+|a|:35
+|p|:0
+|e|:0
+h1 setup time (msec): 22
+ g(n)= 1.0 h(n)=12.0
+ g(n)= 2.0 h(n)=11.0
+ g(n)= 3.0 h(n)=10.0
+ g(n)= 4.0 h(n)=9.0
+ g(n)= 5.0 h(n)=8.0
+ g(n)= 6.0 h(n)=7.0
+ g(n)= 7.0 h(n)=6.0
+ g(n)= 8.0 h(n)=5.0
+ g(n)= 9.0 h(n)=4.0
+ g(n)= 10.0 h(n)=3.0
+ g(n)= 11.0 h(n)=2.0
+ g(n)= 12.0 h(n)=1.0
+ g(n)= 13.0 h(n)=0.0
+problem solved
+
+found plan:
+0.0: (load-truck obj11 tru1 pos2)
+1.0: (drive-truck tru1 pos2 pos1 cit1)
+2.0: (drive-truck tru1 pos1 pos4 cit1)
+3.0: (drive-truck tru1 pos4 pos5 cit2)
+4.0: (unload-truck obj11 tru1 pos5)
+5.0: (drive-truck tru1 pos5 pos8 cit2)
+6.0: (load-truck obj14 tru1 pos8)
+7.0: (drive-truck tru1 pos8 pos5 cit2)
+8.0: (drive-truck tru1 pos5 pos6 cit3)
+9.0: (unload-truck obj14 tru1 pos6)
+10.0: (load-truck obj15 tru3 pos9)
+11.0: (drive-truck tru3 pos9 pos6 cit3)
+12.0: (drive-truck tru3 pos6 pos1 cit1)
+13.0: (drive-truck tru3 pos1 pos4 cit1)
+14.0: (unload-truck obj15 tru3 pos4)
+15.0: (load-truck obj12 tru2 pos3)
+16.0: (drive-truck tru2 pos3 pos1 cit1)
+17.0: (drive-truck tru2 pos1 pos7 cit4)
+18.0: (unload-truck obj12 tru2 pos7)
+19.0: (load-truck obj13 tru2 pos7)
+20.0: (drive-truck tru2 pos7 pos1 cit1)
+21.0: (unload-truck obj13 tru2 pos1)
+
+plan-length:22
+metric (search):22.0
+planning time (msec): 125
+heuristic time (msec): 18
+search time (msec): 95
+expanded nodes:28
+states evaluated:35
+number of dead-ends detected:15
+number of duplicates detected:22`
 /* const extracted = extractPDDLSections(problogpddlplus);
   var { cities, places, trucks, packages } = parseObjects(extracted.objects);
   const predicates = parseInitLegacy(extracted.init);
@@ -602,14 +795,14 @@ function launchpddl1() {
   const { cities, places, trucks, packages } = parseObjects(extracted.objects);
   const predicates = parseInitLegacy(extracted.init);
   applyPredicates(predicates, places, trucks, packages, cities);
-  const steps = extractPlanRobust(planpddl1);
+  const steps = extractPlanRobust(testplanpddl1);
   console.log('Extracted Steps:', steps);
   logWorldState(cities, places, trucks, packages);
   return { cities, places, trucks, packages, steps };
 }
 
 function launchpddl2() {
-  const extracted = extractPDDLSections(problogpddl2);
+  const extracted = extractPDDLSections(testprogpddl2);
   const { cities, places, trucks, packages } = parseObjects(extracted.objects);
   const parsed = parseInit(extracted.init);
   const distances = getDistances(parsed);
@@ -619,7 +812,7 @@ function launchpddl2() {
   const legacyPredicates = parsed.predicates.map(p => [p.predicate, ...p.args]);
   
   applyPredicates(legacyPredicates, places, trucks, packages, cities);
-  const steps = extractPlanRobust(planpddl2);
+  const steps = extractPlanRobust(testplanpddl2);
   console.log('Extracted Steps:', steps);
   logWorldState(cities, places, trucks, packages);
   return { cities, places, trucks, packages, distances, steps };
