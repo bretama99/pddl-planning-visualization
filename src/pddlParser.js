@@ -228,6 +228,9 @@ export function parseObjects(objectsStr) {
                 case constants.VEHICLE_SUBTYPES.AIRPLANE:
                     vehicles[name] = new Truck(idCounter++, name, null, constants.VEHICLE_SUBTYPES.AIRPLANE);
                     break;
+                case constants.VEHICLE_SUBTYPES.DRONE:
+                    vehicles[name] = new Truck(idCounter++, name, null, constants.VEHICLE_SUBTYPES.DRONE);
+                    break;
                 case 'package':
                     packages[name] = new Package(idCounter++, name);
                     break;

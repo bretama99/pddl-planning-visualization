@@ -2927,3 +2927,187 @@ export const probnumeric2 = `(define (problem logistics-complex-delivery)
     )
   )
 )`;
+
+export const prob1_ext2_classic = `(define (problem logistics-10-1)
+  (:domain logistics)
+  (:objects
+    apn1 - airplane
+    apt4 apt3 apt2 apt1 - airport
+    pos4 pos3 pos2 pos1 - location
+    cit4 cit3 cit2 cit1 - city
+    tru4 tru3 tru2 tru1 - truck
+    drone1 drone2 drone3 drone4 - drone
+    obj43 obj42 obj41 obj33 obj32 obj31 obj23 obj22 obj21 obj13 obj12 obj11 - package
+  )
+
+  (:init
+    (at apn1 apt2)
+    (at tru1 pos1)
+    (at obj11 pos1)
+    (at obj12 pos1)
+    (at obj13 pos1)
+    (at tru2 pos2)
+    (at obj21 pos2)
+    (at obj22 pos2)
+    (at obj23 pos2)
+    (at tru3 pos3)
+    (at obj31 pos3)
+    (at obj32 pos3)
+    (at obj33 pos3)
+    (at tru4 pos4)
+    (at obj41 pos4)
+    (at obj42 pos4)
+    (at obj43 pos4)
+    (in-city pos1 cit1)
+    (in-city apt1 cit1)
+    (in-city pos2 cit2)
+    (in-city apt2 cit2)
+    (in-city pos3 cit3)
+    (in-city apt3 cit3)
+    (in-city pos4 cit4)
+    (in-city apt4 cit4)
+    (link cit4 cit3)
+    (link cit3 cit4)
+    (link cit1 cit2)
+    (link cit2 cit1)
+    (allowsDrones cit1)
+    (allowsDrones cit2)
+    (allowsDrones cit3)
+    (at drone1 pos1)
+    (at drone2 pos2)
+    (at drone3 pos3)
+    (at drone4 pos4)
+  )
+
+  (:goal
+    (and (at obj43 apt4) (at obj32 pos3) (at obj42 apt3) (at obj12 pos1)
+      (at obj41 apt3) (at obj23 pos3) (at obj13 apt4) (at obj22 pos4)
+      (at obj31 apt3) (at obj33 apt1))
+  )
+)`;
+export const plan1_ext2_classic = `domain parsed
+problem parsed
+grounding..
+grounding time: 91
+aibr preprocessing
+|f|:226
+|x|:0
+|a|:500
+|p|:0
+|e|:0
+h1 setup time (msec): 23
+ g(n)= 1.0 h(n)=50.0
+ g(n)= 2.0 h(n)=49.0
+ g(n)= 3.0 h(n)=48.0
+ g(n)= 4.0 h(n)=47.0
+ g(n)= 5.0 h(n)=46.0
+ g(n)= 6.0 h(n)=45.0
+ g(n)= 7.0 h(n)=44.0
+ g(n)= 8.0 h(n)=42.0
+ g(n)= 9.0 h(n)=41.0
+ g(n)= 10.0 h(n)=40.0
+ g(n)= 11.0 h(n)=39.0
+ g(n)= 12.0 h(n)=38.0
+ g(n)= 13.0 h(n)=37.0
+ g(n)= 14.0 h(n)=36.0
+ g(n)= 15.0 h(n)=35.0
+ g(n)= 16.0 h(n)=34.0
+ g(n)= 17.0 h(n)=33.0
+ g(n)= 18.0 h(n)=32.0
+ g(n)= 19.0 h(n)=31.0
+ g(n)= 20.0 h(n)=30.0
+ g(n)= 21.0 h(n)=29.0
+ g(n)= 22.0 h(n)=28.0
+ g(n)= 23.0 h(n)=27.0
+ g(n)= 24.0 h(n)=26.0
+ g(n)= 25.0 h(n)=25.0
+ g(n)= 26.0 h(n)=24.0
+ g(n)= 28.0 h(n)=23.0
+ g(n)= 29.0 h(n)=22.0
+ g(n)= 30.0 h(n)=21.0
+ g(n)= 31.0 h(n)=20.0
+ g(n)= 33.0 h(n)=19.0
+ g(n)= 34.0 h(n)=18.0
+ g(n)= 35.0 h(n)=17.0
+ g(n)= 36.0 h(n)=16.0
+ g(n)= 37.0 h(n)=15.0
+ g(n)= 38.0 h(n)=14.0
+ g(n)= 39.0 h(n)=13.0
+ g(n)= 40.0 h(n)=12.0
+ g(n)= 41.0 h(n)=11.0
+ g(n)= 42.0 h(n)=10.0
+ g(n)= 43.0 h(n)=9.0
+ g(n)= 44.0 h(n)=8.0
+ g(n)= 45.0 h(n)=7.0
+ g(n)= 46.0 h(n)=6.0
+ g(n)= 48.0 h(n)=5.0
+ g(n)= 49.0 h(n)=4.0
+ g(n)= 50.0 h(n)=3.0
+ g(n)= 51.0 h(n)=2.0
+ g(n)= 52.0 h(n)=1.0
+problem solved
+
+found plan:
+0.0: (fly-airplane apn1 apt2 apt4)
+1.0: (load-truck obj33 tru3 pos3)
+2.0: (load-drone obj23 drone2 pos2)
+3.0: (load-truck obj22 tru2 pos2)
+4.0: (drive-truck tru3 pos3 apt3 cit3)
+5.0: (load-truck obj43 tru4 pos4)
+6.0: (load-truck obj42 tru4 pos4)
+7.0: (drive-truck tru4 pos4 apt4 cit4)
+8.0: (fly-drone drone2 pos2 apt2 cit2)
+9.0: (load-truck obj13 tru1 pos1)
+10.0: (drive-truck tru1 pos1 apt1 cit1)
+11.0: (drive-truck tru2 pos2 apt2 cit2)
+12.0: (load-drone obj31 drone3 pos3)
+13.0: (fly-drone drone3 pos3 apt3 cit3)
+14.0: (unload-truck obj13 tru1 apt1)
+15.0: (unload-truck obj43 tru4 apt4)
+16.0: (unload-drone obj23 drone2 apt2)
+17.0: (unload-truck obj22 tru2 apt2)
+18.0: (unload-truck obj33 tru3 apt3)
+19.0: (unload-drone obj31 drone3 apt3)
+20.0: (unload-truck obj42 tru4 apt4)
+21.0: (load-airplane obj42 apn1 apt4)
+22.0: (fly-airplane apn1 apt4 apt3)
+23.0: (load-airplane obj33 apn1 apt3)
+24.0: (unload-airplane obj42 apn1 apt3)
+25.0: (fly-airplane apn1 apt3 apt4)
+26.0: (drive-truck tru4 apt4 pos4 cit4)
+27.0: (load-truck obj41 tru4 pos4)
+28.0: (drive-truck tru4 pos4 apt4 cit4)
+29.0: (unload-truck obj41 tru4 apt4)
+30.0: (load-airplane obj41 apn1 apt4)
+31.0: (fly-airplane apn1 apt4 apt3)
+32.0: (unload-airplane obj41 apn1 apt3)
+33.0: (fly-airplane apn1 apt3 apt2)
+34.0: (load-airplane obj22 apn1 apt2)
+35.0: (fly-airplane apn1 apt2 apt4)
+36.0: (unload-airplane obj22 apn1 apt4)
+37.0: (fly-airplane apn1 apt4 apt1)
+38.0: (load-airplane obj13 apn1 apt1)
+39.0: (unload-airplane obj33 apn1 apt1)
+40.0: (fly-airplane apn1 apt1 apt4)
+41.0: (unload-airplane obj13 apn1 apt4)
+42.0: (fly-airplane apn1 apt4 apt3)
+43.0: (load-truck obj22 tru4 apt4)
+44.0: (drive-truck tru4 apt4 pos4 cit4)
+45.0: (unload-truck obj22 tru4 pos4)
+46.0: (fly-airplane apn1 apt3 apt2)
+47.0: (load-airplane obj23 apn1 apt2)
+48.0: (fly-airplane apn1 apt2 apt3)
+49.0: (unload-airplane obj23 apn1 apt3)
+50.0: (load-drone obj23 drone3 apt3)
+51.0: (fly-drone drone3 apt3 pos3 cit3)
+52.0: (unload-drone obj23 drone3 pos3)
+
+plan-length:53
+metric (search):53.0
+planning time (msec): 549
+heuristic time (msec): 488
+search time (msec): 543
+expanded nodes:71
+states evaluated:1837
+number of dead-ends detected:130
+number of duplicates detected:340`;

@@ -40,6 +40,7 @@ export const TRUCK_LABEL_OFFSET_X = 38;
 export const TRUCK_LABEL_OFFSET_Y = 4;
 export const TRUCK_OFFSET_Y = 7;
 export const AIRPLANE_OFFSET_Y = 7;
+export const DRONE_OFFSET_Y = 40;
 
 // Zoom
 export const ZOOM_MIN_SCALE = 0.5;
@@ -58,6 +59,7 @@ export const IMAGE_PATHS = {
   PACKAGE: "https://cdn.pixabay.com/photo/2024/06/26/23/36/package-8856091_1280.png",
   TRUCK: "https://static.vecteezy.com/system/resources/thumbnails/027/182/338/small_2x/trailler-truck-isolated-on-a-transparent-background-png.png",
   AIRPLANE: "https://static.vecteezy.com/system/resources/previews/026/773/766/non_2x/plane-with-ai-generated-free-png.png",
+  DRONE: "https://static.vecteezy.com/system/resources/thumbnails/024/673/802/small_2x/drone-flying-on-farming-to-inspection-and-scanning-the-area-for-monitoring-smart-farming-and-researching-technology-concept-transparent-background-ai-generated-generative-ai-png.png",
   GAS_STATION: "https://cdn-icons-png.flaticon.com/512/5900/5900376.png",
   AIRPORT: "https://cdn-icons-png.flaticon.com/512/8382/8382446.png",
   CITY: "https://mappemondo.com/italy/city/milan/milan-street-map-max.jpg"
@@ -78,13 +80,15 @@ export const PLACE_SUBTYPE_AIRPORT = "airport";
 // Subtypes dei Truck/Airplane
 export const VEHICLE_SUBTYPES = {
   TRUCK: "truck",
-  AIRPLANE: "airplane"
+  AIRPLANE: "airplane",
+  DRONE: "drone"
 };
 
 // Mappa immagine per ciascun subtype di veicolo
 export const VEHICLE_IMAGE_PATHS = {
   [VEHICLE_SUBTYPES.TRUCK]: IMAGE_PATHS.TRUCK,
-  [VEHICLE_SUBTYPES.AIRPLANE]: IMAGE_PATHS.AIRPLANE
+  [VEHICLE_SUBTYPES.AIRPLANE]: IMAGE_PATHS.AIRPLANE,
+  [VEHICLE_SUBTYPES.DRONE]: IMAGE_PATHS.DRONE
 };
 
 // Mappa dimensioni per ciascun subtype di veicolo
@@ -96,10 +100,15 @@ export const VEHICLE_IMAGE_SIZES = {
   [VEHICLE_SUBTYPES.AIRPLANE]: {
     width: IMAGE_SIZES.TRUCK_SIZE,
     height: IMAGE_SIZES.TRUCK_SIZE
+  },
+  [VEHICLE_SUBTYPES.DRONE]: {
+    width: IMAGE_SIZES.TRUCK_SIZE,
+    height: IMAGE_SIZES.TRUCK_SIZE
   }
 };
 
 export const AIRPLANE_SPACING_FACTOR = 1.8; // o 1.5, dipende da quanto spazio vuoi
+export const DRONE_SPACING_FACTOR = 0.8; // o 1.5, dipende da quanto spazio vuoi
 
 
 export const GASOLINE_BAR = {

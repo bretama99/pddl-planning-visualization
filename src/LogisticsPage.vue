@@ -39,6 +39,7 @@ import {
   prob1_numeric, plan1_numeric, prob1_classic, plan1_classic,
   prob2_numeric, plan2_numeric, prob2_classic, plan2_classic,
   prob3_classic, plan3_classic, prob3_numeric, plan3_numeric,
+  prob1_ext2_classic, plan1_ext2_classic,
   //temporal
   prob2ex1, plan2ex1, prob2ex2, plan2ex2, prob2ex3, plan2ex3,
   //pddl+
@@ -86,6 +87,12 @@ const cases = {
     name: "5 cities numeric",
     prob: prob3_numeric,
     plan: plan3_numeric,
+    launcher: launchpddl1
+  },
+    ext2: {
+    name: "Cities and drones",
+    prob: prob1_ext2_classic,
+    plan: plan1_ext2_classic,
     launcher: launchpddl1
   },
   temporal1: {

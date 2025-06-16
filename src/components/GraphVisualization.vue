@@ -429,7 +429,7 @@ export default {
             .attr("font-size", constants.TRUCK_LABEL_FONT_SIZE)
             .text(airplane.name);
 
-                    if (airplane.hasCapacity()) {
+          if (airplane.hasCapacity()) {
             this.drawCapacityBar(
               airplaneGroup,
               airplane,
@@ -438,11 +438,59 @@ export default {
             );
           }
 
-
           // Aggiorna posizione
           this.positions.vehicles[airplane.id] = {
             x: airplaneX,
             y: airplaneY,
+          };
+        });
+
+        const dronesHere = this.getVehiclesInPlaceBySubtype(
+          constants.VEHICLE_SUBTYPES.DRONE,
+          place
+        );
+        const numDrones = dronesHere.length;
+
+        dronesHere.forEach((drone, k) => {
+          // Posizionamento identico a quello dei camion
+          const { x: droneX, y: droneY } = this.getDronePositionInPlace(
+            place,
+            k,
+            numDrones
+          );
+
+          const subtype = drone.subtype;
+          const imageHref = constants.VEHICLE_IMAGE_PATHS[subtype];
+          const imageSize = constants.VEHICLE_IMAGE_SIZES[subtype];
+
+          const droneGroup = g
+            .append("g")
+            .attr("id", `${subtype}-${drone.name}`)
+            .attr(
+              "transform",
+              `translate(${droneX}, ${droneY - constants.TRUCK_OFFSET_Y})`
+            );
+
+          droneGroup
+            .append("image")
+            .attr("x", 0)
+            .attr("y", -imageSize.height / 2)
+            .attr("width", imageSize.width)
+            .attr("height", imageSize.height)
+            .attr("href", imageHref);
+
+          droneGroup
+            .append("text")
+            .attr("x", constants.TRUCK_LABEL_OFFSET_X)
+            .attr("y", constants.TRUCK_LABEL_OFFSET_Y)
+            .attr("text-anchor", "start")
+            .attr("font-size", constants.TRUCK_LABEL_FONT_SIZE)
+            .text(drone.name);
+
+          // Aggiorna posizione
+          this.positions.vehicles[drone.id] = {
+            x: droneX,
+            y: droneY - constants.TRUCK_OFFSET_Y,
           };
         });
       });
@@ -633,6 +681,7 @@ export default {
       const positionStrategy = {
         truck: this.getTruckPositionInPlace.bind(this),
         airplane: this.getAirplanePositionInPlace.bind(this),
+        drone: this.getDronePositionInPlace.bind(this),
       };
 
       const animationPromises = vehiclesHere.map((vehicle, k) => {
@@ -682,6 +731,27 @@ export default {
 
       console.log(
         `✅ Movimento completato: Airplane ${airplaneName} ora in ${toPlace}`
+      );
+    },
+    async processFlyDroneStep(
+      actionPart,
+      duration = null,
+      movementData = null
+    ) {
+      const tokens = actionPart.replace(/[()]/g, "").split(" ");
+      const droneName = tokens[1]; // Es: drone2
+      const fromPlace = tokens[2]; // Es: pos2
+      const toPlace = tokens[3]; // Es: apt2
+      const toCity = tokens[4]; // Es: cit2
+
+      console.log(
+        `🚁 Spostamento: Drone ${droneName} da ${fromPlace} a ${toPlace} nella città ${toCity}`
+      );
+
+      await this.moveVehicleToPos(droneName, toPlace, duration, movementData);
+
+      console.log(
+        `✅ Movimento completato: Drone ${droneName} ora in ${toPlace} (${toCity})`
       );
     },
     async processDriveTruckStep(
@@ -999,14 +1069,19 @@ export default {
           console.log(`🛑 Fine rifornimento: ${actionPart}`);
         } else if (actionPart.startsWith("(fly-airplane")) {
           await this.processFlyAirplaneStep(actionPart, duration);
-        } else if (
+        } else if (actionPart.startsWith("(fly-drone")) {
+  await this.processFlyDroneStep(actionPart, duration);
+        }
+        else if (
           actionPart.startsWith("(load-truck") ||
-          actionPart.startsWith("(load-airplane")
+          actionPart.startsWith("(load-airplane") ||
+          actionPart.startsWith("(load-drone")
         ) {
           await this.processLoadVehicleStep(actionPart, duration);
         } else if (
           actionPart.startsWith("(unload-truck") ||
-          actionPart.startsWith("(unload-airplane")
+          actionPart.startsWith("(unload-airplane") ||
+          actionPart.startsWith("(unload-drone")
         ) {
           await this.processUnloadVehicleStep(actionPart, duration);
         } else {
@@ -1318,6 +1393,21 @@ export default {
       const airplaneY = pos.y - halfSide - constants.AIRPLANE_OFFSET_Y;
 
       return { x: airplaneX, y: airplaneY };
+    },
+    getDronePositionInPlace(place, k, numDrones) {
+      const pos = this.positions.places[place.id];
+      const halfSide = constants.SIDE_LENGTH / 2;
+
+      // Spaziatura orizzontale dei droni sotto al place
+      const spacing =
+        (constants.SIDE_LENGTH * constants.DRONE_SPACING_FACTOR) /
+        (numDrones + 1);
+      const droneX = pos.x - halfSide + (k + 1) * spacing;
+
+      // Posizionati sotto al place
+      const droneY = pos.y + halfSide + constants.DRONE_OFFSET_Y;
+
+      return { x: droneX, y: droneY };
     },
     syncPackagePositionsOnTruck(truckName) {
       const truck = Object.values(this.vehicles).find(
