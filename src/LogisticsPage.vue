@@ -322,9 +322,9 @@ function parsePlanWithDurations(outputText) {
 }
  */
 
-//const { cities, places, trucks, packages, steps } = launchpddl1();
+const { cities, places, trucks, packages, steps } = launchpddl1();
 //const { cities, places, trucks, packages, distances, steps } = launchpddl2();
-const { cities, places, trucks, packages, distances, steps } = launchpddlplus();
+//const { cities, places, trucks, packages, distances, steps } = launchpddlplus();
 
 
 function applyPredicates(predicates, places, trucks, packages, cities) {
@@ -399,12 +399,13 @@ const problogpddl1 = `(define (problem logistics-4-0)
 (:objects
  pos2 pos1 pos3 pos4 pos5 pos6 pos7 - location
  apt1 apt2 - airport
+ apn1 apn2 - airplane
  cit1 cit2 cit3 cit4 - city
  tru1 tru2 - truck
- obj11 - package)
+ obj11 obj14 - package)
 
-(:init (at tru1 pos1) (at tru2 pos2) (at obj11 pos1)
- (in-city pos1 cit1) (in-city pos5 cit2) (in-city pos6 cit3) (in-city pos7 cit4)  (in-city pos2 cit1) (in-city pos3 cit1) (in-city pos4 cit1) (in-city apt1 cit1)
+(:init (at tru1 pos1) (at tru2 pos2) (at obj11 pos1) (at apn1 apt1) (at apn2 apt1) (at obj14 apt1)
+ (in-city pos1 cit1) (in-city pos5 cit2) (in-city pos6 cit3) (in-city pos7 cit4)  (in-city pos2 cit1) (in-city pos3 cit1) (in-city pos4 cit1) (in-city apt1 cit1) 
     (in-city apt2 cit2) 
  )
 
@@ -632,9 +633,12 @@ h1 setup time (msec): 15
  g(n)= 6.0 h(n)=2.0
  g(n)= 7.0 h(n)=1.0
  g(n)= 8.0 h(n)=0.0
-problem solved
-
-found plan:
+ problem solved
+ 
+ found plan:
+ 19.0: (load-airplane obj14 apn1 apt1)
+7.0: (fly-airplane apn1 apt1 apt2)
+ 2.0: (unload-airplane obj14 apn1 apt2)
 0.0: (load-truck obj11 tru1 pos1)
 1.0: (drive-truck tru1 pos1 pos2 cit1)
 2.0: (unload-truck obj11 tru1 pos2)

@@ -24,21 +24,22 @@ export const PACKAGE_SIZE = 25;
 export const PACKAGE_COLOR = "#ffa500";
 export const PACKAGE_STROKE = "#333";
 export const PACKAGE_LABEL_FONT_SIZE = "8px";
-export const PACKAGE_OFFSET_X = 10;  // Spazio tra il place e i pacchi
-export const PACKAGE_LABEL_OFFSET_X = 18;  // Spazio etichetta pacco
+export const PACKAGE_OFFSET_X = 10;
+export const PACKAGE_LABEL_OFFSET_X = 18;
 export const PACKAGE_LABEL_OFFSET_Y = 4;
-export const PACKAGE_OFFSET_Y = 7; // Offset verticale pacchi
-export const PACKAGE_RECT_OFFSET_X = 15; // Offset x per rect
-export const PACKAGE_RECT_OFFSET_Y = 7;  // Offset y per rect
+export const PACKAGE_OFFSET_Y = 7;
+export const PACKAGE_RECT_OFFSET_X = 15;
+export const PACKAGE_RECT_OFFSET_Y = 7;
 
 export const TRUCK_SIZE = 25;
 export const TRUCK_COLOR = "#ff69b4";
 export const TRUCK_STROKE = "#333";
 export const TRUCK_LABEL_FONT_SIZE = "8px";
-export const TRUCK_OFFSET_X = 10;  // Spazio tra il place e i trucks
+export const TRUCK_OFFSET_X = 10;
 export const TRUCK_LABEL_OFFSET_X = 38;
 export const TRUCK_LABEL_OFFSET_Y = 4;
 export const TRUCK_OFFSET_Y = 7;
+export const AIRPLANE_OFFSET_Y = 7;
 
 // Zoom
 export const ZOOM_MIN_SCALE = 0.5;
@@ -48,6 +49,7 @@ export const ZOOM_MAX_SCALE = 5;
 export const MAX_ANIMATION_DURATION = 20000;
 export const MIN_ANIMATION_DURATION = 1000;
 
+// Immagini
 export const PLACE_IMAGE_WIDTH = 40;
 export const PLACE_IMAGE_HEIGHT = 40;
 
@@ -55,8 +57,10 @@ export const IMAGE_PATHS = {
   PLACE: "https://cdn-icons-png.flaticon.com/512/1692/1692037.png",
   PACKAGE: "https://cdn.pixabay.com/photo/2024/06/26/23/36/package-8856091_1280.png",
   TRUCK: "https://static.vecteezy.com/system/resources/thumbnails/027/182/338/small_2x/trailler-truck-isolated-on-a-transparent-background-png.png",
+  AIRPLANE: "https://static.vecteezy.com/system/resources/previews/026/773/766/non_2x/plane-with-ai-generated-free-png.png",
   GAS_STATION: "https://cdn-icons-png.flaticon.com/512/5900/5900376.png",
-  AIRPORT: "https://cdn-icons-png.flaticon.com/512/8382/8382446.png"
+  AIRPORT: "https://cdn-icons-png.flaticon.com/512/8382/8382446.png",
+  CITY: "https://mappemondo.com/italy/city/milan/milan-street-map-max.jpg"
 };
 
 export const IMAGE_SIZES = {
@@ -70,3 +74,29 @@ export const IMAGE_SIZES = {
 export const PLACE_SUBTYPE_LOCATION = "location";
 export const PLACE_SUBTYPE_GASSTATION = "gasstation";
 export const PLACE_SUBTYPE_AIRPORT = "airport";
+
+// Subtypes dei Truck/Airplane
+export const VEHICLE_SUBTYPES = {
+  TRUCK: "truck",
+  AIRPLANE: "airplane"
+};
+
+// Mappa immagine per ciascun subtype di veicolo
+export const VEHICLE_IMAGE_PATHS = {
+  [VEHICLE_SUBTYPES.TRUCK]: IMAGE_PATHS.TRUCK,
+  [VEHICLE_SUBTYPES.AIRPLANE]: IMAGE_PATHS.AIRPLANE
+};
+
+// Mappa dimensioni per ciascun subtype di veicolo
+export const VEHICLE_IMAGE_SIZES = {
+  [VEHICLE_SUBTYPES.TRUCK]: {
+    width: IMAGE_SIZES.TRUCK_SIZE,
+    height: IMAGE_SIZES.TRUCK_SIZE
+  },
+  [VEHICLE_SUBTYPES.AIRPLANE]: {
+    width: IMAGE_SIZES.TRUCK_SIZE,
+    height: IMAGE_SIZES.TRUCK_SIZE
+  }
+};
+
+export const AIRPLANE_SPACING_FACTOR = 1.8; // o 1.5, dipende da quanto spazio vuoi

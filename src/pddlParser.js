@@ -249,8 +249,11 @@ export function parseObjects(objectsStr) {
                 case 'airport':
                     places[name] = new Place(idCounter++, name, null, constants.PLACE_SUBTYPE_AIRPORT);
                     break;
-                case 'truck':
-                    trucks[name] = new Truck(idCounter++, name);
+                case constants.VEHICLE_SUBTYPES.TRUCK:
+                    trucks[name] = new Truck(idCounter++, name, null, constants.VEHICLE_SUBTYPES.TRUCK);
+                    break;
+                case constants.VEHICLE_SUBTYPES.AIRPLANE:
+                    trucks[name] = new Truck(idCounter++, name, null, constants.VEHICLE_SUBTYPES.AIRPLANE);
                     break;
                 case 'package':
                     packages[name] = new Package(idCounter++, name);
