@@ -225,7 +225,7 @@ export function parseObjects(objectsStr) {
 
     const cities = {};
     const places = {};
-    const trucks = {};
+    const vehicles = {};
     const packages = {};
 
     let idCounter = 1;
@@ -250,10 +250,10 @@ export function parseObjects(objectsStr) {
                     places[name] = new Place(idCounter++, name, null, constants.PLACE_SUBTYPE_AIRPORT);
                     break;
                 case constants.VEHICLE_SUBTYPES.TRUCK:
-                    trucks[name] = new Truck(idCounter++, name, null, constants.VEHICLE_SUBTYPES.TRUCK);
+                    vehicles[name] = new Truck(idCounter++, name, null, constants.VEHICLE_SUBTYPES.TRUCK);
                     break;
                 case constants.VEHICLE_SUBTYPES.AIRPLANE:
-                    trucks[name] = new Truck(idCounter++, name, null, constants.VEHICLE_SUBTYPES.AIRPLANE);
+                    vehicles[name] = new Truck(idCounter++, name, null, constants.VEHICLE_SUBTYPES.AIRPLANE);
                     break;
                 case 'package':
                     packages[name] = new Package(idCounter++, name);
@@ -262,7 +262,7 @@ export function parseObjects(objectsStr) {
         });
     });
 
-    return { cities, places, trucks, packages };
+    return { cities, places, vehicles, packages };
 }
 
 

@@ -65,7 +65,7 @@ export default {
   props: {
     cities: Object,
     places: Object,
-    trucks: Object,
+    vehicles: Object,
     packages: Object,
     steps: Array,
     distances: Array,
@@ -79,7 +79,7 @@ export default {
       positions: {
         cities: {},
         places: {},
-        trucks: {},
+        vehicles: {},
         packages: {},
       },
       currentStepIndex: -1, // Indice dello step corrente
@@ -120,7 +120,7 @@ export default {
       },
       deep: true,
     },
-    trucks: {
+    vehicles: {
       handler() {
         this.drawGraph();
       },
@@ -405,7 +405,7 @@ export default {
             .text(truck.name);
 
           // Aggiorna posizione
-          this.positions.trucks[truck.id] = {
+          this.positions.vehicles[truck.id] = {
             x: truckX,
             y: truckY - constants.TRUCK_OFFSET_Y,
           };
@@ -446,7 +446,7 @@ export default {
             .text(airplane.name);
 
           // Aggiorna posizione
-          this.positions.trucks[airplane.id] = {
+          this.positions.vehicles[airplane.id] = {
             x: airplaneX,
             y: airplaneY,
           };
@@ -473,7 +473,7 @@ export default {
         }
 
         const truckId = this.getTruckIdByName(truck.name);
-        if (!this.positions.trucks[truckId]) {
+        if (!this.positions.vehicles[truckId]) {
           console.error(
             `Posizione per il truck con ID ${truckId} non trovata!`
           );
@@ -485,7 +485,7 @@ export default {
         const animationduration = this.calculateAnimationDuration(duration);
 
         console.log(
-          `Animazione del truck ${truck.name} da (${this.positions.trucks[truckId].x},${this.positions.trucks[truckId].y}) a (${newX}, ${newY}) con durata ${animationduration}ms`
+          `Animazione del truck ${truck.name} da (${this.positions.vehicles[truckId].x},${this.positions.vehicles[truckId].y}) a (${newX}, ${newY}) con durata ${animationduration}ms`
         );
 
         truckGroup
@@ -498,11 +498,11 @@ export default {
               "Transform finale nel DOM:",
               truckGroup.attr("transform")
             );
-            this.positions.trucks[truckId].x = newX;
-            this.positions.trucks[truckId].y = newY;
+            this.positions.vehicles[truckId].x = newX;
+            this.positions.vehicles[truckId].y = newY;
             console.log(
               `Posizione aggiornata per il truck ${truck.name}:`,
-              this.positions.trucks[truckId]
+              this.positions.vehicles[truckId]
             );
             this.syncPackagePositionsOnTruck(truck.name);
 
@@ -511,7 +511,7 @@ export default {
       });
     },
     getTruckIdByName(name) {
-      const truckEntry = Object.values(this.trucks).find(
+      const truckEntry = Object.values(this.vehicles).find(
         (t) => t.name === name
       );
       return truckEntry ? truckEntry.id : null;
@@ -566,7 +566,7 @@ export default {
         distance = preCalculatedData.distance;
       } else {
         // Calcola i dati (logica originale)
-        truckEntry = Object.values(this.trucks).find(
+        truckEntry = Object.values(this.vehicles).find(
           (t) => t.name === truckName
         );
         if (!truckEntry) return;
@@ -767,7 +767,7 @@ export default {
 
       if (!truckName || !fromPlace || !toPlace) return null;
 
-      const truckEntry = Object.values(this.trucks).find(
+      const truckEntry = Object.values(this.vehicles).find(
         (t) => t.name === truckName
       );
       if (!truckEntry) return null;
@@ -903,7 +903,7 @@ export default {
         const pkg = Object.values(this.packages).find(
           (p) => p.name === packageName
         );
-        const truck = Object.values(this.trucks).find(
+        const truck = Object.values(this.vehicles).find(
           (t) => t.name === truckName
         );
 
@@ -952,7 +952,7 @@ export default {
       }
 
       // 2️⃣ Prendi le posizioni
-      const truckPos = this.positions.trucks[truckId];
+      const truckPos = this.positions.vehicles[truckId];
       const packagePos = this.positions.packages[packageId];
 
       if (!truckPos || !packagePos) {
@@ -979,7 +979,7 @@ export default {
     },
     async unloadPackageFromVehicle(packageName, vehicleName) {
       return new Promise((resolve) => {
-        const vehicle = Object.values(this.trucks).find(
+        const vehicle = Object.values(this.vehicles).find(
           (t) => t.name === vehicleName
         );
         const pkg = Object.values(this.packages).find(
@@ -1016,7 +1016,7 @@ export default {
       const pkgId = this.getPackageIdByName(packageName);
 
       // Il luogo di scarico è la location del veicolo
-      const vehicle = Object.values(this.trucks).find(
+      const vehicle = Object.values(this.vehicles).find(
         (v) => v.name === vehicleName
       );
       const placeId = vehicle.location.id;
@@ -1104,7 +1104,7 @@ export default {
       this.animatePackageUnload(packageName, truckName);
     },
     getTrucksInPlace(place) {
-      return Object.values(this.trucks).filter(
+      return Object.values(this.vehicles).filter(
         (truck) => truck.location.id === place.id
       );
     },
@@ -1154,11 +1154,11 @@ export default {
       return { x: airplaneX, y: airplaneY };
     },
     syncPackagePositionsOnTruck(truckName) {
-      const truck = Object.values(this.trucks).find(
+      const truck = Object.values(this.vehicles).find(
         (t) => t.name === truckName
       );
       const truckId = this.getTruckIdByName(truckName);
-      const truckPos = this.positions.trucks[truckId];
+      const truckPos = this.positions.vehicles[truckId];
 
       truck.packages.forEach((pkg) => {
         this.positions.packages[pkg.id] = { ...truckPos };
@@ -1285,8 +1285,8 @@ export default {
             statusText.text("");
 
             // Aggiorna lo stato del carburante
-            /* if (this.trucks[truckName]) {
-          this.trucks[truckName].fuel = 100;
+            /* if (this.vehicles[truckName]) {
+          this.vehicles[truckName].fuel = 100;
         } */
 
             console.log(`Rifornimento completato per ${truckName}`);

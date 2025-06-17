@@ -1,6 +1,6 @@
 <template>
   <div class="app">
-        <MapVisualizer :cities="cities" :places="places" :trucks="trucks" :packages="packages" :steps="steps" :distances="distances" />
+        <MapVisualizer :cities="cities" :places="places" :vehicles="vehicles" :packages="packages" :steps="steps" :distances="distances" />
   </div>
 </template>
 
@@ -322,16 +322,16 @@ function parsePlanWithDurations(outputText) {
 }
  */
 
-const { cities, places, trucks, packages, steps } = launchpddl1();
-//const { cities, places, trucks, packages, distances, steps } = launchpddl2();
-//const { cities, places, trucks, packages, distances, steps } = launchpddlplus();
+//const { cities, places, vehicles, packages, steps } = launchpddl1();
+//const { cities, places, vehicles, packages, distances, steps } = launchpddl2();
+const { cities, places, vehicles, packages, distances, steps } = launchpddlplus();
 
 
-function applyPredicates(predicates, places, trucks, packages, cities) {
+function applyPredicates(predicates, places, vehicles, packages, cities) {
   for (const [predicate, arg1, arg2] of predicates) {
     if (predicate === 'at') {
-      if (trucks[arg1]) {
-        trucks[arg1].setLocation(places[arg2]);
+      if (vehicles[arg1]) {
+        vehicles[arg1].setLocation(places[arg2]);
       } else if (packages[arg1]) {
         packages[arg1].setLocation(places[arg2]);
       }
@@ -796,18 +796,18 @@ const distances = getDistances(parsed);  */
 
 function launchpddl1() {
   const extracted = extractPDDLSections(problogpddl1);
-  const { cities, places, trucks, packages } = parseObjects(extracted.objects);
+  const { cities, places, vehicles, packages } = parseObjects(extracted.objects);
   const predicates = parseInitLegacy(extracted.init);
-  applyPredicates(predicates, places, trucks, packages, cities);
+  applyPredicates(predicates, places, vehicles, packages, cities);
   const steps = extractPlanRobust(testplanpddl1);
   console.log('Extracted Steps:', steps);
-  logWorldState(cities, places, trucks, packages);
-  return { cities, places, trucks, packages, steps };
+  logWorldState(cities, places, vehicles, packages);
+  return { cities, places, vehicles, packages, steps };
 }
 
 function launchpddl2() {
   const extracted = extractPDDLSections(testprogpddl2);
-  const { cities, places, trucks, packages } = parseObjects(extracted.objects);
+  const { cities, places, vehicles, packages } = parseObjects(extracted.objects);
   const parsed = parseInit(extracted.init);
   const distances = getDistances(parsed);
   console.log('Distances:', distances);
@@ -815,27 +815,27 @@ function launchpddl2() {
   // Converti i predicates nel formato legacy
   const legacyPredicates = parsed.predicates.map(p => [p.predicate, ...p.args]);
   
-  applyPredicates(legacyPredicates, places, trucks, packages, cities);
+  applyPredicates(legacyPredicates, places, vehicles, packages, cities);
   const steps = extractPlanRobust(testplanpddl2);
   console.log('Extracted Steps:', steps);
-  logWorldState(cities, places, trucks, packages);
-  return { cities, places, trucks, packages, distances, steps };
+  logWorldState(cities, places, vehicles, packages);
+  return { cities, places, vehicles, packages, distances, steps };
 }
 
 function launchpddlplus() {
   const extracted = extractPDDLSections(problogpddlplus);
-  const { cities, places, trucks, packages } = parseObjects(extracted.objects);
+  const { cities, places, vehicles, packages } = parseObjects(extracted.objects);
   const parsed = parseInit(extracted.init);
   const distances = getDistances(parsed);
   
   // Converti i predicates nel formato legacy
   const legacyPredicates = parsed.predicates.map(p => [p.predicate, ...p.args]);
 
-  applyPredicates(legacyPredicates, places, trucks, packages, cities);
+  applyPredicates(legacyPredicates, places, vehicles, packages, cities);
   const steps = parsePlanWithDurations(planpddlplus);
   console.log('Extracted Steps:', steps);
-  logWorldState(cities, places, trucks, packages, cities);
-  return { cities, places, trucks, packages, distances, steps };
+  logWorldState(cities, places, vehicles, packages, cities);
+  return { cities, places, vehicles, packages, distances, steps };
 }
 
 
