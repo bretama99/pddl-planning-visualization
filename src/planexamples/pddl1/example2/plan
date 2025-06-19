@@ -1,0 +1,108 @@
+domain parsed
+problem parsed
+grounding..
+grounding time: 57
+aibr preprocessing
+|f|:71
+|x|:0
+|a|:165
+|p|:0
+|e|:0
+h1 setup time (msec): 17
+ g(n)= 1.0 h(n)=39.0
+ g(n)= 2.0 h(n)=37.0
+ g(n)= 3.0 h(n)=36.0
+ g(n)= 6.0 h(n)=34.0
+ g(n)= 7.0 h(n)=33.0
+ g(n)= 8.0 h(n)=32.0
+ g(n)= 10.0 h(n)=31.0
+ g(n)= 11.0 h(n)=30.0
+ g(n)= 12.0 h(n)=29.0
+ g(n)= 14.0 h(n)=28.0
+ g(n)= 15.0 h(n)=27.0
+ g(n)= 16.0 h(n)=26.0
+ g(n)= 17.0 h(n)=25.0
+ g(n)= 19.0 h(n)=24.0
+ g(n)= 20.0 h(n)=23.0
+ g(n)= 22.0 h(n)=22.0
+ g(n)= 23.0 h(n)=21.0
+ g(n)= 24.0 h(n)=20.0
+ g(n)= 26.0 h(n)=19.0
+ g(n)= 27.0 h(n)=18.0
+ g(n)= 28.0 h(n)=17.0
+ g(n)= 29.0 h(n)=16.0
+ g(n)= 30.0 h(n)=15.0
+ g(n)= 31.0 h(n)=14.0
+ g(n)= 32.0 h(n)=13.0
+ g(n)= 33.0 h(n)=12.0
+ g(n)= 34.0 h(n)=11.0
+ g(n)= 37.0 h(n)=10.0
+ g(n)= 38.0 h(n)=9.0
+ g(n)= 39.0 h(n)=8.0
+ g(n)= 40.0 h(n)=7.0
+ g(n)= 41.0 h(n)=6.0
+ g(n)= 42.0 h(n)=5.0
+ g(n)= 43.0 h(n)=4.0
+ g(n)= 44.0 h(n)=3.0
+ g(n)= 45.0 h(n)=2.0
+ g(n)= 46.0 h(n)=1.0
+problem solved
+
+found plan:
+0.0: (drive-truck trucktorino lingotto caselle torino)
+1.0: (drive-truck truckbologna mercato marconi bologna)
+2.0: (drive-truck truckfirenze duomo peretola firenze)
+3.0: (drive-truck trucktorino caselle piazzacastello torino)
+4.0: (load-truck pacco1 trucktorino piazzacastello)
+5.0: (drive-truck trucktorino piazzacastello caselle torino)
+6.0: (unload-truck pacco1 trucktorino caselle)
+7.0: (load-airplane pacco1 aereo1 caselle)
+8.0: (fly-airplane aereo2 marconi peretola)
+9.0: (fly-airplane aereo1 caselle marconi)
+10.0: (unload-airplane pacco1 aereo1 marconi)
+11.0: (load-truck pacco1 truckbologna marconi)
+12.0: (drive-truck truckbologna marconi stazionebologna bologna)
+13.0: (load-truck pacco2 truckbologna stazionebologna)
+14.0: (drive-truck truckbologna stazionebologna marconi bologna)
+15.0: (unload-truck pacco2 truckbologna marconi)
+16.0: (load-airplane pacco2 aereo1 marconi)
+17.0: (drive-truck truckbologna marconi mercato bologna)
+18.0: (unload-truck pacco1 truckbologna mercato)
+19.0: (drive-truck truckbologna mercato stazionebologna bologna)
+20.0: (fly-airplane aereo1 marconi peretola)
+21.0: (fly-airplane aereo2 peretola caselle)
+22.0: (unload-airplane pacco2 aereo1 peretola)
+23.0: (load-truck pacco2 truckfirenze peretola)
+24.0: (drive-truck truckfirenze peretola duomo firenze)
+25.0: (unload-truck pacco2 truckfirenze duomo)
+26.0: (drive-truck truckfirenze duomo pontevecchio firenze)
+27.0: (load-truck pacco4 truckfirenze pontevecchio)
+28.0: (drive-truck truckfirenze pontevecchio peretola firenze)
+29.0: (unload-truck pacco4 truckfirenze peretola)
+30.0: (load-airplane pacco4 aereo1 peretola)
+31.0: (fly-airplane aereo1 peretola caselle)
+32.0: (unload-airplane pacco4 aereo1 caselle)
+33.0: (load-truck pacco4 trucktorino caselle)
+34.0: (drive-truck truckbologna stazionebologna marconi bologna)
+35.0: (drive-truck trucktorino caselle lingotto torino)
+36.0: (load-truck pacco3 trucktorino lingotto)
+37.0: (drive-truck trucktorino lingotto caselle torino)
+38.0: (unload-truck pacco3 trucktorino caselle)
+39.0: (drive-truck trucktorino caselle piazzacastello torino)
+40.0: (load-airplane pacco3 aereo2 caselle)
+41.0: (fly-airplane aereo2 caselle marconi)
+42.0: (unload-airplane pacco3 aereo2 marconi)
+43.0: (load-truck pacco3 truckbologna marconi)
+44.0: (drive-truck truckbologna marconi stazionebologna bologna)
+45.0: (unload-truck pacco3 truckbologna stazionebologna)
+46.0: (unload-truck pacco4 trucktorino piazzacastello)
+
+plan-length:47
+metric (search):47.0
+planning time (msec): 164
+heuristic time (msec): 118
+search time (msec): 157
+expanded nodes:69
+states evaluated:704
+number of dead-ends detected:188
+number of duplicates detected:206

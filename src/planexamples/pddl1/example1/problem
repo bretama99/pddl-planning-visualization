@@ -1,0 +1,46 @@
+(define (problem logistics-multi-city)
+  (:domain logistics)
+  
+  (:objects
+    milano roma napoli - city
+    malpensa fiumicino capodichino - airport
+    centromilano stazionemilano - location
+    centroroma terminiroma - location
+    centronapoli portonapoli - location
+    pacco1 pacco2 pacco3 pacco4 pacco5 - package
+    truckmilano truckroma trucknapoli - truck
+    aereo1 aereo2 - airplane
+  )
+  
+  (:init
+    (in-city malpensa milano)
+    (in-city centromilano milano)
+    (in-city stazionemilano milano)
+    (in-city fiumicino roma)
+    (in-city centroroma roma)
+    (in-city terminiroma roma)
+    (in-city capodichino napoli)
+    (in-city centronapoli napoli)
+    (in-city portonapoli napoli)
+    (at truckmilano centromilano)
+    (at truckroma centroroma)
+    (at trucknapoli portonapoli)
+    (at aereo1 malpensa)
+    (at aereo2 fiumicino)
+    (at pacco1 stazionemilano)
+    (at pacco2 centromilano)
+    (at pacco3 terminiroma)
+    (at pacco4 centroroma)
+    (at pacco5 centronapoli)
+  )
+  
+  (:goal
+    (and
+      (at pacco1 centroroma)
+      (at pacco2 portonapoli)
+      (at pacco3 centromilano)
+      (at pacco4 centronapoli)
+      (at pacco5 terminiroma)
+    )
+  )
+)

@@ -1,0 +1,69 @@
+
+
+NUMERIC_THREATS_MODE: 0
+
+; Command line: ./lpg-td -o dom2.pddl -f prog.pddl -n 1
+
+
+Parsing domain file:  domain 'LOGISTICS' defined ... done.
+Parsing problem file:  problem 'LOGISTICS-TEMPORAL-AIR' defined ... done.
+
+
+
+Modality: Incremental Planner
+
+Number of actions             :     525
+Number of conditional actions :       0
+Number of facts               :      89
+
+
+Analyzing Planning Problem:
+        Temporal Planning Problem: NO
+        Numeric Planning Problem: YES
+        Problem with Timed Initial Literals: NO
+        Problem with Derived Predicates: NO
+
+Evaluation function weights:
+     Action duration 0.00; Action cost 1.00
+
+
+Computing mutex... done
+
+Preprocessing total time: 0.00 seconds
+
+Searching ('.' = every 50 search steps):
+ solution found:
+ Recompute start times
+
+ first_solution_cpu_time: 0.03
+
+Plan computed:
+   Time: (ACTION) [action Duration; action Cost]
+ 0.0000: (DRIVE-TRUCK TRUCK2 CENTROROMA LINGOTTO ROMA TORINO) [D:7.00; C:1.00]
+ 0.0000: (LOAD-AIRPLANE PACCO2 AEREO2 FIUMICINO) [D:0.00; C:1.00]
+ 0.0000: (FLY-AIRPLANE AEREO2 FIUMICINO CASELLE ROMA TORINO) [D:7.00; C:1.00]
+ 7.0000: (LOAD-TRUCK PACCO3 TRUCK2 LINGOTTO) [D:0.00; C:1.00]
+ 7.0000: (DRIVE-TRUCK TRUCK2 LINGOTTO CENTROMILANO TORINO MILANO) [D:2.00; C:1.00]
+ 7.0000: (FLY-AIRPLANE AEREO2 CASELLE MALPENSA TORINO MILANO) [D:2.00; C:1.00]
+ 9.0000: (UNLOAD-TRUCK PACCO3 TRUCK2 CENTROMILANO) [D:0.00; C:1.00]
+ 9.0000: (LOAD-TRUCK PACCO3 TRUCK1 CENTROMILANO) [D:0.00; C:1.00]
+ 9.0000: (UNLOAD-TRUCK PACCO3 TRUCK1 CENTROMILANO) [D:0.00; C:1.00]
+ 9.0000: (UNLOAD-AIRPLANE PACCO2 AEREO2 MALPENSA) [D:0.00; C:1.00]
+ 9.0000: (LOAD-AIRPLANE PACCO1 AEREO2 MALPENSA) [D:0.00; C:1.00]
+ 9.0000: (FLY-AIRPLANE AEREO2 MALPENSA FIUMICINO MILANO ROMA) [D:5.00; C:1.00]
+ 14.0000: (FLY-AIRPLANE AEREO2 FIUMICINO CASELLE ROMA TORINO) [D:7.00; C:1.00]
+ 21.0000: (UNLOAD-AIRPLANE PACCO1 AEREO2 CASELLE) [D:0.00; C:1.00]
+ 21.0000: (LOAD-AIRPLANE PACCO4 AEREO2 CASELLE) [D:0.00; C:1.00]
+ 21.0000: (FLY-AIRPLANE AEREO2 CASELLE MALPENSA TORINO MILANO) [D:2.00; C:1.00]
+ 23.0000: (FLY-AIRPLANE AEREO2 MALPENSA FIUMICINO MILANO ROMA) [D:5.00; C:1.00]
+ 28.0000: (UNLOAD-AIRPLANE PACCO4 AEREO2 FIUMICINO) [D:0.00; C:1.00]
+
+
+Solution number: 1
+Total time:      0.03
+Search time:     0.03
+Actions:         18
+Duration:        28.000
+Plan quality:    18.000
+Total Num Flips: 20
+     Plan file:       plan_prog.pddl_1.SOL

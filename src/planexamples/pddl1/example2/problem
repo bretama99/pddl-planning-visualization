@@ -1,0 +1,44 @@
+(define (problem logistics-delivery)
+  (:domain logistics)
+  
+  (:objects
+    torino bologna firenze - city
+    caselle marconi peretola - airport
+    piazzacastello lingotto - location
+    stazionebologna mercato - location
+    duomo pontevecchio - location
+    pacco1 pacco2 pacco3 pacco4 - package
+    trucktorino truckbologna truckfirenze - truck
+    aereo1 aereo2 - airplane
+  )
+  
+  (:init
+    (in-city caselle torino)
+    (in-city piazzacastello torino)
+    (in-city lingotto torino)
+    (in-city marconi bologna)
+    (in-city stazionebologna bologna)
+    (in-city mercato bologna)
+    (in-city peretola firenze)
+    (in-city duomo firenze)
+    (in-city pontevecchio firenze)
+    (at trucktorino lingotto)
+    (at truckbologna mercato)
+    (at truckfirenze duomo)
+    (at aereo1 caselle)
+    (at aereo2 marconi)
+    (at pacco1 piazzacastello)
+    (at pacco2 stazionebologna)
+    (at pacco3 lingotto)
+    (at pacco4 pontevecchio)
+  )
+  
+  (:goal
+    (and
+      (at pacco1 mercato)
+      (at pacco2 duomo)
+      (at pacco3 stazionebologna)
+      (at pacco4 piazzacastello)
+    )
+  )
+)
