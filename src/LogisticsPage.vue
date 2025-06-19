@@ -322,9 +322,9 @@ function parsePlanWithDurations(outputText) {
 }
  */
 
-const { cities, places, vehicles, packages, steps } = launchpddl1();
+//const { cities, places, vehicles, packages, steps } = launchpddl1();
 //const { cities, places, vehicles, packages, distances, steps } = launchpddl2();
-//const { cities, places, vehicles, packages, distances, steps } = launchpddlplus();
+const { cities, places, vehicles, packages, distances, steps } = launchpddlplus();
 
 
 function applyPredicates(predicates, places, vehicles, packages, cities) {
@@ -349,7 +349,7 @@ function applyNumericFunctions(numericFunctions, vehicles) {
     const value = fn.value;
 
     if (fn.functionName === 'gasoline' && vehicles[target]) {
-      vehicles[target].setGasoline(value);
+      vehicles[target].initializeGasoline(value);
     }
   }
 }

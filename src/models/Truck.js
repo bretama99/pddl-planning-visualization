@@ -3,7 +3,7 @@ import Place from './Place.js';
 import * as constants from "../constants.js";
 
 export default class Truck {
-  constructor(id, name, location = null, subtype = constants.VEHICLE_SUBTYPES.TRUCK, gasoline = 100) {
+  constructor(id, name, location = null, subtype = constants.VEHICLE_SUBTYPES.TRUCK, gasoline = null) {
     this.id = id;
     this.name = name;
     this.location = location;
