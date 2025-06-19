@@ -100,3 +100,14 @@ export const VEHICLE_IMAGE_SIZES = {
 };
 
 export const AIRPLANE_SPACING_FACTOR = 1.8; // o 1.5, dipende da quanto spazio vuoi
+
+
+export const GASOLINE_BAR = {
+  WIDTH: 30,
+  HEIGHT: 4,
+  BACKGROUND_COLOR: '#333',
+  FILL_COLOR: '#4CAF50',
+  LOW_FUEL_COLOR: '#FF5722',  // Rosso quando benzina < 30%
+  OFFSET_Y: -20, // Posizione sopra il truck (regola in base al tuo layout)
+  BORDER_RADIUS: 2
+};

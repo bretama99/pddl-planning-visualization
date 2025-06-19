@@ -404,6 +404,10 @@ export default {
             .attr("font-size", constants.TRUCK_LABEL_FONT_SIZE)
             .text(truck.name);
 
+            if (truck.hasGasoline()) {
+    this.drawGasolineBar(truckGroup, truck, 0, -constants.TRUCK_SIZE / 2);
+  }
+
           // Aggiorna posizione
           this.positions.vehicles[truck.id] = {
             x: truckX,
@@ -464,7 +468,7 @@ export default {
       );
       return placeEntry ? placeEntry.id : null;
     },
-    animateTruck(truck, newX, newY, duration = 0) {
+    animateTruck(truck, newX, newY, duration = 0, gasolineConsumption = 0) {
       return new Promise((resolve) => {
         const truckGroup = d3.select(`#${truck.subtype}-${truck.name}`);
         if (truckGroup.empty()) {
@@ -481,34 +485,93 @@ export default {
           return;
         }
 
-        // Calcola la durata dell'animazione basata sulla distanza
-        const animationduration = this.calculateAnimationDuration(duration);
+        const animationDuration = this.calculateAnimationDuration(duration);
 
-        console.log(
-          `Animazione del truck ${truck.name} da (${this.positions.vehicles[truckId].x},${this.positions.vehicles[truckId].y}) a (${newX}, ${newY}) con durata ${animationduration}ms`
+        // Salva la benzina iniziale per l'animazione
+        const initialGasoline = truck.hasGasoline() ? truck.gasoline : 0;
+        const finalGasoline = Math.max(
+          0,
+          initialGasoline - gasolineConsumption
         );
 
+        console.log(
+          `Animazione del truck ${truck.name} da (${this.positions.vehicles[truckId].x},${this.positions.vehicles[truckId].y}) a (${newX}, ${newY}) con durata ${animationDuration}ms`
+        );
+
+        if (truck.hasGasoline() && gasolineConsumption > 0) {
+          console.log(
+            `Benzina: ${initialGasoline} -> ${finalGasoline} (consumo: ${gasolineConsumption})`
+          );
+        }
+
+        // Animazione della posizione
         truckGroup
           .transition()
-          .duration(animationduration) // Usa la durata calcolata
+          .duration(animationDuration)
           .attr("transform", `translate(${newX}, ${newY})`)
           .on("end", () => {
-            // Aggiorna la posizione nello stato
-            console.log(
-              "Transform finale nel DOM:",
-              truckGroup.attr("transform")
-            );
             this.positions.vehicles[truckId].x = newX;
             this.positions.vehicles[truckId].y = newY;
-            console.log(
-              `Posizione aggiornata per il truck ${truck.name}:`,
-              this.positions.vehicles[truckId]
-            );
             this.syncPackagePositionsOnTruck(truck.name);
-
-            resolve(); // Risolvi la Promise quando l'animazione è completata
+            resolve();
           });
+
+        // Animazione parallela del consumo benzina (se applicabile)
+        if (truck.hasGasoline() && gasolineConsumption > 0) {
+          this.animateGasolineConsumption(
+            truck,
+            initialGasoline,
+            finalGasoline,
+            animationDuration
+          );
+        }
       });
+    },
+    animateGasolineConsumption(truck, startGasoline, endGasoline, duration) {
+      const svg = d3.select(this.$refs.svg);
+      const progressBarWidth = 40;
+
+      // Crea un interpolatore per la benzina
+      const gasolineInterpolator = d3.interpolate(startGasoline, endGasoline);
+
+      // Animazione della progress bar
+      svg
+        .select(`.gasoline-bar-${truck.name}`)
+        .transition()
+        .duration(duration)
+        .tween("gasoline", () => {
+          return (t) => {
+            const currentGasoline = gasolineInterpolator(t);
+            truck.gasoline = currentGasoline; // Aggiorna il valore nel truck
+
+            const percentage = (currentGasoline / truck.maxGasoline) * 100;
+            const fillWidth = (progressBarWidth - 2) * (percentage / 100);
+
+            // Colore dinamico durante l'animazione
+            let fillColor = "#4CAF50";
+            if (percentage <= 25) {
+              fillColor = "#F44336";
+            } else if (percentage <= 50) {
+              fillColor = "#FF9800";
+            }
+
+            // Aggiorna visivamente la barra
+            d3.select(this).attr("width", fillWidth).attr("fill", fillColor);
+          };
+        });
+
+      // Animazione del testo percentuale
+      svg
+        .select(`.gasoline-text-${truck.name}`)
+        .transition()
+        .duration(duration)
+        .tween("text", () => {
+          return (t) => {
+            const currentGasoline = gasolineInterpolator(t);
+            const percentage = (currentGasoline / truck.maxGasoline) * 100;
+            d3.select(this).text(`${Math.round(percentage)}%`);
+          };
+        });
     },
     getTruckIdByName(name) {
       const truckEntry = Object.values(this.vehicles).find(
@@ -554,18 +617,17 @@ export default {
       truckName,
       placeName,
       duration = null,
-      preCalculatedData = null
+      preCalculatedData = null,
+      gasolineConsumption = 0
     ) {
       let truckEntry, newPlaceEntry, oldPlace, distance;
 
       if (preCalculatedData) {
-        // Usa i dati già calcolati
         truckEntry = preCalculatedData.truckEntry;
         newPlaceEntry = preCalculatedData.toPlaceEntry;
         oldPlace = preCalculatedData.fromPlaceEntry;
         distance = preCalculatedData.distance;
       } else {
-        // Calcola i dati (logica originale)
         truckEntry = Object.values(this.vehicles).find(
           (t) => t.name === truckName
         );
@@ -581,62 +643,64 @@ export default {
       }
 
       const oldPlaceId = truckEntry.location.id;
-
-      // Aggiorna la location del truck PRIMA di ricalcolare
       truckEntry.location = newPlaceEntry;
 
-      // Array di Promise per aspettare tutte le animazioni
       const promises = [];
 
-      // Ricalcola e riposiziona tutti i truck nel posto di origine (se diverso)
       if (oldPlaceId !== newPlaceEntry.id) {
         promises.push(this.repositionVehiclesInPlace(oldPlaceId));
       }
 
-      // Ricalcola e riposiziona tutti i truck nel posto di destinazione
-      // Usa la duration se fornita, altrimenti usa la distance per calcolare la durata dell'animazione
       const animationDuration = duration !== null ? duration : distance;
+
+      // Passa il consumo di benzina al riposizionamento
       promises.push(
         this.repositionVehiclesInPlace(
           newPlaceEntry.id,
           animationDuration,
-          truckName
+          truckName,
+          gasolineConsumption
         )
       );
 
-      // Aspetta che tutte le animazioni siano completate
       await Promise.all(promises);
     },
     async repositionVehiclesInPlace(
       placeId,
       duration = 0,
-      movingVehicleName = null
+      movingVehicleName = null,
+      gasolineConsumption = 0
     ) {
       const place = this.getPlaceById(placeId);
       const placePos = this.positions.places[placeId];
       if (!placePos) return;
 
-      const vehiclesHere = this.getTrucksInPlace(place); // Puoi rinominarlo in getVehiclesInPlace()
+      const vehiclesHere = this.getTrucksInPlace(place);
       const numVehicles = vehiclesHere.length;
 
-      // Mappa tra subtype e funzione di posizionamento
       const positionStrategy = {
         truck: this.getTruckPositionInPlace.bind(this),
         airplane: this.getAirplanePositionInPlace.bind(this),
-        // puoi aggiungerne altri: drone, train, ecc.
       };
 
       const animationPromises = vehiclesHere.map((vehicle, k) => {
         const subtype = vehicle.subtype;
         const getPosition =
-          positionStrategy[subtype] || this.getTruckPositionInPlace.bind(this); // fallback
-
+          positionStrategy[subtype] || this.getTruckPositionInPlace.bind(this);
         const { x, y } = getPosition(place, k, numVehicles);
 
         const animationDuration =
           vehicle.name === movingVehicleName ? duration : 0;
+        const vehicleGasolineConsumption =
+          vehicle.name === movingVehicleName ? gasolineConsumption : 0;
 
-        return this.animateTruck(vehicle, x, y, animationDuration); // anche questo può essere rinominato in animateVehicle
+        return this.animateTruck(
+          vehicle,
+          x,
+          y,
+          animationDuration,
+          vehicleGasolineConsumption
+        );
       });
 
       await Promise.all(animationPromises);
@@ -669,26 +733,61 @@ export default {
       );
     },
     async processDriveTruckStep(
-      actionPart,
-      duration = null,
-      movementData = null //non lo sto mai usando per il momento
-    ) {
-      const tokens = actionPart.replace(/[()]/g, "").split(" ");
-      const truckName = tokens[1]; // secondo parametro
-      const fromPlace = tokens[2]; // terzo parametro
-      const toPlace = tokens[3]; // quarto parametro
+  actionPart,
+  duration = null,
+  movementData = null
+) {
+  const tokens = actionPart.replace(/[()]/g, "").split(" ");
+  const truckName = tokens[1];
+  const fromPlace = tokens[2];
+  const toPlace = tokens[3];
 
-      console.log(
-        `🚛 Spostamento: Truck ${truckName} da ${fromPlace} a ${toPlace}`
-      );
+  console.log(`🚛 Spostamento: Truck ${truckName} da ${fromPlace} a ${toPlace}`);
 
-      // Usa i dati pre-calcolati se disponibili
-      await this.moveVehicleToPos(truckName, toPlace, duration, movementData);
+  // Trova l'oggetto truck per gestire la benzina
+  const truckObj = Object.values(this.vehicles).find(v => v.name === truckName);
+  
+  // Calcola il consumo di benzina se abbiamo la durata
+  let gasolineConsumption = 0;
+  if (duration && truckObj && truckObj.hasGasoline()) {
+    gasolineConsumption = this.calculateGasolineConsumption(duration);
+    console.log(`⛽ Consumo benzina previsto: ${gasolineConsumption} unità (durata: ${duration})`);
+    
+    // Verifica se il truck ha abbastanza benzina
+    if (truckObj.gasoline < gasolineConsumption) {
+      console.warn(`⚠️ ATTENZIONE: ${truckName} potrebbe rimanere senza benzina!`);
+      console.warn(`   Benzina attuale: ${truckObj.gasoline}, Consumo previsto: ${gasolineConsumption}`);
+    }
+  }
 
-      console.log(
-        `✅ Movimento completato: Truck ${truckName} ora in ${toPlace}`
-      );
-    },
+  // Avvia l'animazione del movimento E del consumo benzina in parallelo
+  const promises = [];
+  
+  // 1. Movimento del truck
+  promises.push(this.moveVehicleToPos(truckName, toPlace, duration, movementData));
+  
+  // 2. Consumo benzina (se applicabile)
+  if (gasolineConsumption > 0 && truckObj) {
+    // Converti la duration in millisecondi per l'animazione
+    // Assumiamo che duration sia in "unità di tempo del dominio", 
+    // e usiamo un fattore di scala per l'animazione visiva
+    const ANIMATION_SCALE_FACTOR = 100; // ms per unità di tempo
+    const animationDurationMs = (duration || 1) * ANIMATION_SCALE_FACTOR;
+    
+    promises.push(this.animateGasolineConsumption(truckObj, gasolineConsumption, animationDurationMs));
+  }
+  
+  // Aspetta che sia il movimento che il consumo benzina siano completati
+  await Promise.all(promises);
+
+  console.log(`✅ Movimento completato: Truck ${truckName} ora in ${toPlace}`);
+  
+  // Log finale dello stato benzina
+  if (truckObj && truckObj.hasGasoline()) {
+    console.log(`⛽ Benzina finale ${truckName}: ${truckObj.gasoline}%`);
+  }
+}
+,
     async processLoadVehicleStep(actionPart) {
       const tokens = actionPart.replace(/[()]/g, "").split(" ");
       const packageName = tokens[1]; // secondo parametro
@@ -722,35 +821,124 @@ export default {
       );
     },
     async processRefuelStep(actionPart, duration) {
-      console.log(`Processando step di rifornimento: ${actionPart}`);
-
-      // Parse per start-refuel (con truck e stazione)
-      let match = actionPart.match(/\(start-refuel\s+(\w+)\s+(\w+)\)/);
-      if (match) {
-        const [, truckName, stationName] = match;
-        const truckId = this.getTruckIdByName(truckName);
-        await this.startRefuelAnimation(
-          truckId,
-          truckName,
-          stationName,
-          duration
-        );
+  const tokens = actionPart.replace(/[()]/g, "").split(" ");
+  const truckName = tokens[1];
+  
+  console.log(`⛽ Rifornimento: Truck ${truckName} per ${duration} unità di tempo`);
+  
+  const truckObj = Object.values(this.vehicles).find(v => v.name === truckName);
+  if (!truckObj || !truckObj.hasGasoline()) {
+    console.warn(`❌ Truck ${truckName} non trovato o senza sistema benzina`);
+    return;
+  }
+  
+  const initialGasoline = truckObj.gasoline;
+  const refuelAmount = this.calculateRefuelAmount(duration);
+  const maxPossibleRefuel = Math.min(refuelAmount, truckObj.maxGasoline - truckObj.gasoline);
+  
+  console.log(`⛽ Rifornimento ${truckName}:`);
+  console.log(`   Benzina iniziale: ${initialGasoline}`);
+  console.log(`   Rifornimento teorico: ${refuelAmount}`);
+  console.log(`   Rifornimento effettivo: ${maxPossibleRefuel}`);
+  
+  // Anima il rifornimento
+  const ANIMATION_SCALE_FACTOR = 100;
+  const animationDurationMs = (duration || 1) * ANIMATION_SCALE_FACTOR;
+  const steps = Math.min(50, Math.max(10, Math.floor(animationDurationMs / 100)));
+  const refuelPerStep = maxPossibleRefuel / steps;
+  const intervalMs = animationDurationMs / steps;
+  
+  return new Promise((resolve) => {
+    let currentStep = 0;
+    
+    const refuelInterval = setInterval(() => {
+      if (currentStep >= steps) {
+        clearInterval(refuelInterval);
+        
+        // Assicurati che il valore finale sia esatto
+        const finalGasoline = Math.min(truckObj.maxGasoline, initialGasoline + maxPossibleRefuel);
+        truckObj.setGasoline(finalGasoline);
+        this.updateGasolineBar(truckObj.name, truckObj.gasoline);
+        
+        console.log(`✅ Rifornimento completato: ${initialGasoline} → ${truckObj.gasoline}`);
+        resolve();
         return;
       }
+      
+      truckObj.addGasoline(refuelPerStep);
+      this.updateGasolineBar(truckObj.name, truckObj.gasoline);
+      currentStep++;
+    }, intervalMs);
+  });
+}
+,
+    animateRefueling(truck, startGasoline, endGasoline, duration) {
+      if (!truck.hasGasoline()) return;
 
-      // Parse per stop-refuel (solo truck)
-      match = actionPart.match(/\(stop-refuel\s+(\w+)\)/);
-      if (match) {
-        const [, truckName] = match;
-        const truckId = this.getTruckIdByName(truckName);
-        await this.stopRefuelAnimation(truckId, truckName);
-        return;
-      }
+      const svg = d3.select(this.$refs.svg);
+      const progressBarWidth = 40;
+      const gasolineInterpolator = d3.interpolate(startGasoline, endGasoline);
 
-      console.warn(
-        `Formato azione rifornimento non riconosciuto: ${actionPart}`
-      );
+      svg
+        .select(`.gasoline-bar-${truck.name}`)
+        .transition()
+        .duration(duration)
+        .tween("refuel", () => {
+          return (t) => {
+            const currentGasoline = gasolineInterpolator(t);
+            truck.gasoline = currentGasoline;
+
+            const percentage = (currentGasoline / truck.maxGasoline) * 100;
+            const fillWidth = (progressBarWidth - 2) * (percentage / 100);
+
+            let fillColor = "#4CAF50";
+            if (percentage <= 25) {
+              fillColor = "#F44336";
+            } else if (percentage <= 50) {
+              fillColor = "#FF9800";
+            }
+
+            d3.select(this).attr("width", fillWidth).attr("fill", fillColor);
+          };
+        });
+
+      // Anima anche il testo
+      svg
+        .select(`.gasoline-text-${truck.name}`)
+        .transition()
+        .duration(duration)
+        .tween("refuel-text", () => {
+          return (t) => {
+            const currentGasoline = gasolineInterpolator(t);
+            const percentage = (currentGasoline / truck.maxGasoline) * 100;
+            d3.select(this).text(`${Math.round(percentage)}%`);
+          };
+        });
     },
+    showRefuelingAnimation(truck, isRefueling) {
+      const svg = d3.select(this.$refs.svg);
+      const truckGroup = svg.select(`#${truck.subtype}-${truck.name}`);
+
+      if (isRefueling) {
+        // Aggiungi un'icona pulsante o un effetto per indicare il rifornimento
+        truckGroup.select(".refuel-indicator").remove(); // Rimuovi se esiste già
+
+        truckGroup
+          .append("text")
+          .attr("class", "refuel-indicator")
+          .attr("x", 0)
+          .attr("y", -30)
+          .attr("text-anchor", "middle")
+          .attr("font-size", "12px")
+          .attr("fill", "#FF6B35")
+          .text("⛽")
+          .style("animation", "pulse 1s infinite"); // CSS animation se disponibile
+      } else {
+        // Rimuovi l'indicatore
+        truckGroup.select(".refuel-indicator").remove();
+      }
+    },
+
     calculateMovementDistance(actionPart) {
       const tokens = actionPart.replace(/[()]/g, "").split(" ");
       let truckName, fromPlace, toPlace;
@@ -836,24 +1024,24 @@ export default {
 
         // Processa l'azione in base al tipo
         if (
-          actionPart.startsWith("(drive-truck") ||
-          actionPart.startsWith("(start-move")
-        ) {
-          await this.processDriveTruckStep(actionPart, duration);
-        } else if (actionPart.startsWith("(fly-airplane")) {
-          await this.processFlyAirplaneStep(actionPart, duration);
-        } else if (actionPart.startsWith("(load-truck") || actionPart.startsWith("(load-airplane")) {
-          await this.processLoadVehicleStep(actionPart, duration);
-        } else if (actionPart.startsWith("(unload-truck") || actionPart.startsWith("(unload-airplane")) {
-          await this.processUnloadVehicleStep(actionPart, duration);
-        } else if (
-          actionPart.startsWith("(start-refuel") ||
-          actionPart.startsWith("(stop-refuel")
-        ) {
-          await this.processRefuelStep(actionPart, duration);
-        } else {
-          console.warn(`Tipo di step non riconosciuto: ${actionPart}`);
-        }
+  actionPart.startsWith("(drive-truck") ||
+  actionPart.startsWith("(start-move")
+) {
+  await this.processDriveTruckStep(actionPart, duration);
+} else if (actionPart.startsWith("(start-refuel")) {
+  await this.processRefuelStep(actionPart, duration);
+} else if (actionPart.startsWith("(stop-refuel")) {
+  // Il rifornimento si ferma automaticamente, nessuna azione speciale
+  console.log(`🛑 Fine rifornimento: ${actionPart}`);
+} else if (actionPart.startsWith("(fly-airplane")) {
+  await this.processFlyAirplaneStep(actionPart, duration);
+} else if (actionPart.startsWith("(load-truck") || actionPart.startsWith("(load-airplane")) {
+  await this.processLoadVehicleStep(actionPart, duration);
+} else if (actionPart.startsWith("(unload-truck") || actionPart.startsWith("(unload-airplane")) {
+  await this.processUnloadVehicleStep(actionPart, duration);
+} else {
+  console.warn(`Tipo di step non riconosciuto: ${actionPart}`);
+}
         let delay = 300;
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
@@ -1337,6 +1525,219 @@ export default {
         });
       }
     },
+    updateGasolineProgressBar(truck) {
+      const svg = d3.select(this.$refs.svg);
+      const gasolinePercentage = truck.getGasolinePercentage();
+      const progressBarWidth = 40;
+      const fillWidth = (progressBarWidth - 2) * (gasolinePercentage / 100);
+
+      // Colore in base al livello di gasoline
+      let fillColor = "#4CAF50"; // Verde per > 50%
+      if (gasolinePercentage <= 25) {
+        fillColor = "#F44336"; // Rosso per <= 25%
+      } else if (gasolinePercentage <= 50) {
+        fillColor = "#FF9800"; // Arancione per <= 50%
+      }
+
+      // Aggiorna la barra
+      svg
+        .select(`.gasoline-bar-${truck.name}`)
+        .transition()
+        .duration(200)
+        .attr("width", fillWidth)
+        .attr("fill", fillColor);
+
+      // Aggiorna il testo percentuale
+      svg
+        .select(`.gasoline-text-${truck.name}`)
+        .text(`${Math.round(gasolinePercentage)}%`);
+    },
+
+    // Processa le azioni che modificano la gasoline
+    async processRefuelStep(actionPart, duration) {
+  const tokens = actionPart.replace(/[()]/g, "").split(" ");
+  const truckName = tokens[1];
+  
+  console.log(`⛽ Rifornimento: Truck ${truckName} per ${duration} unità di tempo`);
+  
+  const truckObj = Object.values(this.vehicles).find(v => v.name === truckName);
+  if (!truckObj || !truckObj.hasGasoline()) {
+    console.warn(`❌ Truck ${truckName} non trovato o senza sistema benzina`);
+    return;
+  }
+  
+  const initialGasoline = truckObj.gasoline;
+  const refuelAmount = this.calculateRefuelAmount(duration);
+  const maxPossibleRefuel = Math.min(refuelAmount, truckObj.maxGasoline - truckObj.gasoline);
+  
+  console.log(`⛽ Rifornimento ${truckName}:`);
+  console.log(`   Benzina iniziale: ${initialGasoline}`);
+  console.log(`   Rifornimento teorico: ${refuelAmount}`);
+  console.log(`   Rifornimento effettivo: ${maxPossibleRefuel}`);
+  
+  // Anima il rifornimento
+  const ANIMATION_SCALE_FACTOR = 100;
+  const animationDurationMs = (duration || 1) * ANIMATION_SCALE_FACTOR;
+  const steps = Math.min(50, Math.max(10, Math.floor(animationDurationMs / 100)));
+  const refuelPerStep = maxPossibleRefuel / steps;
+  const intervalMs = animationDurationMs / steps;
+  
+  return new Promise((resolve) => {
+    let currentStep = 0;
+    
+    const refuelInterval = setInterval(() => {
+      if (currentStep >= steps) {
+        clearInterval(refuelInterval);
+        
+        // Assicurati che il valore finale sia esatto
+        const finalGasoline = Math.min(truckObj.maxGasoline, initialGasoline + maxPossibleRefuel);
+        truckObj.setGasoline(finalGasoline);
+        this.updateGasolineBar(truckObj.name, truckObj.gasoline);
+        
+        console.log(`✅ Rifornimento completato: ${initialGasoline} → ${truckObj.gasoline}`);
+        resolve();
+        return;
+      }
+      
+      truckObj.addGasoline(refuelPerStep);
+      this.updateGasolineBar(truckObj.name, truckObj.gasoline);
+      currentStep++;
+    }, intervalMs);
+  });
+},
+    calculateGasolineConsumption(duration) {
+      const CONSUMPTION_RATE = 2; // Dal tuo PDDL+: (decrease (gasoline ?truck) (* 2 #t))
+      return duration * CONSUMPTION_RATE;
+    },
+
+    calculateRefuelAmount(duration) {
+      const REFUEL_RATE = 10; // Dal tuo PDDL+: (increase (gasoline ?truck) (* 10 #t))
+      return duration * REFUEL_RATE;
+    },
+    updateGasolineBar(truckName, newGasolineLevel) {
+      const svg = d3.select(this.$refs.svg);
+      const truckGroup = svg.select(`#truck-${truckName}`);
+
+      if (truckGroup.empty()) return;
+
+      const gasolinePercentage = Math.min(100, Math.max(0, newGasolineLevel));
+      const fillWidth =
+        (constants.GASOLINE_BAR.WIDTH * gasolinePercentage) / 100;
+
+      // Determina il colore
+      const fillColor =
+        gasolinePercentage < 30
+          ? constants.GASOLINE_BAR.LOW_FUEL_COLOR
+          : constants.GASOLINE_BAR.FILL_COLOR;
+
+      // Anima la larghezza della barra
+      truckGroup
+        .select(".gasoline-bar-fill")
+        .transition()
+        .duration(100)
+        .attr("width", fillWidth)
+        .attr("fill", fillColor);
+
+      // Aggiorna il testo percentuale
+      truckGroup
+        .select(".gasoline-text")
+        .transition()
+        .duration(100)
+        .text(`${Math.round(gasolinePercentage)}%`);
+    },
+    async animateGasolineConsumption(
+      truckObj,
+      totalConsumption,
+      animationDurationMs
+    ) {
+      if (!truckObj.hasGasoline() || totalConsumption <= 0) return;
+
+      const initialGasoline = truckObj.gasoline;
+      const steps = Math.min(
+        50,
+        Math.max(10, Math.floor(animationDurationMs / 100))
+      ); // Tra 10 e 50 step
+      const consumptionPerStep = totalConsumption / steps;
+      const intervalMs = animationDurationMs / steps;
+
+      console.log(`🔋 Animazione consumo benzina per ${truckObj.name}:`);
+      console.log(
+        `   Consumo totale: ${totalConsumption}, Steps: ${steps}, Intervallo: ${intervalMs}ms`
+      );
+
+      return new Promise((resolve) => {
+        let currentStep = 0;
+
+        const consumptionInterval = setInterval(() => {
+          if (currentStep >= steps) {
+            clearInterval(consumptionInterval);
+
+            // Assicurati che il valore finale sia esatto
+            const finalGasoline = Math.max(
+              0,
+              initialGasoline - totalConsumption
+            );
+            truckObj.setGasoline(finalGasoline);
+            this.updateGasolineBar(truckObj.name, truckObj.gasoline);
+
+            console.log(
+              `✅ Consumo completato: ${initialGasoline} → ${truckObj.gasoline}`
+            );
+            resolve();
+            return;
+          }
+
+          truckObj.consumeGasoline(consumptionPerStep);
+          this.updateGasolineBar(truckObj.name, truckObj.gasoline);
+          currentStep++;
+        }, intervalMs);
+      });
+    },
+    drawGasolineBar(truckGroup, truck, x, y) {
+  if (!truck.hasGasoline()) return;
+  
+  const gasolinePercentage = truck.getGasolinePercentage();
+  const fillWidth = (constants.GASOLINE_BAR.WIDTH * gasolinePercentage) / 100;
+  
+  // Determina il colore in base al livello di benzina
+  const fillColor = gasolinePercentage < 30 ? 
+    constants.GASOLINE_BAR.LOW_FUEL_COLOR : 
+    constants.GASOLINE_BAR.FILL_COLOR;
+
+  // Background della barra
+  truckGroup
+    .append('rect')
+    .attr('class', 'gasoline-bar-bg')
+    .attr('x', x - constants.GASOLINE_BAR.WIDTH / 2)
+    .attr('y', y + constants.GASOLINE_BAR.OFFSET_Y)
+    .attr('width', constants.GASOLINE_BAR.WIDTH)
+    .attr('height', constants.GASOLINE_BAR.HEIGHT)
+    .attr('fill', constants.GASOLINE_BAR.BACKGROUND_COLOR)
+    .attr('rx', constants.GASOLINE_BAR.BORDER_RADIUS);
+
+  // Barra di riempimento
+  truckGroup
+    .append('rect')
+    .attr('class', 'gasoline-bar-fill')
+    .attr('x', x - constants.GASOLINE_BAR.WIDTH / 2)
+    .attr('y', y + constants.GASOLINE_BAR.OFFSET_Y)
+    .attr('width', fillWidth)
+    .attr('height', constants.GASOLINE_BAR.HEIGHT)
+    .attr('fill', fillColor)
+    .attr('rx', constants.GASOLINE_BAR.BORDER_RADIUS);
+
+  // Testo percentuale
+  truckGroup
+    .append('text')
+    .attr('class', 'gasoline-text')
+    .attr('x', x)
+    .attr('y', y + constants.GASOLINE_BAR.OFFSET_Y - 2)
+    .attr('text-anchor', 'middle')
+    .attr('font-size', '8px')
+    .attr('font-family', 'monospace')
+    .attr('fill', '#666')
+    .text(`${Math.round(gasolinePercentage)}%`);
+},
   },
 };
 </script>

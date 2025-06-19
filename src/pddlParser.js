@@ -313,6 +313,15 @@ export function getDistances(parsedInit) {
         }));
 }
 
+export function extractGasolineObjects(parsed) {
+  if (!parsed || !Array.isArray(parsed.numericFunctions)) return [];
+
+  return parsed.numericFunctions.filter(
+    (fn) => fn.functionName === "gasoline"
+  );
+}
+
+
 /**
  * Funzione helper per ottenere tutti i predicati di un certo tipo
  * @param {Object} parsedInit - Risultato di parseInit()

@@ -5,7 +5,7 @@
 </template>
 
 <script setup>
-import extractPDDLSections, { extractSingleSection, getDistances, getPredicatesByType, parseInitLegacy } from './pddlParser.js';
+import extractPDDLSections, { extractSingleSection, getDistances, getPredicatesByType, parseInitLegacy, extractGasolineObjects } from './pddlParser.js';
 import { parseObjects, parseInit, extractPlanRobust } from './pddlParser.js';
 import MapVisualizer from './components/GraphVisualization.vue';
 
@@ -322,9 +322,9 @@ function parsePlanWithDurations(outputText) {
 }
  */
 
-//const { cities, places, vehicles, packages, steps } = launchpddl1();
+const { cities, places, vehicles, packages, steps } = launchpddl1();
 //const { cities, places, vehicles, packages, distances, steps } = launchpddl2();
-const { cities, places, vehicles, packages, distances, steps } = launchpddlplus();
+//const { cities, places, vehicles, packages, distances, steps } = launchpddlplus();
 
 
 function applyPredicates(predicates, places, vehicles, packages, cities) {
@@ -342,6 +342,19 @@ function applyPredicates(predicates, places, vehicles, packages, cities) {
     }
   }
 }
+
+function applyNumericFunctions(numericFunctions, vehicles) {
+  for (const fn of numericFunctions) {
+    const [target] = fn.args;
+    const value = fn.value;
+
+    if (fn.functionName === 'gasoline' && vehicles[target]) {
+      vehicles[target].setGasoline(value);
+    }
+  }
+}
+
+
 
 function parsePlanWithDurations(outputText) {
   const lines = outputText.split('\n');
@@ -375,10 +388,11 @@ function parsePlanWithDurations(outputText) {
       }
 
       // Righe di waiting: es. "13.0: -----waiting---- [53.0]"
-      const waitMatch = trimmed.match(/\[([\d.]+)\]$/);
+      const waitMatch = trimmed.match(/^([\d.]+):\s+-----waiting----\s+\[([\d.]+)\]$/);
       if (waitMatch && lastAction) {
-        const duration = parseFloat(waitMatch[1]);
-        lastAction.duration = duration;
+        const endTime = parseFloat(waitMatch[2]);
+        const startTime = lastAction.start;
+        lastAction.duration = endTime - startTime;
       }
     }
   }
@@ -827,11 +841,14 @@ function launchpddlplus() {
   const { cities, places, vehicles, packages } = parseObjects(extracted.objects);
   const parsed = parseInit(extracted.init);
   const distances = getDistances(parsed);
+  const gasolineObjects = extractGasolineObjects(parsed);
+  console.log('gasolineObjects:', gasolineObjects);
   
   // Converti i predicates nel formato legacy
   const legacyPredicates = parsed.predicates.map(p => [p.predicate, ...p.args]);
 
   applyPredicates(legacyPredicates, places, vehicles, packages, cities);
+  applyNumericFunctions(parsed.numericFunctions, vehicles);
   const steps = parsePlanWithDurations(planpddlplus);
   console.log('Extracted Steps:', steps);
   logWorldState(cities, places, vehicles, packages, cities);
