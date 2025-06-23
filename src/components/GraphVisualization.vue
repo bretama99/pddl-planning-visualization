@@ -11,57 +11,30 @@
           @click="handleSvgClick"
         ></svg>
       </div>
-      <div class="steps-visualization">
-        <h3>Step del piano</h3>
-        <ol>
-          <li
-            v-for="(step, idx) in steps"
-            :key="idx"
-            :class="{ current: idx === currentStepIndex }"
-          >
-            <span v-if="planFormat === 'PDDL+'">
-              {{ step.action }}
-              <span v-if="step.duration">({{ step.duration }})</span>
-            </span>
-            <span v-else>
-              {{ step }}
-            </span>
-          </li>
-        </ol>
-        <div style="display: flex; gap: 8px">
-          <button
-            class="play-steps-btn"
-            @click="playSteps"
-            :disabled="isPlaying"
-          >
-            ▶️
-          </button>
-          <button
-            class="pause-steps-btn"
-            @click="pauseSteps"
-            :disabled="!isPlaying || isPaused"
-          >
-            ⏸️
-          </button>
-          <button
-            class="resume-steps-btn"
-            @click="resumeSteps"
-            :disabled="!isPaused"
-          >
-            ⏯️
-          </button>
-        </div>
-      </div>
+      <StepPanel
+        :steps="steps"
+        :currentStepIndex="currentStepIndex"
+        :planFormat="planFormat"
+        :isPlaying="isPlaying"
+        :isPaused="isPaused"
+        @play-steps="playSteps"
+        @pause-steps="pauseSteps"
+        @resume-steps="resumeSteps"
+      />
     </div>
   </div>
 </template>
 
 <script>
+import StepPanel from './StepPanel.vue';
 import * as d3 from "d3";
 import * as constants from "../constants.js";
 
 export default {
   name: "MapVisualizer",
+  components: {
+    StepPanel
+  },
   props: {
     cities: Object,
     places: Object,
@@ -970,7 +943,15 @@ export default {
       }
     },
     pauseSteps() {
+      // Log per debug
+      console.log('[pauseSteps] Chiamata. Stato attuale:', {
+        isPlaying: this.isPlaying,
+        isPaused: this.isPaused,
+        pauseRequested: this.pauseRequested,
+        pausedStepIndex: this.pausedStepIndex
+      });
       this.pauseRequested = true;
+      this.isPaused = true; // Aggiorna subito lo stato per disabilitare il tasto Play
     },
     resumeSteps() {
       if (this.isPaused && this.pausedStepIndex !== null) {
@@ -1483,30 +1464,7 @@ export default {
   flex: 0 0 300px;
   max-width: 340px;
   min-width: 220px;
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 12px 18px;
-  max-height: 80vh;
-  overflow-y: auto;
   margin-left: 16px;
-  z-index: 10;
-  box-sizing: border-box;
-}
-.steps-visualization ol {
-  padding-left: 18px;
-  margin: 0;
-}
-.steps-visualization li {
-  margin-bottom: 6px;
-  padding: 2px 4px;
-  border-radius: 4px;
-  transition: background 0.2s;
-}
-.steps-visualization li.current {
-  background: #1976d2;
-  color: #fff;
-  font-weight: bold;
 }
 @media (max-width: 900px) {
   .main-visualization-layout {
