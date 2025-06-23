@@ -14,8 +14,7 @@
 
 
 <script setup>
-import extractPDDLSections, { extractSingleSection, getDistances, getPredicatesByType, parseInitLegacy, extractGasolineObjects } from './pddlParser.js';
-import { parseObjects, parseInit, extractPlanRobust } from './pddlParser.js';
+import extractPDDLSections, { getDistances, parseInitLegacy, extractGasolineObjects, parseObjects, parseInit, extractPlanRobust, extractFuelRates, parsePlanWithDurations, extractPlanRobustPDDL2 } from './pddlParser.js';
 import MapVisualizer from './components/GraphVisualization.vue';
 import {probA,planA,probb,planb,prob2ex1,plan2ex1,prob2ex2,plan2ex2,domainpddlplus,problogpddlplus,planpddlplus} from './pddlCases.js'; 
 
@@ -53,7 +52,7 @@ const cases = {
   }
 };
 
-const selectedCase = cases['classicA']; // Cambia qui per selezionare un altro caso
+const selectedCase = cases['temporal2']; // Cambia qui per selezionare un altro caso
 
 let result;
 if (selectedCase.launcher === launchpddlplus) {
@@ -89,90 +88,6 @@ function applyNumericFunctions(numericFunctions, vehicles) {
       vehicles[target].initializeGasoline(value);
     }
   }
-}
-
-function extractFuelRates(pddlDomain) {
-    /**
-     * Estrae la velocità di rifornimento e consumo di carburante dal dominio PDDL.
-     * 
-     * @param {string} pddlDomain - Il contenuto del dominio PDDL come stringa
-     * @returns {Object} Oggetto con refuelRate e consumptionRate
-     */
-    const rates = {
-        refuelRate: null,
-        consumptionRate: null
-    };
-    
-    // Pattern per trovare il processo di rifornimento
-    // Cerca (increase (gasoline ?truck) (* 10 #t))
-    const refuelPattern = /\(increase\s+\(gasoline\s+\?\w+\)\s+\(\*\s+(\d+(?:\.\d+)?)\s+#t\)\)/g;
-    const refuelMatch = refuelPattern.exec(pddlDomain);
-    
-    if (refuelMatch) {
-        rates.refuelRate = parseFloat(refuelMatch[1]);
-    }
-    
-    // Pattern per trovare il processo di movimento (consumo)
-    // Cerca (decrease (gasoline ?truck) (* 2 #t))
-    const consumptionPattern = /\(decrease\s+\(gasoline\s+\?\w+\)\s+\(\*\s+(\d+(?:\.\d+)?)\s+#t\)\)/g;
-    const consumptionMatch = consumptionPattern.exec(pddlDomain);
-    
-    if (consumptionMatch) {
-        rates.consumptionRate = parseFloat(consumptionMatch[1]);
-    }
-    
-    return rates;
-}
-
-function parsePlanWithDurations(outputText) {
-  const lines = outputText.split('\n');
-  const plan = [];
-  let inPlan = false;
-  let lastAction = null;
-
-  for (const line of lines) {
-    if (line.includes('Found Plan:')) {
-      inPlan = true;
-      continue;
-    }
-
-    if (inPlan) {
-      const trimmed = line.trim();
-
-      // Uscita dal blocco piano
-      if (trimmed === '' || trimmed.startsWith('Plan-Length')) break;
-
-      // Righe di azione: es. "13.0: (start-move tru1 gs1 pos3 cit1 cit2)"
-      const actionMatch = trimmed.match(/^([\d.]+):\s+(\(.*\))$/);
-      if (actionMatch) {
-        const [_, timestamp, action] = actionMatch;
-        lastAction = {
-          start: parseFloat(timestamp),
-          action: action,
-          duration: null
-        };
-        plan.push(lastAction);
-        continue;
-      }
-
-      // Righe di waiting: es. "13.0: -----waiting---- [53.0]"
-      const waitMatch = trimmed.match(/^([\d.]+):\s+-----waiting----\s+\[([\d.]+)\]$/);
-      if (waitMatch && lastAction) {
-        const endTime = parseFloat(waitMatch[2]);
-        const startTime = lastAction.start;
-        lastAction.duration = endTime - startTime;
-      }
-    }
-  }
-
-  return plan;
-}
-
-function logWorldState(cities, places, trucks, packages) {
-  console.log('🏙️ Cities:', cities);
-  console.log('📍 Places:', places);
-  console.log('🚚 Trucks:', trucks);
-  console.log('📦 Packages:', packages);
 }
 
 function launchpddl1(probString, planString) {
@@ -213,36 +128,11 @@ function launchpddlplus(probString, planString, domainString) {
   return { cities, places, vehicles, packages, distances, steps, fuelRates };
 }
 
-function extractPlanRobustPDDL2(output) {
-    const lines = output.split('\n');
-    const planSteps = [];
-    let foundPlan = false;
-    
-    for (const line of lines) {
-        // Cerca l'inizio del piano
-        if (line.includes('Plan computed:')) {
-            foundPlan = true;
-            continue;
-        }
-        
-        // Cerca la fine del piano
-        if (foundPlan && (line.includes('Solution number:') || line.includes('Total time:'))) {
-            break;
-        }
-        
-        if (foundPlan) {
-            // Match per le righe del piano nel formato LPG-TD
-            // Formato: numero: (AZIONE PARAMETRI) [D:durata; C:costo]
-            const stepMatch = line.match(/^\s*(\d+\.?\d*:\s*\([^)]+\))\s*\[[^\]]+\]/);
-            if (stepMatch) {
-                // Rimuove le parentesi quadre e converte l'azione in lowercase
-                const cleanStep = stepMatch[1].toLowerCase();
-                planSteps.push(cleanStep);
-            }
-        }
-    }
-    
-    return planSteps;
+function logWorldState(cities, places, trucks, packages) {
+  console.log('🏙️ Cities:', cities);
+  console.log('📍 Places:', places);
+  console.log('🚚 Trucks:', trucks);
+  console.log('📦 Packages:', packages);
 }
 
 </script>

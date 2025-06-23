@@ -56,33 +56,6 @@ export default function extractPDDLSections(fileContent) {
     return results;
 }
 
-// Funzione per estrarre solo una sezione specifica
-export function extractSingleSection(fileContent, sectionName) {
-    const startPattern = `(:${sectionName}`;
-    const startIndex = fileContent.indexOf(startPattern);
-    
-    if (startIndex === -1) {
-        return null;
-    }
-    
-    let count = 0;
-    let i = startIndex;
-    
-    while (i < fileContent.length) {
-        if (fileContent[i] === '(') {
-            count++;
-        } else if (fileContent[i] === ')') {
-            count--;
-            if (count === 0) {
-                const section = fileContent.substring(startIndex, i + 1);
-                return section.replace(/\s+/g, ' ').trim();
-            }
-        }
-        i++;
-    }
-    
-    return null;
-}
 
 /**
  * Funzione helper per estrarre espressioni bilanciate da una stringa
@@ -322,17 +295,79 @@ export function extractGasolineObjects(parsed) {
 }
 
 
-/**
- * Funzione helper per ottenere tutti i predicati di un certo tipo
- * @param {Object} parsedInit - Risultato di parseInit()
- * @param {string} predicateName - Nome del predicato da filtrare
- * @returns {Array} Array di oggetti predicate con args
- */
-export function getPredicatesByType(parsedInit, predicateName) {
-    return parsedInit.predicates
-        .filter(pred => pred.predicate === predicateName)
-        .map(pred => ({
-            predicate: pred.predicate,
-            args: pred.args
-        }));
+
+export function extractFuelRates(pddlDomain) {
+    const rates = {
+        refuelRate: null,
+        consumptionRate: null
+    };
+    const refuelPattern = /\(increase\s+\(gasoline\s+\?\w+\)\s+\(\*\s+(\d+(?:\.\d+)?)\s+#t\)\)/g;
+    const refuelMatch = refuelPattern.exec(pddlDomain);
+    if (refuelMatch) {
+        rates.refuelRate = parseFloat(refuelMatch[1]);
+    }
+    const consumptionPattern = /\(decrease\s+\(gasoline\s+\?\w+\)\s+\(\*\s+(\d+(?:\.\d+)?)\s+#t\)\)/g;
+    const consumptionMatch = consumptionPattern.exec(pddlDomain);
+    if (consumptionMatch) {
+        rates.consumptionRate = parseFloat(consumptionMatch[1]);
+    }
+    return rates;
+}
+
+export function parsePlanWithDurations(outputText) {
+  const lines = outputText.split('\n');
+  const plan = [];
+  let inPlan = false;
+  let lastAction = null;
+  for (const line of lines) {
+    if (line.includes('Found Plan:')) {
+      inPlan = true;
+      continue;
+    }
+    if (inPlan) {
+      const trimmed = line.trim();
+      if (trimmed === '' || trimmed.startsWith('Plan-Length')) break;
+      const actionMatch = trimmed.match(/^([\d.]+):\s+(\(.*\))$/);
+      if (actionMatch) {
+        const [_, timestamp, action] = actionMatch;
+        lastAction = {
+          start: parseFloat(timestamp),
+          action: action,
+          duration: null
+        };
+        plan.push(lastAction);
+        continue;
+      }
+      const waitMatch = trimmed.match(/^([\d.]+):\s+-----waiting----\s+\[([\d.]+)\]$/);
+      if (waitMatch && lastAction) {
+        const endTime = parseFloat(waitMatch[2]);
+        const startTime = lastAction.start;
+        lastAction.duration = endTime - startTime;
+      }
+    }
+  }
+  return plan;
+}
+
+export function extractPlanRobustPDDL2(output) {
+    const lines = output.split('\n');
+    const planSteps = [];
+    let foundPlan = false;
+    for (const line of lines) {
+        if (line.includes('Plan computed:')) {
+            foundPlan = true;
+            continue;
+        }
+        if (foundPlan && (line.includes('Solution number:') || line.includes('Total time:'))) {
+            break;
+        }
+        if (foundPlan) {
+            const stepMatch = line.match(/^\s*(\d+\.?\d*:\s*\([^)]+\))\s*\[[^\]]+\]/);
+            if (stepMatch) {
+                const cleanStep = stepMatch[1].toLowerCase();
+                planSteps.push(cleanStep);
+            }
+        }
+    }
+    return planSteps;
 }
