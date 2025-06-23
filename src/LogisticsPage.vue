@@ -53,7 +53,7 @@ const cases = {
   }
 };
 
-const selectedCase = cases['pddlplus']; // Cambia qui per selezionare un altro caso
+const selectedCase = cases['classicA']; // Cambia qui per selezionare un altro caso
 
 let result;
 if (selectedCase.launcher === launchpddlplus) {
@@ -63,17 +63,6 @@ if (selectedCase.launcher === launchpddlplus) {
 }
 
 const { cities, places, vehicles, packages, steps, distances, fuelRates } = result;
-
-function getCaseByName(name) {
-  return cases[name] || null;
-}
-
-
-
-//const { cities, places, vehicles, packages, steps } = launchpddl1();
-//const { cities, places, vehicles, packages, distances, steps } = launchpddl2();
-//const { cities, places, vehicles, packages, distances, steps, fuelRates } = launchpddlplus();
-
 
 function applyPredicates(predicates, places, vehicles, packages, cities) {
   for (const [predicate, arg1, arg2] of predicates) {

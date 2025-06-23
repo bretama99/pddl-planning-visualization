@@ -12,7 +12,7 @@ export const CITY_STROKE = "#333";
 export const CITY_LABEL_OFFSET_Y = 50; // Offset verticale per il testo delle città
 
 // Posizionamento dei luoghi (places)
-export const PLACE_RADIUS = 15;
+export const PLACE_RADIUS = 80;
 export const PLACE_COLOR = "#90ee90";
 export const PLACE_STROKE = "#333";
 export const PLACE_LABEL_FONT_SIZE = "10px";
