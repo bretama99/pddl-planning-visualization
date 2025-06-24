@@ -14,9 +14,9 @@
 
 
 <script setup>
-import extractPDDLSections, { getDistances, parseInitLegacy, extractGasolineObjects, parseObjects, parseInit, extractPlanRobust, extractFuelRates, parsePlanWithDurations, extractPlanRobustPDDL2 } from './pddlParser.js';
+import extractPDDLSections, { getDistances, parseInitLegacy, parseObjects, parseInit, extractPlanRobust, extractFuelRates, parsePlanWithDurations, extractPlanRobustPDDL2 } from './pddlParser.js';
 import MapVisualizer from './components/GraphVisualization.vue';
-import {probA,planA,probb,planb,prob2ex1,plan2ex1,prob2ex2,plan2ex2,domainpddlplus,problogpddlplus,planpddlplus} from './pddlCases.js'; 
+import {probA,planA,probb,planb,prob2ex1,plan2ex1,prob2ex2,plan2ex2,domainpddlplus,problogpddlplus,planpddlplus, problogpddlplus2, planpddlplus2} from './pddlCases.js'; 
 
 const cases = {
   classicA: {
@@ -49,10 +49,17 @@ const cases = {
     plan: planpddlplus,
     domain: domainpddlplus,
     launcher: launchpddlplus
-  }
+  },
+  pddlplus2: {
+    name: "Logistics with Fuel 2 refuels (PDDL+)",
+    prob: problogpddlplus2,
+    plan: planpddlplus2,
+    domain: domainpddlplus,
+    launcher: launchpddlplus
+  },
 };
 
-const selectedCase = cases['temporal2']; // Cambia qui per selezionare un altro caso
+const selectedCase = cases['temporal1']; // Cambia qui per selezionare un altro caso
 
 let result;
 if (selectedCase.launcher === launchpddlplus) {
@@ -118,7 +125,6 @@ function launchpddlplus(probString, planString, domainString) {
   const { cities, places, vehicles, packages } = parseObjects(extracted.objects);
   const parsed = parseInit(extracted.init);
   const distances = getDistances(parsed);
-  const gasolineObjects = extractGasolineObjects(parsed);
   const legacyPredicates = parsed.predicates.map(p => [p.predicate, ...p.args]);
   applyPredicates(legacyPredicates, places, vehicles, packages, cities);
   applyNumericFunctions(parsed.numericFunctions, vehicles);
@@ -134,7 +140,6 @@ function logWorldState(cities, places, trucks, packages) {
   console.log('🚚 Trucks:', trucks);
   console.log('📦 Packages:', packages);
 }
-
 </script>
 
 

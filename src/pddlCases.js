@@ -630,7 +630,7 @@ export const domainpddlplus = `(define (domain logistics)
   (:types
     truck - vehicle
     package vehicle - physobj
-    location - place
+    location gasstation - place
     city place physobj - object
   )
 
@@ -732,8 +732,9 @@ export const domainpddlplus = `(define (domain logistics)
   )
 
   (:action start-refuel
-    :parameters (?truck - truck)
+    :parameters (?truck - truck ?gs - gasstation)
     :precondition (and
+      (at ?truck ?gs)
       (not (moving ?truck))
       (not (refueling ?truck))
       (< (gasoline ?truck) 100)
@@ -851,3 +852,97 @@ States Evaluated:1028
 Fixed constraint violations during search (zero-crossing):0
 Number of Dead-Ends detected:18
 Number of Duplicates detected:156`
+export const problogpddlplus2 = `(define (problem logistics-fuel-test-v2)
+  (:domain logistics)
+  (:objects
+    pos1 pos2 pos3 - location
+    gs1 gs2 - gasstation
+    cit1 cit2 cit3 - city
+    tru1 - truck
+    obj11 - package
+  )
+
+  (:init 
+    (at tru1 pos1) 
+    (at obj11 pos1)
+    
+    (in-city pos1 cit1)
+    (in-city pos2 cit2)
+    (in-city pos3 cit3)
+    (in-city gs1 cit1)
+    (in-city gs2 cit2)
+    
+    (can-refuel gs1)
+    (can-refuel gs2)
+
+    (= (distance cit1 cit1) 5)
+    (= (distance cit1 cit2) 45)
+    (= (distance cit1 cit3) 90)
+    (= (distance cit2 cit1) 45)
+    (= (distance cit2 cit2) 5)
+    (= (distance cit2 cit3) 45)
+    (= (distance cit3 cit1) 90)
+    (= (distance cit3 cit2) 45)
+    (= (distance cit3 cit3) 5)
+
+    (= (gasoline tru1) 30)
+    (= (speed tru1) 1)
+    (= (moved-distance tru1) 0)
+  )
+
+  (:goal (and
+    (at obj11 pos3)
+  ))
+)`;
+export const planpddlplus2 = `domain parsed
+problem parsed
+grounding..
+grounding time: 68
+aibr preprocessing
+|f|:38
+|x|:2
+heuristic problem creation
+aibr preprocessing
+|a|:38
+|p|:2
+|e|:26
+delta time heuristic model:1.0
+delta time planning model:1.0
+delta time search-execution model:1.0
+delta time validation model:1
+h1 setup time (msec): 13
+ g(n)= 1.0 h(n)=5.0
+ g(n)= 63.0 h(n)=4.0
+ g(n)= 126.0 h(n)=3.0
+ g(n)= 127.0 h(n)=1.0
+extracting plan with execution delta: 1.0
+problem solved
+
+found plan:
+0: (load-truck obj11 tru1 pos1)
+0: (start-move tru1 pos1 gs1 cit1 cit1)
+0: -----waiting---- [5.0]
+5.0: (start-refuel tru1 gs1)
+5.0: -----waiting---- [13.0]
+13.0: (stop-refuel tru1)
+13.0: (start-move tru1 gs1 gs2 cit1 cit2)
+13.0: -----waiting---- [58.0]
+58.0: (start-refuel tru1 gs2)
+58.0: -----waiting---- [68.0]
+68.0: (stop-refuel tru1)
+68.0: (start-move tru1 gs2 pos2 cit2 cit2)
+68.0: -----waiting---- [73.0]
+73.0: (start-move tru1 pos2 pos3 cit2 cit3)
+73.0: -----waiting---- [118.0]
+118.0: (unload-truck obj11 tru1 pos3)
+
+plan-length:132
+elapsed time: 118.0
+metric (search):128.0
+planning time (msec): 189
+heuristic time (msec): 110
+search time (msec): 182
+expanded nodes:3091
+states evaluated:3451
+number of dead-ends detected:91
+number of duplicates detected:376`

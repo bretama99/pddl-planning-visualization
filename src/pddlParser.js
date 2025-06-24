@@ -286,15 +286,6 @@ export function getDistances(parsedInit) {
         }));
 }
 
-export function extractGasolineObjects(parsed) {
-  if (!parsed || !Array.isArray(parsed.numericFunctions)) return [];
-
-  return parsed.numericFunctions.filter(
-    (fn) => fn.functionName === "gasoline"
-  );
-}
-
-
 
 export function extractFuelRates(pddlDomain) {
     const rates = {
@@ -320,7 +311,7 @@ export function parsePlanWithDurations(outputText) {
   let inPlan = false;
   let lastAction = null;
   for (const line of lines) {
-    if (line.includes('Found Plan:')) {
+    if (line.includes('Found Plan:') || line.includes('found plan:')) {
       inPlan = true;
       continue;
     }
