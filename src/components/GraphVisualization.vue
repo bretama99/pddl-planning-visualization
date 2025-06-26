@@ -65,47 +65,12 @@ export default {
     };
   },
   mounted() {
+    this.resetAllInternal();
     this.initializeDistances();
     this.planFormat = this.determinePlanFormat();
     console.log("Formato del piano:", this.planFormat);
     this.initPositions();
     this.drawGraph();
-  },
-  watch: {
-    distances: {
-      handler(newDistances) {
-        if (newDistances && newDistances.length > 0) {
-          this.initializeDistances();
-        }
-      },
-      immediate: true,
-    },
-    cities: {
-      handler() {
-        this.initPositions();
-        this.drawGraph();
-      },
-      deep: true,
-    },
-    places: {
-      handler() {
-        this.initPositions();
-        this.drawGraph();
-      },
-      deep: true,
-    },
-    vehicles: {
-      handler() {
-        this.drawGraph();
-      },
-      deep: true,
-    },
-    packages: {
-      handler() {
-        this.drawGraph();
-      },
-      deep: true,
-    },
   },
   methods: {
     initPositions() {
@@ -125,7 +90,6 @@ export default {
         };
       });
 
-      const radius = 80;
       Object.values(this.places).forEach((place) => {
         if (!this.positions.places[place.id]) {
           const cityPos = this.positions.cities[place.city.name];
@@ -137,8 +101,8 @@ export default {
             const numPlaces = placesInCity.length;
             const angle = ((2 * Math.PI) / numPlaces) * idx;
             this.positions.places[place.id] = {
-              x: cityPos.x + radius * Math.cos(angle),
-              y: cityPos.y + radius * Math.sin(angle),
+              x: cityPos.x + constants.PLACE_RADIUS * Math.cos(angle),
+              y: cityPos.y + constants.PLACE_RADIUS * Math.sin(angle),
             };
           }
         }
@@ -1375,6 +1339,27 @@ export default {
     .attr('fill', '#666')
     .text(`${Math.round(gasolinePercentage)}%`);
 },
+    clearDistanceMap() {
+      if (this.distanceMap) {
+        this.distanceMap.clear();
+      }
+    },
+    resetPlanFormat() {
+      this.planFormat = null;
+    },
+    clearPositions() {
+      if (this.positions) {
+        if (this.positions.cities) this.positions.cities = {};
+        if (this.positions.places) this.positions.places = {};
+        if (this.positions.vehicles) this.positions.vehicles = {};
+        if (this.positions.packages) this.positions.packages = {};
+      }
+    },
+    resetAllInternal() {
+      this.clearDistanceMap();
+      this.resetPlanFormat();
+      this.clearPositions();
+    },
   },
 };
 </script>

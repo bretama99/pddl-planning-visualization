@@ -1,6 +1,20 @@
 <template>
   <div class="app">
+    <div style="margin-bottom: 20px;">
+      <label>Tipo di planner:
+        <select v-model="selectedPlanner" @change="onPlannerChange">
+          <option v-for="(label, key) in plannerOptions" :key="key" :value="key">{{ label }}</option>
+        </select>
+      </label>
+      <label style="margin-left: 20px;">Istanza:
+        <select v-model="selectedInstanceKey" @change="onInstanceChange">
+          <option v-for="instance in filteredInstances" :key="instance.key" :value="instance.key">{{ instance.name }}</option>
+        </select>
+      </label>
+    </div>
     <MapVisualizer
+      ref="mapVisRef"
+      :key="visualizerKey"
       :cities="cities"
       :places="places"
       :vehicles="vehicles"
@@ -12,12 +26,13 @@
   </div>
 </template>
 
-
 <script setup>
+import { ref, computed, watch, nextTick } from 'vue';
 import extractPDDLSections, { getDistances, parseInitLegacy, parseObjects, parseInit, extractPlanRobust, extractFuelRates, parsePlanWithDurations, extractPlanRobustPDDL2 } from './pddlParser.js';
 import MapVisualizer from './components/GraphVisualization.vue';
 import {probA,planA,probb,planb,prob2ex1,plan2ex1,prob2ex2,plan2ex2,domainpddlplus,problogpddlplus,planpddlplus, problogpddlplus2, planpddlplus2} from './pddlCases.js'; 
 
+// --- CASES DEFINITION ---
 const cases = {
   classicA: {
     name: "Logistics Multi-City A",
@@ -59,17 +74,75 @@ const cases = {
   },
 };
 
-const selectedCase = cases['temporal1']; // Cambia qui per selezionare un altro caso
+const plannerOptions = {
+  launchpddl1: 'PDDL classico',
+  launchpddl2: 'PDDL 2.2',
+  launchpddlplus: 'PDDL+',
+};
 
-let result;
-if (selectedCase.launcher === launchpddlplus) {
-  result = selectedCase.launcher(selectedCase.prob, selectedCase.plan, selectedCase.domain);
-} else {
-  result = selectedCase.launcher(selectedCase.prob, selectedCase.plan);
+const selectedPlanner = ref('launchpddl1');
+const selectedInstanceKey = ref(null);
+const visualizerKey = ref(0);
+const mapVisRef = ref(null);
+
+const filteredInstances = computed(() => {
+  return Object.entries(cases)
+    .filter(([key, c]) => c.launcher.name === selectedPlanner.value)
+    .map(([key, c]) => ({ key, name: c.name }));
+});
+
+// Aggiorna selectedInstanceKey quando cambia planner
+function onPlannerChange() {
+  const first = filteredInstances.value[0];
+  if (first) {
+    selectedInstanceKey.value = first.key;
+    resetVisualizer();
+  }
 }
 
-const { cities, places, vehicles, packages, steps, distances, fuelRates } = result;
+function onInstanceChange() {
+  resetVisualizer();
+}
 
+function resetVisualizer() {
+  visualizerKey.value++;
+}
+
+// --- LOGICA DI LANCIO E DATI REATTIVI ---
+const cities = ref({});
+const places = ref({});
+const vehicles = ref({});
+const packages = ref({});
+const steps = ref([]);
+const distances = ref({});
+const fuelRates = ref({});
+
+function updateData() {
+  const selectedCase = cases[selectedInstanceKey.value];
+  let result;
+  if (selectedCase.launcher === launchpddlplus) {
+    result = selectedCase.launcher(selectedCase.prob, selectedCase.plan, selectedCase.domain);
+  } else {
+    result = selectedCase.launcher(selectedCase.prob, selectedCase.plan);
+  }
+  cities.value = result.cities || {};
+  places.value = result.places || {};
+  vehicles.value = result.vehicles || {};
+  packages.value = result.packages || {};
+  steps.value = result.steps || [];
+  distances.value = result.distances || {};
+  fuelRates.value = result.fuelRates || {};
+}
+
+watch([selectedInstanceKey], updateData, { immediate: true });
+
+// Imposta la prima istanza valida all'avvio
+if (!selectedInstanceKey.value) {
+  const first = filteredInstances.value[0];
+  if (first) selectedInstanceKey.value = first.key;
+}
+
+// --- FUNZIONI DI PARSING E LANCIO (come prima) ---
 function applyPredicates(predicates, places, vehicles, packages, cities) {
   for (const [predicate, arg1, arg2] of predicates) {
     if (predicate === 'at') {
@@ -90,7 +163,6 @@ function applyNumericFunctions(numericFunctions, vehicles) {
   for (const fn of numericFunctions) {
     const [target] = fn.args;
     const value = fn.value;
-
     if (fn.functionName === 'gasoline' && vehicles[target]) {
       vehicles[target].initializeGasoline(value);
     }
@@ -119,7 +191,6 @@ function launchpddl2(probString, planString) {
   return { cities, places, vehicles, packages, distances, steps };
 }
 
-
 function launchpddlplus(probString, planString, domainString) {
   const extracted = extractPDDLSections(probString);
   const { cities, places, vehicles, packages } = parseObjects(extracted.objects);
@@ -135,13 +206,12 @@ function launchpddlplus(probString, planString, domainString) {
 }
 
 function logWorldState(cities, places, trucks, packages) {
-  console.log('🏙️ Cities:', cities);
-  console.log('📍 Places:', places);
-  console.log('🚚 Trucks:', trucks);
-  console.log('📦 Packages:', packages);
+  // console.log('🏙️ Cities:', cities);
+  // console.log('📍 Places:', places);
+  // console.log('🚚 Trucks:', trucks);
+  // console.log('📦 Packages:', packages);
 }
 </script>
-
 
 <style>
 .app {
