@@ -1,5 +1,6 @@
 <template>
   <div class="app">
+    <h1 class="main-title">LOGISTICS PLANNING VISUALIZER</h1>
     <div style="margin-bottom: 20px;">
       <label>Tipo di planner:
         <select v-model="selectedPlanner" @change="onPlannerChange">
@@ -15,6 +16,8 @@
     <MapVisualizer
       ref="mapVisRef"
       :key="visualizerKey"
+      :visualizerKey="visualizerKey"
+      :execution-token="executionToken"
       :cities="cities"
       :places="places"
       :vehicles="vehicles"
@@ -22,6 +25,7 @@
       :steps="steps"
       :distances="distances"
       :fuel-rates="fuelRates"
+      :shared-state="sharedState"
     />
   </div>
 </template>
@@ -30,7 +34,9 @@
 import { ref, computed, watch, nextTick } from 'vue';
 import extractPDDLSections, { getDistances, parseInitLegacy, parseObjects, parseInit, extractPlanRobust, extractFuelRates, parsePlanWithDurations, extractPlanRobustPDDL2 } from './pddlParser.js';
 import MapVisualizer from './components/GraphVisualization.vue';
-import {probA,planA,probb,planb,prob2ex1,plan2ex1,prob2ex2,plan2ex2,domainpddlplus,problogpddlplus,planpddlplus, problogpddlplus2, planpddlplus2} from './pddlCases.js'; 
+import { probA, planA, probb, planb, prob2ex1, plan2ex1, prob2ex2, plan2ex2, domainpddlplus, problogpddlplus, planpddlplus, problogpddlplus2, planpddlplus2 } from './pddlCases.js'; 
+import { reactive } from 'vue';
+
 
 // --- CASES DEFINITION ---
 const cases = {
@@ -84,6 +90,8 @@ const selectedPlanner = ref('launchpddl1');
 const selectedInstanceKey = ref(null);
 const visualizerKey = ref(0);
 const mapVisRef = ref(null);
+const executionToken = ref(0);
+
 
 const filteredInstances = computed(() => {
   return Object.entries(cases)
@@ -104,8 +112,23 @@ function onInstanceChange() {
   resetVisualizer();
 }
 
+const sharedState = reactive({
+  executionToken: 0,
+  shouldStop: false
+});
 function resetVisualizer() {
+  // Ferma l'esecuzione corrente
+  sharedState.shouldStop = true;
+  sharedState.executionToken++;
+  
   visualizerKey.value++;
+  
+  console.log(`Resetting visualizer with key: ${visualizerKey.value}, execution token: ${sharedState.executionToken}`);
+  
+  // Resetta il flag dopo un breve delay
+  nextTick(() => {
+    sharedState.shouldStop = false;
+  });
 }
 
 // --- LOGICA DI LANCIO E DATI REATTIVI ---
@@ -217,6 +240,15 @@ function logWorldState(cities, places, trucks, packages) {
 .app {
   text-align: center;
   margin-top: 20px;
+}
+.main-title {
+  font-size: 2.2em;
+  font-weight: bold;
+  margin-bottom: 18px;
+  margin-top: 18px;
+  text-align: center;
+  color: #000000;
+  letter-spacing: 1px;
 }
 svg {
   border: 1px solid #ccc;
