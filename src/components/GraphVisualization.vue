@@ -49,8 +49,8 @@ export default {
   data() {
     return {
       planFormat: null,
-      width: 800,
-      height: 600,
+      width: window.innerWidth * 0.75,
+      height: Math.max(500, window.innerHeight * 0.7),
       zoom: null,
       positions: {
         cities: {},

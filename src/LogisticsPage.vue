@@ -1,14 +1,14 @@
 <template>
   <div class="app">
     <h1 class="main-title">LOGISTICS PLANNING VISUALIZER</h1>
-    <div style="margin-bottom: 20px;">
-      <label>Tipo di planner:
-        <select v-model="selectedPlanner" @change="onPlannerChange">
+    <div class="dropdown-row">
+      <label class="dropdown-label">Tipo di planner:
+        <select v-model="selectedPlanner" @change="onPlannerChange" class="dropdown-select">
           <option v-for="(label, key) in plannerOptions" :key="key" :value="key">{{ label }}</option>
         </select>
       </label>
-      <label style="margin-left: 20px;">Istanza:
-        <select v-model="selectedInstanceKey" @change="onInstanceChange">
+      <label class="dropdown-label">Istanza:
+        <select v-model="selectedInstanceKey" @change="onInstanceChange" class="dropdown-select">
           <option v-for="instance in filteredInstances" :key="instance.key" :value="instance.key">{{ instance.name }}</option>
         </select>
       </label>
@@ -261,6 +261,31 @@ function logWorldState(cities, places, trucks, packages) {
   text-align: center;
   color: #000000;
   letter-spacing: 1px;
+}
+.dropdown-row {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.dropdown-label {
+  display: flex;
+  flex-direction: column;
+  font-weight: 500;
+  font-size: 1em;
+  min-width: 180px;
+  align-items: flex-start;
+}
+.dropdown-select {
+  width: 220px;
+  padding: 6px 10px;
+  font-size: 1em;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  margin-top: 4px;
+  box-sizing: border-box;
 }
 svg {
   border: 1px solid #ccc;
