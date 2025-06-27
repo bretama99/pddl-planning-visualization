@@ -1,22 +1,24 @@
 <template>
   <div class="steps-visualization">
     <h3>Step del piano</h3>
-    <ol>
-      <li
-        v-for="(step, idx) in steps"
-        :key="idx"
-        :class="{ current: idx === currentStepIndex }"
-      >
-        <span v-if="planFormat === 'PDDL+'">
-          {{ step.action }}
-          <span v-if="step.duration">({{ step.duration }})</span>
-        </span>
-        <span v-else>
-          {{ step }}
-        </span>
-      </li>
-    </ol>
-    <div style="display: flex; gap: 8px">
+    <div class="steps-list-container">
+      <ol>
+        <li
+          v-for="(step, idx) in steps"
+          :key="idx"
+          :class="{ current: idx === currentStepIndex }"
+        >
+          <span v-if="planFormat === 'PDDL+'">
+            {{ step.action }}
+            <span v-if="step.duration">({{ step.duration }})</span>
+          </span>
+          <span v-else>
+            {{ step }}
+          </span>
+        </li>
+      </ol>
+    </div>
+    <div class="steps-controls-fixed">
       <button
         class="play-steps-btn"
         @click="$emit('play-steps')"
@@ -63,12 +65,20 @@ export default {
   background: rgba(255, 255, 255, 0.95);
   border: 1px solid #ccc;
   border-radius: 8px;
-  padding: 12px 18px;
+  padding: 12px 18px 12px 18px;
   max-height: 80vh;
-  overflow-y: auto;
   margin-left: 16px;
   z-index: 10;
   box-sizing: border-box;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.steps-list-container {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  max-height: 55vh;
 }
 .steps-visualization ol {
   padding-left: 18px;
@@ -85,12 +95,25 @@ export default {
   color: #fff;
   font-weight: bold;
 }
+.steps-controls-fixed {
+  flex-shrink: 0;
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  background: rgba(255,255,255,0.95);
+  padding-top: 8px;
+  z-index: 20;
+}
 @media (max-width: 900px) {
   .steps-visualization {
     margin-left: 0;
     margin-top: 12px;
     max-width: 100vw;
     width: 100%;
+  }
+  .steps-controls-fixed {
+    left: 8px;
+    right: 8px;
   }
 }
 .play-steps-btn {
@@ -102,8 +125,6 @@ export default {
   font-size: 1.1em;
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  margin-top: 12px;
-  margin-bottom: 8px;
   width: 100%;
   display: block;
 }
@@ -116,8 +137,6 @@ export default {
   font-size: 1.1em;
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  margin-top: 12px;
-  margin-bottom: 8px;
   width: 100%;
   display: block;
   opacity: 1;
@@ -136,8 +155,6 @@ export default {
   font-size: 1.1em;
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  margin-top: 12px;
-  margin-bottom: 8px;
   width: 100%;
   display: block;
   opacity: 1;
