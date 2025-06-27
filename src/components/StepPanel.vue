@@ -59,13 +59,13 @@ export default {
 
 <style scoped>
 .steps-visualization {
-  flex: 0 0 300px;
-  max-width: 340px;
-  min-width: 220px;
+  flex: 0 0 400px;
+  max-width: 480px;
+  min-width: 260px;
   background: rgba(255, 255, 255, 0.95);
   border: 1px solid #ccc;
   border-radius: 8px;
-  padding: 12px 18px 12px 18px;
+  padding: 12px 24px 12px 24px;
   max-height: 80vh;
   margin-left: 16px;
   z-index: 10;
@@ -81,8 +81,9 @@ export default {
   max-height: 55vh;
 }
 .steps-visualization ol {
-  padding-left: 18px;
-  margin: 0;
+  padding-left: 0;
+  margin: 0 0 0 18px;
+  list-style-position: inside;
 }
 .steps-visualization li {
   margin-bottom: 6px;

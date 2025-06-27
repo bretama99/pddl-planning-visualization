@@ -34,7 +34,7 @@
 import { ref, computed, watch, nextTick } from 'vue';
 import extractPDDLSections, { getDistances, parseInitLegacy, parseObjects, parseInit, extractPlanRobust, extractFuelRates, parsePlanWithDurations, extractPlanRobustPDDL2 } from './pddlParser.js';
 import MapVisualizer from './components/GraphVisualization.vue';
-import { probA, planA, probb, planb, prob2ex1, plan2ex1, prob2ex2, plan2ex2, domainpddlplus, problogpddlplus, planpddlplus, problogpddlplus2, planpddlplus2, problogpddlplus3, planpddlplus3, prob2ex3, plan2ex3 } from './pddlCases.js';
+import { probA, planA, probb, planb, prob2ex1, plan2ex1, prob2ex2, plan2ex2, domainpddlplus, problogpddlplus, planpddlplus, problogpddlplus2, planpddlplus2, problogpddlplus3, planpddlplus3, prob2ex3, plan2ex3, probc, planC } from './pddlCases.js';
 import { reactive } from 'vue';
 
 // --- CASES DEFINITION ---
@@ -49,6 +49,12 @@ const cases = {
     name: "Logistics Delivery B",
     prob: probb,
     plan: planb,
+    launcher: launchpddl1
+  },
+  classicC: {
+    name: "Logistics Delivery C",
+    prob: probc,
+    plan: planC,
     launcher: launchpddl1
   },
   temporal1: {
