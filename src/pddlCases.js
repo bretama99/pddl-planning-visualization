@@ -625,6 +625,166 @@ Plan quality:    18.000
 Total Num Flips: 20
      Plan file:       plan_prog.pddl_1.SOL
 `
+export const prob2ex3 = `(define (problem logistics-temporal-air-4cities)
+  (:domain logistics)
+  
+  (:objects
+    milano roma torino napoli - city
+    malpensa fiumicino caselle capodichino - airport
+    centromilano stazionemilano duomo - location
+    centroroma terminiroma colosseo - location
+    piazzacastello lingotto portanuova - location
+    centralenapoli vomero posillipo - location
+    pacco1 pacco2 pacco3 pacco4 pacco5 pacco6 - package
+    truck1 truck2 truck3 truck4 - truck
+    aereo1 aereo2 aereo3 - airplane
+  )
+  
+  (:init
+    (in-city malpensa milano)
+    (in-city centromilano milano)
+    (in-city stazionemilano milano)
+    (in-city duomo milano)
+    
+    (in-city fiumicino roma)
+    (in-city centroroma roma)
+    (in-city terminiroma roma)
+    (in-city colosseo roma)
+    
+    (in-city caselle torino)
+    (in-city piazzacastello torino)
+    (in-city lingotto torino)
+    (in-city portanuova torino)
+    
+    (in-city capodichino napoli)
+    (in-city centralenapoli napoli)
+    (in-city vomero napoli)
+    (in-city posillipo napoli)
+    
+    (at truck1 centromilano)
+    (at truck2 centroroma)
+    (at truck3 piazzacastello)
+    (at truck4 centralenapoli)
+    
+    (at aereo1 malpensa)
+    (at aereo2 fiumicino)
+    (at aereo3 capodichino)
+    
+    (at pacco1 duomo)
+    (at pacco2 colosseo)
+    (at pacco3 lingotto)
+    (at pacco4 vomero)
+    (at pacco5 malpensa)
+    (at pacco6 caselle)
+    (= (distance milano milano) 0)
+    (= (distance milano roma) 5)
+    (= (distance milano torino) 2)
+    (= (distance milano napoli) 8)
+    
+    (= (distance roma milano) 5)
+    (= (distance roma roma) 0)
+    (= (distance roma torino) 7)
+    (= (distance roma napoli) 3)
+    
+    (= (distance torino milano) 2)
+    (= (distance torino roma) 7)
+    (= (distance torino torino) 0)
+    (= (distance torino napoli) 10)
+    
+    (= (distance napoli milano) 8)
+    (= (distance napoli roma) 3)
+    (= (distance napoli torino) 10)
+    (= (distance napoli napoli) 0)
+  )
+  
+  (:goal
+    (and
+      (at pacco1 capodichino)
+      (at pacco2 portanuova)
+      (at pacco3 terminiroma)
+      (at pacco4 stazionemilano)
+      (at pacco5 posillipo)
+      (at pacco6 fiumicino)
+    )
+  )
+)`;
+export const plan2ex3 = `
+NUMERIC_THREATS_MODE: 0
+
+; Command line: ./lpg-td -o dom2.pddl -f prog.pddl -n 1
+
+
+Parsing domain file:  domain 'LOGISTICS' defined ... done.
+Parsing problem file:  problem 'LOGISTICS-TEMPORAL-AIR-4CITIES' defined ... done.
+
+
+
+Modality: Incremental Planner
+
+Number of actions             :    1984
+Number of conditional actions :       0
+Number of facts               :     214
+
+
+Analyzing Planning Problem:
+        Temporal Planning Problem: NO
+        Numeric Planning Problem: YES
+        Problem with Timed Initial Literals: NO
+        Problem with Derived Predicates: NO
+
+Evaluation function weights:
+     Action duration 0.00; Action cost 1.00
+
+
+Computing mutex... done
+
+Preprocessing total time: 0.00 seconds
+
+Searching ('.' = every 50 search steps):
+ solution found:
+ Recompute start times
+
+ first_solution_cpu_time: 0.03
+
+Plan computed:
+   Time: (ACTION) [action Duration; action Cost]
+ 0.0000: (DRIVE-TRUCK TRUCK1 CENTROMILANO VOMERO MILANO NAPOLI) [D:8.00; C:1.00]
+ 0.0000: (DRIVE-TRUCK TRUCK3 PIAZZACASTELLO COLOSSEO TORINO ROMA) [D:7.00; C:1.00]
+ 0.0000: (FLY-AIRPLANE AEREO2 FIUMICINO CASELLE ROMA TORINO) [D:7.00; C:1.00]
+ 7.0000: (LOAD-TRUCK PACCO2 TRUCK3 COLOSSEO) [D:0.00; C:1.00]
+ 7.0000: (DRIVE-TRUCK TRUCK3 COLOSSEO PORTANUOVA ROMA TORINO) [D:7.00; C:1.00]
+ 7.0000: (LOAD-AIRPLANE PACCO6 AEREO2 CASELLE) [D:0.00; C:1.00]
+ 7.0000: (FLY-AIRPLANE AEREO2 CASELLE FIUMICINO TORINO ROMA) [D:7.00; C:1.00]
+ 8.0000: (LOAD-TRUCK PACCO4 TRUCK1 VOMERO) [D:0.00; C:1.00]
+ 8.0000: (DRIVE-TRUCK TRUCK1 VOMERO STAZIONEMILANO NAPOLI MILANO) [D:8.00; C:1.00]
+ 14.0000: (UNLOAD-TRUCK PACCO2 TRUCK3 PORTANUOVA) [D:0.00; C:1.00]
+ 14.0000: (DRIVE-TRUCK TRUCK3 PORTANUOVA LINGOTTO TORINO TORINO) [D:0.00; C:1.00]
+ 14.0000: (LOAD-TRUCK PACCO3 TRUCK3 LINGOTTO) [D:0.00; C:1.00]
+ 14.0000: (DRIVE-TRUCK TRUCK3 LINGOTTO TERMINIROMA TORINO ROMA) [D:7.00; C:1.00]
+ 14.0000: (UNLOAD-AIRPLANE PACCO6 AEREO2 FIUMICINO) [D:0.00; C:1.00]
+ 16.0000: (UNLOAD-TRUCK PACCO4 TRUCK1 STAZIONEMILANO) [D:0.00; C:1.00]
+ 16.0000: (DRIVE-TRUCK TRUCK1 STAZIONEMILANO PORTANUOVA MILANO TORINO) [D:2.00; C:1.00]
+ 18.0000: (DRIVE-TRUCK TRUCK1 PORTANUOVA PIAZZACASTELLO TORINO TORINO) [D:0.00; C:1.00]
+ 18.0000: (DRIVE-TRUCK TRUCK1 PIAZZACASTELLO MALPENSA TORINO MILANO) [D:2.00; C:1.00]
+ 20.0000: (LOAD-TRUCK PACCO5 TRUCK1 MALPENSA) [D:0.00; C:1.00]
+ 20.0000: (DRIVE-TRUCK TRUCK1 MALPENSA POSILLIPO MILANO NAPOLI) [D:8.00; C:1.00]
+ 21.0000: (UNLOAD-TRUCK PACCO3 TRUCK3 TERMINIROMA) [D:0.00; C:1.00]
+ 28.0000: (UNLOAD-TRUCK PACCO5 TRUCK1 POSILLIPO) [D:0.00; C:1.00]
+ 28.0000: (DRIVE-TRUCK TRUCK1 POSILLIPO CENTROMILANO NAPOLI MILANO) [D:8.00; C:1.00]
+ 36.0000: (DRIVE-TRUCK TRUCK1 CENTROMILANO DUOMO MILANO MILANO) [D:0.00; C:1.00]
+ 36.0000: (LOAD-TRUCK PACCO1 TRUCK1 DUOMO) [D:0.00; C:1.00]
+ 36.0000: (DRIVE-TRUCK TRUCK1 DUOMO CAPODICHINO MILANO NAPOLI) [D:8.00; C:1.00]
+ 44.0000: (UNLOAD-TRUCK PACCO1 TRUCK1 CAPODICHINO) [D:0.00; C:1.00]
+
+
+Solution number: 1
+Total time:      0.03
+Search time:     0.03
+Actions:         27
+Duration:        44.000
+Plan quality:    27.000
+Total Num Flips: 28
+     Plan file:       plan_prog.pddl_1.SOL`;
 export const domainpddlplus = `(define (domain logistics)
   (:requirements :strips :typing :fluents :time :processes :events)
   (:types
@@ -946,3 +1106,105 @@ expanded nodes:3091
 states evaluated:3451
 number of dead-ends detected:91
 number of duplicates detected:376`
+
+export const problogpddlplus3 = `(define (problem logistics-two-trucks)
+  (:domain logistics)
+  (:objects
+    pos1 pos3 - location
+    gs1 gs2 - gasstation
+    cit1 cit2 - city
+    tru1 - truck
+    obj1 obj2 - package
+  )
+
+  (:init 
+    (at tru1 pos1) 
+    (at obj1 pos1)
+    (at obj2 pos3)
+    
+    (in-city pos1 cit1)
+    (in-city pos3 cit2)
+    (in-city gs1 cit1)
+    (in-city gs2 cit2)
+
+    (= (distance cit1 cit1) 5)
+    (= (distance cit1 cit2) 35)
+    (= (distance cit2 cit1) 35)
+    (= (distance cit2 cit2) 5)
+
+
+    (= (gasoline tru1) 25)
+    (= (speed tru1) 1)
+    (= (moved-distance tru1) 0)
+  )
+
+  (:goal (and
+    (at obj1 pos3)
+    (at obj2 pos1)
+      ))
+)`;
+
+export const planpddlplus3 = `Domain parsed
+Problem parsed
+Grounding..
+Grounding Time: 38
+Aibr Preprocessing
+|F|:32
+|X|:2
+Aibr Preprocessing
+|A|:35
+|P|:2
+|E|:17
+Delta time heuristic model:1.0
+Delta time planning model:1.0
+Delta time search-execution model:1.0
+Delta time validation model:1
+H1 Setup Time (msec): 16
+Setting horizon to:NaN
+Running Greedy Best First Search
+h(n = s_0)=12.0
+ g(n)= 1.0 h(n)=11.0
+ g(n)= 65.0 h(n)=6.0
+ g(n)= 66.0 h(n)=5.0
+ g(n)= 67.0 h(n)=4.0
+ g(n)= 118.0 h(n)=3.0
+ g(n)= 119.0 h(n)=1.0
+ g(n)= 120.0 h(n)=0.0
+Extracting plan with execution delta: 1.0
+Problem Solved
+
+Found Plan:
+0: (load-truck obj1 tru1 pos1)
+0: (start-move tru1 pos1 gs1 cit1 cit1)
+0: -----waiting---- [5.0]
+5.0: (start-refuel tru1 gs1)
+5.0: -----waiting---- [14.0]
+14.0: (stop-refuel tru1)
+14.0: (start-move tru1 gs1 pos3 cit1 cit2)
+14.0: -----waiting---- [49.0]
+49.0: (load-truck obj2 tru1 pos3)
+49.0: (unload-truck obj1 tru1 pos3)
+49.0: (start-move tru1 pos3 gs2 cit2 cit2)
+49.0: -----waiting---- [54.0]
+54.0: (start-refuel tru1 gs2)
+54.0: -----waiting---- [61.0]
+61.0: (stop-refuel tru1)
+61.0: (start-move tru1 gs2 gs2 cit2 cit2)
+61.0: -----waiting---- [66.0]
+66.0: (start-move tru1 gs2 pos3 cit2 cit2)
+66.0: -----waiting---- [71.0]
+71.0: (start-move tru1 pos3 pos1 cit2 cit1)
+71.0: -----waiting---- [106.0]
+106.0: (unload-truck obj2 tru1 pos1)
+
+Plan-Length:126
+Elapsed Time: 106.0
+Metric (Search):120.0
+Planning Time (msec): 524
+Heuristic Time (msec): 115
+Search Time (msec): 172
+Expanded Nodes:1793
+States Evaluated:2202
+Fixed constraint violations during search (zero-crossing):0
+Number of Dead-Ends detected:46
+Number of Duplicates detected:417`;

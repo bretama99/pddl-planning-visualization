@@ -34,9 +34,8 @@
 import { ref, computed, watch, nextTick } from 'vue';
 import extractPDDLSections, { getDistances, parseInitLegacy, parseObjects, parseInit, extractPlanRobust, extractFuelRates, parsePlanWithDurations, extractPlanRobustPDDL2 } from './pddlParser.js';
 import MapVisualizer from './components/GraphVisualization.vue';
-import { probA, planA, probb, planb, prob2ex1, plan2ex1, prob2ex2, plan2ex2, domainpddlplus, problogpddlplus, planpddlplus, problogpddlplus2, planpddlplus2 } from './pddlCases.js'; 
+import { probA, planA, probb, planb, prob2ex1, plan2ex1, prob2ex2, plan2ex2, domainpddlplus, problogpddlplus, planpddlplus, problogpddlplus2, planpddlplus2, problogpddlplus3, planpddlplus3, prob2ex3, plan2ex3 } from './pddlCases.js';
 import { reactive } from 'vue';
-
 
 // --- CASES DEFINITION ---
 const cases = {
@@ -64,6 +63,12 @@ const cases = {
     plan: plan2ex2,
     launcher: launchpddl2
   },
+  temporal3: {
+    name: "Temporal 4 cities",
+    prob: prob2ex3,
+    plan: plan2ex3,
+    launcher: launchpddl2
+  },
   pddlplus: {
     name: "Logistics with Fuel (PDDL+)",
     prob: problogpddlplus,
@@ -78,6 +83,13 @@ const cases = {
     domain: domainpddlplus,
     launcher: launchpddlplus
   },
+  pddlplus3: {
+    name: "Logistics refuels back and forth (PDDL+)",
+    prob: problogpddlplus3,
+    plan: planpddlplus3,
+    domain: domainpddlplus,
+    launcher: launchpddlplus
+  }
 };
 
 const plannerOptions = {
@@ -229,10 +241,10 @@ function launchpddlplus(probString, planString, domainString) {
 }
 
 function logWorldState(cities, places, trucks, packages) {
-  // console.log('🏙️ Cities:', cities);
-  // console.log('📍 Places:', places);
-  // console.log('🚚 Trucks:', trucks);
-  // console.log('📦 Packages:', packages);
+  console.log('🏙️ Cities:', cities);
+  console.log('📍 Places:', places);
+  console.log('🚚 Trucks:', trucks);
+  console.log('📦 Packages:', packages);
 }
 </script>
 
