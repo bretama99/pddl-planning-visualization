@@ -1412,7 +1412,6 @@ export const problogpddlplus3 = `(define (problem logistics-two-trucks)
     (at obj2 pos1)
       ))
 )`;
-
 export const planpddlplus3 = `Domain parsed
 Problem parsed
 Grounding..
@@ -1477,3 +1476,175 @@ States Evaluated:2202
 Fixed constraint violations during search (zero-crossing):0
 Number of Dead-Ends detected:46
 Number of Duplicates detected:417`;
+
+export const problogpddlplus4cities = `(define (problem logistics-four-cities)
+  (:domain logistics)
+  (:objects
+    depot1 store1 - location
+    depot2 store2 - location  
+    depot3 store3 - location
+    depot4 store4 - location
+    
+    gs1 gs2 gs3 gs4 - gasstation
+    
+    milan rome naples florence - city
+    
+    truck1 truck2 truck3 - truck
+    
+    pkg1 pkg2 pkg3 pkg4 pkg5 pkg6 - package
+  )
+
+  (:init 
+    (at truck1 depot1) 
+    (at truck2 depot2)
+    (at truck3 depot3)
+    
+    (at pkg1 depot1)
+    (at pkg2 store1)
+    (at pkg3 depot2)
+    (at pkg4 store2)
+    (at pkg5 depot3)
+    (at pkg6 store3)
+    
+    (in-city depot1 milan)
+    (in-city store1 milan)
+    (in-city gs1 milan)
+    
+    (in-city depot2 rome)
+    (in-city store2 rome)
+    (in-city gs2 rome)
+    
+    (in-city depot3 naples)
+    (in-city store3 naples)
+    (in-city gs3 naples)
+    
+    (in-city depot4 florence)
+    (in-city store4 florence)
+    (in-city gs4 florence)
+
+    (= (distance milan milan) 0)
+    (= (distance milan rome) 2)
+    (= (distance milan naples) 3)
+    (= (distance milan florence) 1)
+    
+    (= (distance rome milan) 2)
+    (= (distance rome rome) 0)
+    (= (distance rome naples) 1)
+    (= (distance rome florence) 2)
+    
+    (= (distance naples milan) 3)
+    (= (distance naples rome) 1)
+    (= (distance naples naples) 0)
+    (= (distance naples florence) 3)
+
+    (= (distance florence milan) 1)
+    (= (distance florence rome) 2)
+    (= (distance florence naples) 3)
+    (= (distance florence florence) 0)
+
+    (= (gasoline truck1) 40)
+    (= (gasoline truck2) 30)
+    (= (gasoline truck3) 60)
+    
+    (= (speed truck1) 1)
+    (= (speed truck2) 1)
+    (= (speed truck3) 1)
+    
+    (= (moved-distance truck1) 0)
+    (= (moved-distance truck2) 0)
+    (= (moved-distance truck3) 0)
+  )
+
+  (:goal (and
+    (at pkg1 store3)
+    (at pkg2 depot4)
+    (at pkg3 store1)
+    (at pkg4 depot3)
+    (at pkg5 store2)
+    (at pkg6 store4)
+  ))
+)`;
+
+export const planpddlplus4cities = `Domain parsed
+Problem parsed
+Grounding..
+Grounding Time: 89
+Aibr Preprocessing
+|F|:84
+|X|:6
+Aibr Preprocessing
+|A|:156
+|P|:6
+|E|:42
+Delta time heuristic model:1.0
+Delta time planning model:1.0
+Delta time search-execution model:1.0
+Delta time validation model:1
+H1 Setup Time (msec): 45
+Setting horizon to:NaN
+Running Greedy Best First Search
+h(n = s_0)=36.0
+ g(n)= 1.0 h(n)=35.0
+ g(n)= 4.0 h(n)=32.0
+ g(n)= 34.0 h(n)=28.0
+ g(n)= 48.0 h(n)=24.0
+ g(n)= 105.0 h(n)=18.0
+ g(n)= 162.0 h(n)=12.0
+ g(n)= 219.0 h(n)=8.0
+ g(n)= 276.0 h(n)=4.0
+ g(n)= 320.0 h(n)=0.0
+Extracting plan with execution delta: 1.0
+Problem Solved
+
+Found Plan:
+0: (load-truck pkg1 truck1 depot1)
+0: (load-truck pkg2 truck1 store1)
+1: (load-truck pkg3 truck2 depot2)
+1: (load-truck pkg4 truck2 store2)
+2: (load-truck pkg5 truck3 depot3)
+2: (load-truck pkg6 truck3 store3)
+3: (start-move truck1 depot1 gs1 milan milan)
+3: -----waiting---- [4.0]
+4: (start-move truck2 depot2 store1 rome milan)
+4: -----waiting---- [6.0]
+5: (start-move truck3 depot3 store2 naples rome)
+5: -----waiting---- [6.0]
+6: (start-refuel truck1 gs1)
+6: -----waiting---- [20.0]
+20: (stop-refuel truck1)
+21: (start-move truck1 gs1 store3 milan naples)
+21: -----waiting---- [24.0]
+24: (unload-truck pkg5 truck3 store2)
+29: (start-move truck3 store2 store4 rome florence)
+29: -----waiting---- [31.0]
+56: (unload-truck pkg6 truck3 store4)
+61: (unload-truck pkg3 truck2 store1)
+62: (start-move truck2 store1 gs1 milan milan)
+62: -----waiting---- [62.0]
+65: (start-refuel truck2 gs1)
+65: -----waiting---- [75.0]
+75: (stop-refuel truck2)
+76: (start-move truck2 gs1 depot3 milan naples)
+76: -----waiting---- [79.0]
+79: (unload-truck pkg1 truck1 store3)
+99: (start-move truck1 store3 gs3 naples naples)
+99: -----waiting---- [99.0]
+102: (start-refuel truck1 gs3)
+102: -----waiting---- [112.0]
+112: (stop-refuel truck1)
+113: (start-move truck1 gs3 depot4 naples florence)
+113: -----waiting---- [116.0]
+153: (unload-truck pkg4 truck2 depot3)
+159: (unload-truck pkg2 truck1 depot4)
+
+Plan-Length: 159
+Elapsed Time: 159.0
+Metric (Search): 159.0
+Planning Time (msec): 1245
+Heuristic Time (msec): 342
+Search Time (msec): 567
+Expanded Nodes: 4521
+States Evaluated: 5684
+Fixed constraint violations during search (zero-crossing): 0
+Number of Dead-Ends detected: 128
+Number of Duplicates detected: 892`;

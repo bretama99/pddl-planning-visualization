@@ -34,7 +34,7 @@
 import { ref, computed, watch, nextTick } from 'vue';
 import extractPDDLSections, { getDistances, parseInitLegacy, parseObjects, parseInit, extractPlanRobust, extractFuelRates, parsePlanWithDurations, extractPlanRobustPDDL2 } from './pddlParser.js';
 import MapVisualizer from './components/GraphVisualization.vue';
-import { probA, planA, probb, planb, prob2ex1, plan2ex1, prob2ex2, plan2ex2, domainpddlplus, problogpddlplus, planpddlplus, problogpddlplus2, planpddlplus2, problogpddlplus3, planpddlplus3, prob2ex3, plan2ex3, probc, planC } from './pddlCases.js';
+import { probA, planA, probb, planb, prob2ex1, plan2ex1, prob2ex2, plan2ex2, domainpddlplus, problogpddlplus, planpddlplus, problogpddlplus2, planpddlplus2, problogpddlplus3, planpddlplus3, prob2ex3, plan2ex3, probc, planC, problogpddlplus4cities, planpddlplus4cities } from './pddlCases.js';
 import { reactive } from 'vue';
 
 // --- CASES DEFINITION ---
@@ -95,12 +95,19 @@ const cases = {
     plan: planpddlplus3,
     domain: domainpddlplus,
     launcher: launchpddlplus
+  },
+  pddlplus4cities: {
+    name: "Logistics 4 cities (PDDL+)",
+    prob: problogpddlplus4cities,
+    plan: planpddlplus4cities,
+    domain: domainpddlplus,
+    launcher: launchpddlplus
   }
 };
 
 const plannerOptions = {
   launchpddl1: 'PDDL classico',
-  launchpddl2: 'PDDL 2.2',
+  launchpddl2: 'PDDL 2.1',
   launchpddlplus: 'PDDL+',
 };
 
