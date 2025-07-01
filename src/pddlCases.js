@@ -1648,3 +1648,68 @@ States Evaluated: 5684
 Fixed constraint violations during search (zero-crossing): 0
 Number of Dead-Ends detected: 128
 Number of Duplicates detected: 892`;
+
+export const probnumeric1 = `(define (problem logistics-capacity-test)
+  (:domain logistics)
+  
+  (:objects
+    milano roma - city
+    centromilano stazionemilano - location
+    centroroma terminiroma - location
+    pacco1 pacco2 pacco3 pacco4 pacco5 - package
+    truck1 - truck
+  )
+  
+  (:init
+    ; Definizione delle città
+    (in-city centromilano milano)
+    (in-city stazionemilano milano)
+    (in-city centroroma roma)
+    (in-city terminiroma roma)
+    
+    ; Posizioni iniziali
+    (at truck1 centromilano)
+    (at pacco1 centromilano)
+    (at pacco2 centromilano)
+    (at pacco3 centromilano)
+    (at pacco4 centromilano)
+    (at pacco5 stazionemilano)
+    
+    ; Distanze tra città
+    (= (distance milano milano) 0)
+    (= (distance milano roma) 5)
+    (= (distance roma milano) 5)
+    (= (distance roma roma) 0)
+    
+    ; Capacità e carico attuale dei veicoli
+    (= (capacity truck1) 3)          ; il truck può trasportare massimo 3 pacchi
+    (= (current-load truck1) 0)      ; inizialmente vuoto
+  )
+  
+  (:goal
+    (and
+      (at pacco1 centroroma)
+      (at pacco2 centroroma)
+      (at pacco3 terminiroma)
+      (at pacco4 terminiroma)
+      (at pacco5 centroroma)
+    )
+  )
+)`;
+export const plannumeric1 = `Plan computed:
+   Time: (ACTION) [action Duration; action Cost]
+ 0.0000: (LOAD-TRUCK PACCO4 TRUCK1 CENTROMILANO) [D:0.00; C:1.00]
+ 0.0000: (LOAD-TRUCK PACCO3 TRUCK1 CENTROMILANO) [D:0.00; C:1.00]
+ 0.0000: (DRIVE-TRUCK TRUCK1 CENTROMILANO STAZIONEMILANO MILANO MILANO) [D:0.00; C:1.00]
+ 0.0000: (LOAD-TRUCK PACCO5 TRUCK1 STAZIONEMILANO) [D:0.00; C:1.00]
+ 0.0000: (DRIVE-TRUCK TRUCK1 STAZIONEMILANO TERMINIROMA MILANO ROMA) [D:5.00; C:1.00]
+ 5.0000: (UNLOAD-TRUCK PACCO3 TRUCK1 TERMINIROMA) [D:0.00; C:1.00]
+ 5.0000: (UNLOAD-TRUCK PACCO4 TRUCK1 TERMINIROMA) [D:0.00; C:1.00]
+ 5.0000: (DRIVE-TRUCK TRUCK1 TERMINIROMA CENTROMILANO ROMA MILANO) [D:5.00; C:1.00]
+ 10.0000: (LOAD-TRUCK PACCO2 TRUCK1 CENTROMILANO) [D:0.00; C:1.00]
+ 10.0000: (LOAD-TRUCK PACCO1 TRUCK1 CENTROMILANO) [D:0.00; C:1.00]
+ 10.0000: (DRIVE-TRUCK TRUCK1 CENTROMILANO CENTROROMA MILANO ROMA) [D:5.00; C:1.00]
+ 15.0000: (UNLOAD-TRUCK PACCO1 TRUCK1 CENTROROMA) [D:0.00; C:1.00]
+ 15.0000: (UNLOAD-TRUCK PACCO5 TRUCK1 CENTROROMA) [D:0.00; C:1.00]
+ 15.0000: (UNLOAD-TRUCK PACCO2 TRUCK1 CENTROROMA) [D:0.00; C:1.00]
+`;

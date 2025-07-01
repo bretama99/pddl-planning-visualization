@@ -3,7 +3,7 @@ import Place from './Place.js';
 import * as constants from "../constants.js";
 
 export default class Truck {
-  constructor(id, name, location = null, subtype = constants.VEHICLE_SUBTYPES.TRUCK, gasoline = null) {
+  constructor(id, name, location = null, subtype = constants.VEHICLE_SUBTYPES.TRUCK, gasoline = null, capacity = null) {
     this.id = id;
     this.name = name;
     this.location = location;
@@ -12,6 +12,7 @@ export default class Truck {
     this.gasoline = gasoline; // Livello di carburante (0-100)
     this.maxGasoline = 100;   // Capacità massima
     this.initialGasoline = gasoline; // Salva il valore iniziale per riferimento
+    this.capacity = capacity; // Salva il valore iniziale per riferimento
   }
 
   setLocation(location) {
@@ -71,5 +72,18 @@ export default class Truck {
       this.gasoline = amount;
       this.initialGasoline = amount;
     }
+  }
+
+    // Nuovi metodi per gestione capacità
+  hasCapacity() {
+    return this.capacity !== null && this.capacity !== undefined;
+  }
+
+  // Inizializza la capacità se non è stata ancora impostata
+  initializeCapacity(amount) {
+    if (!this.hasCapacity()) {
+      this.capacity = amount;
+    }
+    console.log(`inizializzo la  capacity ad ${this.capacity}`)
   }
 }

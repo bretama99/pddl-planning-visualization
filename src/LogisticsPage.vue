@@ -34,7 +34,7 @@
 import { ref, computed, watch, nextTick } from 'vue';
 import extractPDDLSections, { getDistances, parseInitLegacy, parseObjects, parseInit, extractPlanRobust, extractFuelRates, parsePlanWithDurations, extractPlanRobustPDDL2 } from './pddlParser.js';
 import MapVisualizer from './components/GraphVisualization.vue';
-import { probA, planA, probb, planb, prob2ex1, plan2ex1, prob2ex2, plan2ex2, domainpddlplus, problogpddlplus, planpddlplus, problogpddlplus2, planpddlplus2, problogpddlplus3, planpddlplus3, prob2ex3, plan2ex3, probc, planC, problogpddlplus4cities, planpddlplus4cities } from './pddlCases.js';
+import { probA, planA, probb, planb, prob2ex1, plan2ex1, prob2ex2, plan2ex2, domainpddlplus, problogpddlplus, planpddlplus, problogpddlplus2, planpddlplus2, problogpddlplus3, planpddlplus3, prob2ex3, plan2ex3, probc, planC, problogpddlplus4cities, planpddlplus4cities, probnumeric1, plannumeric1 } from './pddlCases.js';
 import { reactive } from 'vue';
 
 // --- CASES DEFINITION ---
@@ -102,6 +102,12 @@ const cases = {
     plan: planpddlplus4cities,
     domain: domainpddlplus,
     launcher: launchpddlplus
+  },
+  pddlnumeric1: {
+    name: "numeric capacity problem",
+    prob: probnumeric1,
+    plan: plannumeric1,
+    launcher: launchpddl2
   }
 };
 
@@ -211,8 +217,12 @@ function applyNumericFunctions(numericFunctions, vehicles) {
   for (const fn of numericFunctions) {
     const [target] = fn.args;
     const value = fn.value;
-    if (fn.functionName === 'gasoline' && vehicles[target]) {
-      vehicles[target].initializeGasoline(value);
+    if (vehicles[target]) {
+      if (fn.functionName === 'gasoline') {
+        vehicles[target].initializeGasoline(value);
+      } else if (fn.functionName === 'capacity') {
+        vehicles[target].initializeCapacity(value);
+      }
     }
   }
 }
@@ -234,6 +244,7 @@ function launchpddl2(probString, planString) {
   const distances = getDistances(parsed);
   const legacyPredicates = parsed.predicates.map(p => [p.predicate, ...p.args]);
   applyPredicates(legacyPredicates, places, vehicles, packages, cities);
+  applyNumericFunctions(parsed.numericFunctions, vehicles);
   const steps = extractPlanRobustPDDL2(planString);
   logWorldState(cities, places, vehicles, packages);
   return { cities, places, vehicles, packages, distances, steps };

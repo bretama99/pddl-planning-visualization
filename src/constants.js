@@ -111,3 +111,17 @@ export const GASOLINE_BAR = {
   OFFSET_Y: -20, // Posizione sopra il truck (regola in base al tuo layout)
   BORDER_RADIUS: 2
 };
+
+// 5. Costanti da aggiungere al file constants.js
+export const CAPACITY_BAR = {
+  WIDTH: 60,
+  HEIGHT: 8,
+  MARGIN: 2,
+  BACKGROUND_COLOR: "#f0f0f0",
+  BORDER_COLOR: "#999",
+  FILL_COLOR: "#4CAF50",      // Verde per i segmenti pieni
+  EMPTY_COLOR: "#ddd",        // Grigio chiaro per i segmenti vuoti
+  TEXT_COLOR: "#333",
+  OFFSET_Y: 40, // Posizione sotto il truck (regola questo valore)
+  FONT_SIZE: "10px"
+};
