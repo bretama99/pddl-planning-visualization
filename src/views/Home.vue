@@ -1,16 +1,17 @@
 <template>
+  <!-- Main container for PDDL Visualizer -->
   <div class="pddl-visualizer">
-    <!-- Floating Background Elements -->
- <div class="floating-background">
-  <div class="floating-shape">🤖</div>
-  <div class="floating-shape">🛗</div>
-  <div class="floating-shape">🚚</div>
-  <div class="floating-shape">⚙️</div>
-  <div class="floating-shape">📁</div>
-  <div class="floating-shape">✨</div>
-</div>
+    <!-- Floating Background Elements for visual flair -->
+    <div class="floating-background">
+      <div class="floating-shape">🤖</div>
+      <div class="floating-shape">🛗</div>
+      <div class="floating-shape">🚚</div>
+      <div class="floating-shape">⚙️</div>
+      <div class="floating-shape">📁</div>
+      <div class="floating-shape">✨</div>
+    </div>
 
-    <!-- Particle System -->
+    <!-- Particle System for dynamic background animations -->
     <div class="particles-container">
       <div 
         v-for="particle in particles" 
@@ -21,7 +22,7 @@
       />
     </div>
 
-    <!-- Success/Error Toast Animations -->
+    <!-- Toast notifications for success/error messages -->
     <transition name="toast-slide">
       <div v-if="error" class="error-toast" @click="error = ''">
         <div class="toast-icon">⚠️</div>
@@ -40,48 +41,51 @@
       </div>
     </transition>
 
-    <!-- Header with Navigation -->
-  <div class="header">
-  <div class="header-content">
-    <h1 class="main-title">
-      <span class="title-icon">🤖</span>
-      <span class="title-text">PDDL Visualizer</span>
-      <div class="title-glow"></div>
-    </h1>
-    <nav class="navigation">
-      <button 
-        @click="navigateToRobot" 
-        :class="{ active: selectedDomain === 'robot' }"
-        class="nav-btn robot-btn"
-      >
-        <span class="btn-icon">🤖</span>
-        <span>Robot</span>
-        <div class="btn-glow"></div>
-      </button>
-      <button 
-        @click="selectDomain('elevator')" 
-        :class="{ active: selectedDomain === 'elevator' }"
-        class="nav-btn elevator-btn"
-      >
-        <span class="btn-icon">🛗</span>
-        <span>Elevator</span>
-        <div class="btn-glow"></div>
-      </button>
-      <button 
-        @click="navigateToLogistics" 
-        :class="{ active: selectedDomain === 'logistics' }"
-        class="nav-btn logistics-btn"
-      >
-        <span class="btn-icon">🚚</span>
-        <span>Logistics</span>
-        <div class="btn-glow"></div>
-      </button>
-    </nav>
-  </div>
-</div>
+    <!-- Header with navigation controls -->
+    <div class="header">
+      <div class="header-content">
+        <!-- Main title with icon and glow effect -->
+        <h1 class="main-title">
+          <span class="title-icon">🤖</span>
+          <span class="title-text">PDDL Visualizer</span>
+          <div class="title-glow"></div>
+        </h1>
+        <!-- Navigation buttons for domain selection -->
+        <nav class="navigation">
+          <button 
+            @click="navigateToRobot" 
+            :class="{ active: selectedDomain === 'robot' }"
+            class="nav-btn robot-btn"
+          >
+            <span class="btn-icon">🤖</span>
+            <span>Robot</span>
+            <div class="btn-glow"></div>
+          </button>
+          <button 
+            @click="selectDomain('elevator')" 
+            :class="{ active: selectedDomain === 'elevator' }"
+            class="nav-btn elevator-btn"
+          >
+            <span class="btn-icon">🛗</span>
+            <span>Elevator</span>
+            <div class="btn-glow"></div>
+          </button>
+          <button 
+            @click="navigateToLogistics" 
+            :class="{ active: selectedDomain === 'logistics' }"
+            class="nav-btn logistics-btn"
+          >
+            <span class="btn-icon">🚚</span>
+            <span>Logistics</span>
+            <div class="btn-glow"></div>
+          </button>
+        </nav>
+      </div>
+    </div>
 
+    <!-- Main content area with sidebar and visualization -->
     <div class="main-content">
-      <!-- Compact Sidebar -->
+      <!-- Sidebar for controls and information -->
       <div class="sidebar">
         <!-- File Upload Section -->
         <div class="section">
@@ -90,6 +94,7 @@
             <span>Upload Plan</span>
             <div class="section-line"></div>
           </h3>
+          <!-- Drag-and-drop file upload area -->
           <div class="upload-zone" 
                :class="{ 'has-file': fileName, 'uploading': isUploading }" 
                @click="$refs.fileInput.click()"
@@ -119,17 +124,11 @@
             <span>PDDL Type</span>
             <div class="section-line"></div>
           </h3>
+          <!-- Single dropdown for all PDDL types -->
           <div class="pddl-type-selector">
             <select v-model="selectedPDDLType" class="pddl-type-dropdown">
               <option value="classical">Classical PDDL</option>
               <option value="temporal">Temporal PDDL</option>
-            </select>
-            <div class="pddl-type-description">
-              {{ getPDDLTypeDescription(selectedPDDLType) }}
-            </div>
-          </div>
-          <div class="pddl-type-selector">
-            <select v-model="selectedPDDLType" class="pddl-type-dropdown">
               <option value="numerical">Numerical PDDL</option>
               <option value="pddl_plus">PDDL+</option>
             </select>
@@ -139,7 +138,7 @@
           </div>
         </div>
 
-        <!-- Domain Selection -->
+        <!-- Domain Selection Display -->
         <transition name="section-expand">
           <div class="section" v-if="fileName">
             <h3 class="section-title">
@@ -160,7 +159,7 @@
           </div>
         </transition>
 
-        <!-- Start Visualization Section -->
+        <!-- Start Visualization Button -->
         <transition name="section-expand">
           <div class="section" v-if="fileName && selectedDomain">
             <button @click="startVisualization" :disabled="isProcessing" class="start-btn" :class="selectedDomain + '-btn'">
@@ -173,7 +172,7 @@
           </div>
         </transition>
 
-        <!-- Plan Statistics -->
+        <!-- Plan Statistics Display -->
         <transition name="section-expand">
           <div class="section" v-if="simulationActive && parsedActions.length > 0">
             <h3 class="section-title">
@@ -194,7 +193,7 @@
           </div>
         </transition>
 
-        <!-- Features Section -->
+        <!-- Features List -->
         <div class="section">
           <h3 class="section-title">
             <span class="section-icon">✨</span>
@@ -213,6 +212,7 @@
       <!-- Main Visualization Area -->
       <div class="main-area">
         <transition name="content-fade" mode="out-in">
+          <!-- Welcome Screen displayed when no simulation is active -->
           <div v-if="!simulationActive" class="welcome-screen">
             <div class="welcome-content">
               <div class="welcome-icon" :class="selectedDomain + '-icon'">
@@ -229,6 +229,7 @@
               </h2>
               <p class="welcome-description">{{ getDomainDescription(selectedDomain) }}</p>
               
+              <!-- Getting Started Guide -->
               <div class="getting-started">
                 <h4 class="steps-title">
                   <span class="steps-icon">🚀</span>
@@ -245,7 +246,8 @@
                   </div>
                 </div>
               </div>
-<!--show all domain-->
+
+              <!-- Domain Showcase for selecting domains -->
               <div class="domain-showcase">
                 <div class="showcase-title">Choose Your Domain:</div>
                 <div class="domain-cards">
@@ -268,24 +270,21 @@
             </div>
           </div>
 
-        
-            
-            <!-- Elevator Domain -->
-   <ElevatorSimulator 
-    v-else-if="selectedDomain === 'elevator' && selectedPDDLType !== 'pddl_plus'&& selectedPDDLType !== 'numerical'"
-    :actions="parsedActions" 
-    :entities="parsedEntities"
-    :pddl-type="selectedPDDLType"
-  />
+          <!-- Elevator Domain Visualization -->
+          <ElevatorSimulator 
+            v-else-if="selectedDomain === 'elevator' && selectedPDDLType !== 'pddl_plus' && selectedPDDLType !== 'numerical'"
+            :actions="parsedActions" 
+            :entities="parsedEntities"
+            :pddl-type="selectedPDDLType"
+          />
 
-  <!-- Elevator Domain - PDDL+ Type -->
-  <ElevatorSimulatorPDDL 
-    v-else-if="selectedDomain === 'elevator' && selectedPDDLType === 'pddl_plus' || selectedPDDLType === 'pddl+'|| selectedPDDLType === 'numerical'"
-    :actions="parsedActions" 
-    :entities="parsedEntities"
-    :pddl-type="selectedPDDLType"
-  />
-         
+          <!-- Elevator Domain with PDDL+ or Numerical -->
+          <ElevatorSimulatorPDDL 
+            v-else-if="selectedDomain === 'elevator' && (selectedPDDLType === 'pddl_plus' || selectedPDDLType === 'numerical')"
+            :actions="parsedActions" 
+            :entities="parsedEntities"
+            :pddl-type="selectedPDDLType"
+          />
         </transition>
       </div>
     </div>
@@ -293,7 +292,7 @@
 </template>
 
 <script>
-// Home.vue JavaScript
+// Import required Vue composition API functions and utilities
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { parsePlanFile, calculateTotalDuration } from '@/utils/enhancedPDDLParser.js'
 import ElevatorSimulator from '@/components/visualization/ElevatorSimulator.vue'
@@ -303,78 +302,44 @@ export default {
   name: 'PDDLVisualization',
   components: { 
     ElevatorSimulator, 
-    ElevatorSimulatorPDDL
+    ElevatorSimulatorPDDL 
   },
   setup() {
-    // State
-    const selectedDomain = ref('robot')
-    const selectedPDDLType = ref('')
-    const fileName = ref('')
-    const fileSize = ref('')
-    const simulationActive = ref(false)
-    const error = ref('')
-    const successMessage = ref('')
-    const parsedActions = ref([])
-    const parsedEntities = ref({ rooms: [], objects: [], robots: [] })
-    const planMetrics = ref({})
-    const fileContent = ref('')
-    const isUploading = ref(false)
-    const isProcessing = ref(false)
-    const particles = ref([])
-    const particleTimer = ref(null)
+    // === State Management ===
+    // Reactive state variables for UI and visualization control
+    const selectedDomain = ref('robot') // Default domain
+    const selectedPDDLType = ref('') // Selected PDDL type
+    const fileName = ref('') // Uploaded file name
+    const fileSize = ref('') // Uploaded file size
+    const simulationActive = ref(false) // Simulation status
+    const error = ref('') // Error messages
+    const successMessage = ref('') // Success messages
+    const parsedActions = ref([]) // Parsed plan actions
+    const parsedEntities = ref({ rooms: [], objects: [], robots: [] }) // Parsed entities
+    const planMetrics = ref({}) // Plan metrics
+    const fileContent = ref('') // Raw file content
+    const isUploading = ref(false) // File upload status
+    const isProcessing = ref(false) // Visualization processing status
+    const particles = ref([]) // Particle system for animations
+    const particleTimer = ref(null) // Particle animation timer
 
-    // PDDL Types configuration
+    // === Static Data ===
+    // PDDL types configuration
     const pddlTypes = [
-      { 
-        id: 'classical', 
-        name: 'Classical PDDL', 
-        description: 'Step-based planning with discrete actions',
-        icon: '🎯'
-      },
-      { 
-        id: 'temporal', 
-        name: 'Temporal PDDL', 
-        description: 'Time-based planning with durative actions',
-        icon: '⏱️'
-      },
-      { 
-        id: 'numerical', 
-        name: 'Numerical PDDL', 
-        description: 'Planning with numeric fluents and constraints',
-        icon: '🔢'
-      },
-      { 
-        id: 'pddl_plus', 
-        name: 'PDDL+', 
-        description: 'Hybrid discrete/continuous planning',
-        icon: '🌐'
-      }
+      { id: 'classical', name: 'Classical PDDL', description: 'Step-based planning with discrete actions', icon: '🎯' },
+      { id: 'temporal', name: 'Temporal PDDL', description: 'Time-based planning with durative actions', icon: '⏱️' },
+      { id: 'numerical', name: 'Numerical PDDL', description: 'Planning with numeric fluents and constraints', icon: '🔢' },
+      { id: 'pddl_plus', name: 'PDDL+', description: 'Hybrid discrete/continuous planning', icon: '🌐' }
     ]
 
-    // Static data with navigation links
+    // Domain configurations with navigation links
     const domains = [
-      { 
-        id: 'robot', 
-        name: 'Robot', 
-        icon: '🤖', 
-        description: 'Autonomous robot navigation and task execution',
-        link: 'http://localhost:5000'
-      },
-      { 
-        id: 'elevator', 
-        name: 'Elevator', 
-        icon: '🛗', 
-        description: 'Multi-floor passenger transportation system'
-      },
-      { 
-        id: 'logistics', 
-        name: 'Logistics', 
-        icon: '🚚', 
-        description: 'Complex package delivery and routing network',
-        link: 'http://localhost:8081'
-      }
+      { id: 'robot', name: 'Robot', icon: '🤖', description: 'Autonomous robot navigation and task execution', link: 'http://localhost:5000' },
+      { id: 'elevator', name: 'Elevator', icon: '🛗', description: 'Multi-floor passenger transportation system' },
+      { id: 'logistics', name: 'Logistics', icon: '🚚', description: 'Complex package delivery and routing network', link: 'http://localhost:8081' }
     ]
 
+    // Feature list for display
     const features = [
       { icon: '⚡', text: 'Multi-type PDDL support' },
       { icon: '🎨', text: 'Interactive domain graphics' },
@@ -385,6 +350,7 @@ export default {
       { icon: '🔗', text: 'External app integration' }
     ]
 
+    // Getting started steps
     const steps = [
       { title: 'Upload Plan File', description: 'Select your PDDL plan file from your computer' },
       { title: 'Select PDDL Type', description: 'Choose your plan type (Classical, Temporal, Numerical, or PDDL+)' },
@@ -392,10 +358,11 @@ export default {
       { title: 'Start Visualization', description: 'Click the start button to begin the interactive simulation' }
     ]
 
-    // SAFE COMPUTED PROPERTIES WITH ERROR HANDLING
+    // === Computed Properties ===
+    // Check if visualization can start
     const canStart = computed(() => fileName.value && selectedDomain.value && selectedPDDLType.value)
     
-    // BULLETPROOF: Safe total duration calculation
+    // Calculate total duration with robust error handling
     const totalDuration = computed(() => {
       try {
         if (!parsedActions.value || !Array.isArray(parsedActions.value) || parsedActions.value.length === 0) {
@@ -404,7 +371,7 @@ export default {
         
         const result = calculateTotalDuration(parsedActions.value, selectedPDDLType.value)
         
-        // Ensure result is always a safe number
+        // Ensure result is a valid number
         if (typeof result === 'number' && !isNaN(result) && isFinite(result)) {
           return result
         } else {
@@ -415,18 +382,15 @@ export default {
         console.error('Error calculating total duration:', error)
         console.error('parsedActions:', parsedActions.value)
         console.error('selectedPDDLType:', selectedPDDLType.value)
-        
-        // Safe fallback based on action count
-        const actionCount = parsedActions.value?.length || 0
-        return actionCount * 1.5
+        return parsedActions.value?.length * 1.5 || 0 // Fallback
       }
     })
 
-    // BULLETPROOF: Stats items that CANNOT FAIL
+    // Compute statistics for display with comprehensive error handling
     const statsItems = computed(() => {
       console.log('📊 Computing statsItems...')
       
-      // STEP 1: Safe helper function for .toFixed()
+      // Helper function for safe number formatting
       const safeToFixed = (value, digits = 1) => {
         try {
           if (value === null || value === undefined) return '0.0'
@@ -445,7 +409,7 @@ export default {
         }
       }
 
-      // STEP 2: Emergency fallback stats
+      // Fallback stats in case of critical failure
       const emergencyStats = [
         { icon: '🔧', label: 'Status', value: 'Loading...', percentage: 0 },
         { icon: '📋', label: 'Type', value: selectedPDDLType.value || 'Unknown', percentage: 0 },
@@ -453,7 +417,7 @@ export default {
       ]
 
       try {
-        // STEP 3: Safe entity count
+        // Calculate total entities
         let total = 0
         try {
           total = getTotalEntities()
@@ -463,7 +427,7 @@ export default {
           total = 0
         }
 
-        // STEP 4: Safe metrics access
+        // Safe metrics access
         let metrics = {}
         try {
           metrics = planMetrics.value || {}
@@ -473,12 +437,11 @@ export default {
           metrics = {}
         }
 
-        // STEP 5: Ultra-safe duration calculation
+        // Safe duration calculation
         let safeDuration = 0
         let durationString = '0.0 steps'
         
         try {
-          // Try to get totalDuration
           let rawDuration = null
           try {
             rawDuration = totalDuration.value
@@ -487,7 +450,6 @@ export default {
             rawDuration = null
           }
 
-          // Process the duration
           if (typeof rawDuration === 'number' && !isNaN(rawDuration) && isFinite(rawDuration) && rawDuration >= 0) {
             safeDuration = rawDuration
           } else if (typeof rawDuration === 'string' && rawDuration.trim() !== '') {
@@ -496,7 +458,6 @@ export default {
               safeDuration = parsed
             }
           } else {
-            // Fallback: calculate from actions
             try {
               if (parsedActions.value && Array.isArray(parsedActions.value) && parsedActions.value.length > 0) {
                 safeDuration = parsedActions.value.length * 1.5
@@ -507,18 +468,16 @@ export default {
             }
           }
 
-          // Create safe duration string
           const durationValue = safeToFixed(safeDuration, 1)
           const suffix = (selectedPDDLType.value === 'classical') ? ' steps' : 's'
           durationString = durationValue + suffix
-
         } catch (durationError) {
           console.error('Critical error in duration calculation:', durationError)
           safeDuration = 0
           durationString = '0.0 steps'
         }
 
-        // STEP 6: Safe action count
+        // Safe action count
         let actionCount = 0
         try {
           if (parsedActions.value && Array.isArray(parsedActions.value)) {
@@ -532,7 +491,7 @@ export default {
           actionCount = 0
         }
 
-        // STEP 7: Safe percentage calculation
+        // Safe percentage calculation
         const safePercentageCalc = (value, max) => {
           try {
             if (typeof value !== 'number' || typeof max !== 'number' || isNaN(value) || isNaN(max) || max <= 0) {
@@ -544,9 +503,8 @@ export default {
           }
         }
 
-        // STEP 8: Create base stats with maximum safety
+        // Base statistics
         const baseStats = []
-
         try {
           baseStats.push({
             icon: '🏢',
@@ -584,7 +542,7 @@ export default {
           baseStats.push({
             icon: '⏱️',
             label: 'Duration',
-            value: durationString, // Already safe string
+            value: durationString,
             percentage: safePercentageCalc(safeDuration, 300)
           })
         } catch (error) {
@@ -602,7 +560,7 @@ export default {
           baseStats.push({ icon: '📦', label: 'Entities', value: 0, percentage: 0 })
         }
 
-        // STEP 9: Add type-specific metrics with ultra-safe handling
+        // Type-specific metrics
         try {
           if (selectedPDDLType.value === 'temporal' || selectedPDDLType.value === 'pddl_plus') {
             let parallelActions = 0
@@ -643,7 +601,7 @@ export default {
             baseStats.push({
               icon: '💰',
               label: 'Total Cost',
-              value: costString, // Safe pre-formatted string
+              value: costString,
               percentage: safePercentageCalc(totalCost, 100)
             })
           }
@@ -687,15 +645,13 @@ export default {
               }
             } catch (pddlPlusError) {
               console.error('Error in PDDL+ metrics:', pddlPlusError)
-              // Continue without PDDL+ specific metrics
             }
           }
         } catch (typeSpecificError) {
           console.error('Error adding type-specific metrics:', typeSpecificError)
-          // Continue with base stats only
         }
 
-        // STEP 10: Final validation of all items
+        // Validate all stats items
         const validatedStats = baseStats.map((item, index) => {
           try {
             return {
@@ -719,17 +675,14 @@ export default {
 
         console.log('✅ Stats computed successfully:', validatedStats.length, 'items')
         return validatedStats
-
       } catch (criticalError) {
         console.error('CRITICAL ERROR in statsItems computation:', criticalError)
         console.error('Stack trace:', criticalError.stack)
-        
-        // Return emergency stats that cannot fail
         return emergencyStats
       }
     })
 
-    // Safe percentage helper for template
+    // Safe percentage calculation for template
     const safePercentage = (value) => {
       try {
         if (typeof value === 'number' && !isNaN(value) && isFinite(value)) {
@@ -742,7 +695,8 @@ export default {
       }
     }
 
-    // Particle system
+    // === Particle System ===
+    // Generate particles for animations
     const generateParticles = (type, count = 15) => {
       const newParticles = []
       for (let i = 0; i < count; i++) {
@@ -761,6 +715,7 @@ export default {
       particles.value.push(...newParticles)
     }
 
+    // Update particle positions and properties
     const updateParticles = () => {
       particles.value = particles.value
         .map(particle => ({
@@ -774,6 +729,7 @@ export default {
         .filter(particle => particle.life > 0)
     }
 
+    // Style particles for rendering
     const getParticleStyle = (particle) => {
       return {
         left: particle.x + '%',
@@ -785,27 +741,32 @@ export default {
       }
     }
 
-    // Helper functions
+    // === Helper Functions ===
+    // Get PDDL type name
     const getPDDLTypeName = (type) => {
       const typeObj = pddlTypes.find(t => t.id === type)
       return typeObj ? typeObj.name : 'Unknown'
     }
 
+    // Get PDDL type description
     const getPDDLTypeDescription = (type) => {
       const typeObj = pddlTypes.find(t => t.id === type)
       return typeObj ? typeObj.description : 'Unknown PDDL type'
     }
 
+    // Get domain icon
     const getDomainIcon = (domain) => {
       const icons = { robot: '🤖', elevator: '🛗', logistics: '🚚' }
       return icons[domain] || '❓'
     }
 
+    // Get domain name
     const getDomainName = (domain) => {
       const names = { robot: 'Robot', elevator: 'Elevator', logistics: 'Logistics' }
       return names[domain] || 'Unknown'
     }
 
+    // Get domain subtitle
     const getDomainSubtitle = (domain) => {
       const subtitles = {
         robot: 'Autonomous Navigation',
@@ -815,6 +776,7 @@ export default {
       return subtitles[domain] || ''
     }
 
+    // Get domain description
     const getDomainDescription = (domain) => {
       const descriptions = {
         robot: 'Watch robots move between rooms, pick up objects, and deliver them to target locations with precision and efficiency.',
@@ -824,6 +786,7 @@ export default {
       return descriptions[domain] || 'Domain visualization system.'
     }
 
+    // Calculate total entities
     const getTotalEntities = () => {
       try {
         const entities = parsedEntities.value || {}
@@ -842,7 +805,7 @@ export default {
       }
     }
 
-    // File handling
+    // Format file size for display
     const formatFileSize = (bytes) => {
       if (bytes === 0) return '0 Bytes'
       const k = 1024
@@ -851,7 +814,8 @@ export default {
       return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
     }
 
-    // Navigation methods
+    // === Navigation Methods ===
+    // Navigate to Robot domain (external link)
     const navigateToRobot = () => {
       console.log('🤖 Navigating to Robot domain at localhost:5000')
       generateParticles('navigation', 25)
@@ -862,6 +826,7 @@ export default {
       }, 1000)
     }
 
+    // Navigate to Logistics domain (external link)
     const navigateToLogistics = () => {
       console.log('🚚 Navigating to Logistics domain at localhost:8081')
       generateParticles('navigation', 25)
@@ -872,7 +837,7 @@ export default {
       }, 1000)
     }
 
-    // Methods
+    // Select domain and reset simulation
     const selectDomain = (domain) => {
       selectedDomain.value = domain
       simulationActive.value = false
@@ -880,6 +845,7 @@ export default {
       console.log('Selected domain:', domain)
     }
 
+    // Handle domain card clicks
     const handleDomainCardClick = (domainId) => {
       const domain = domains.find(d => d.id === domainId)
       if (domain && domain.link) {
@@ -893,6 +859,7 @@ export default {
       }
     }
 
+    // === File Handling ===
     const onDragOver = (e) => {
       e.preventDefault()
     }
@@ -916,6 +883,7 @@ export default {
       }
     }
 
+    // Process uploaded file
     const processFile = (file) => {
       isUploading.value = true
       generateParticles('upload', 25)
@@ -938,6 +906,7 @@ export default {
       reader.readAsText(file)
     }
 
+    // Start visualization process
     const startVisualization = () => {
       try {
         error.value = ''
@@ -968,62 +937,50 @@ export default {
           console.log('PDDL Type:', selectedPDDLType.value)
           console.log('File content length:', fileContent.value.length)
 
-          // For robot domain, pass raw content to let robot simulator handle parsing
+          // Handle robot domain
           if (selectedDomain.value === 'robot') {
             console.log('🤖 Passing raw content to robot simulator')
-            
             parsedActions.value = fileContent.value
             parsedEntities.value = {
               pddlType: selectedPDDLType.value,
               domain: selectedDomain.value
             }
-            
             simulationActive.value = true
             isProcessing.value = false
-            
             const typeDisplay = getPDDLTypeName(selectedPDDLType.value)
             const domainDisplay = getDomainName(selectedDomain.value)
             successMessage.value = `${typeDisplay} ${domainDisplay} visualization started!`
             generateParticles('visualization-start', 40)
-            
             setTimeout(() => { successMessage.value = '' }, 3000)
             return
           }
 
-          // For elevator domain, pass raw content
+          // Handle elevator domain
           if (selectedDomain.value === 'elevator') {
             console.log('🛗 Setting up elevator simulator')
-            
             parsedActions.value = fileContent.value
             parsedEntities.value = {
               domain: selectedDomain.value,
               pddlType: selectedPDDLType.value
             }
-            
             simulationActive.value = true
             isProcessing.value = false
-            
             const typeDisplay = getPDDLTypeName(selectedPDDLType.value)
             const domainDisplay = getDomainName(selectedDomain.value)
             successMessage.value = `${typeDisplay} ${domainDisplay} visualization started!`
             generateParticles('visualization-start', 40)
-            
             setTimeout(() => { successMessage.value = '' }, 3000)
             return
           }
 
-          // ENHANCED: Handle plans with metadata for logistics domain
+          // Handle logistics domain with plan parsing
           try {
-            // Clean the content first - extract just the plan actions
             let cleanContent = fileContent.value
-            
-            // Extract plan section if metadata is present
             if (fileContent.value.includes('found plan:') || fileContent.value.includes('problem solved')) {
               const lines = fileContent.value.split('\n')
               let planStart = -1
               let planEnd = lines.length
               
-              // Find plan start
               for (let i = 0; i < lines.length; i++) {
                 if (lines[i].includes('found plan:') || /^\d+(?:\.\d+)?\s*:\s*\(/.test(lines[i].trim())) {
                   planStart = lines[i].includes('found plan:') ? i + 1 : i
@@ -1031,7 +988,6 @@ export default {
                 }
               }
               
-              // Find plan end
               if (planStart !== -1) {
                 for (let i = planStart; i < lines.length; i++) {
                   if (lines[i].includes('plan-length') || lines[i].includes('metric') || lines[i].includes('planning time')) {
@@ -1066,10 +1022,8 @@ export default {
               return
             }
 
-            // Set parsed data for logistics
             parsedActions.value = parseResult.actions
             planMetrics.value = parseResult.metrics || {}
-            
             parsedEntities.value = {
               rooms: parseResult.rooms || [],
               objects: parseResult.objects || [],
@@ -1087,28 +1041,22 @@ export default {
             
             simulationActive.value = true
             isProcessing.value = false
-            
             const typeDisplay = getPDDLTypeName(parseResult.pddlType || selectedPDDLType.value)
             const domainDisplay = getDomainName(selectedDomain.value)
             successMessage.value = `${typeDisplay} ${domainDisplay} visualization started with ${parseResult.actions.length} actions!`
             generateParticles('visualization-start', 40)
-            
             console.log('=== VISUALIZATION STARTED ===')
             console.log('Actions:', parseResult.actions.length)
             console.log('PDDL Type:', parseResult.pddlType)
             console.log('Total duration:', parseResult.totalDuration)
             console.log('Sample actions:', parseResult.actions.slice(0, 3))
-            
             setTimeout(() => { successMessage.value = '' }, 3000)
-            
           } catch (parseError) {
             console.error('Parse error:', parseError)
             error.value = `Parse error: ${parseError.message}. Check console for details.`
             isProcessing.value = false
           }
-          
         }, 1500)
-        
       } catch (err) {
         console.error('Error starting visualization:', err)
         error.value = `Error: ${err.message}`
@@ -1116,7 +1064,7 @@ export default {
       }
     }
 
-    // Lifecycle
+    // === Lifecycle Hooks ===
     onMounted(() => {
       particleTimer.value = setInterval(updateParticles, 50)
       generateParticles('ambient', 10)
@@ -1128,6 +1076,7 @@ export default {
       }
     })
 
+    // === Return Values ===
     return {
       // State
       selectedDomain,
@@ -1180,17 +1129,17 @@ export default {
 <style scoped>
 @import './home.css';
 
-/* Additional styles for navigation links */
+/* === Navigation Links Styling === */
 .card-link {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   margin-top: 0.5rem;
   padding: 0.25rem 0.5rem;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(20, 184, 166, 0.1); /* Teal with opacity */
   border-radius: 0.375rem;
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(94, 234, 212, 0.8); /* Lighter teal with opacity */
   backdrop-filter: blur(10px);
 }
 
@@ -1203,11 +1152,11 @@ export default {
 }
 
 .domain-card:hover .card-link {
-  background: rgba(255, 255, 255, 0.2);
-  color: rgba(255, 255, 255, 1);
+  background: rgba(20, 184, 166, 0.2); /* Slightly darker teal on hover */
+  color: rgba(94, 234, 212, 1); /* Full opacity teal */
 }
 
-/* Navigation button enhancements */
+/* === Navigation Button Enhancements === */
 .nav-btn {
   position: relative;
   overflow: hidden;
@@ -1216,13 +1165,13 @@ export default {
 
 .nav-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 25px rgba(20, 184, 166, 0.3); /* Teal shadow */
 }
 
 .nav-btn .btn-glow {
   position: absolute;
   inset: 0;
-  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  background: linear-gradient(45deg, transparent, rgba(20, 184, 166, 0.2), rgba(167, 139, 250, 0.2), transparent); /* Teal to purple gradient */
   transform: translateX(-100%);
   transition: transform 0.6s;
 }
@@ -1231,7 +1180,7 @@ export default {
   transform: translateX(100%);
 }
 
-/* Success message for navigation */
+/* === Success Toast Animation === */
 .success-toast {
   animation: navigation-pulse 0.6s ease-in-out;
 }
@@ -1241,9 +1190,9 @@ export default {
   50% { transform: scale(1.05); }
 }
 
-/* Particle types for navigation */
+/* === Particle System for Navigation === */
 .particle.navigation {
-  background: linear-gradient(45deg, #60a5fa, #34d399);
+  background: linear-gradient(45deg, #14b8a6, #ff6b6b); /* Teal to coral gradient */
   border-radius: 50%;
   animation: navigation-float 2s ease-in-out infinite;
 }
