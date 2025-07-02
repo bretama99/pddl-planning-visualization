@@ -429,6 +429,16 @@ export default {
             .attr("font-size", constants.TRUCK_LABEL_FONT_SIZE)
             .text(airplane.name);
 
+                    if (airplane.hasCapacity()) {
+            this.drawCapacityBar(
+              airplaneGroup,
+              airplane,
+              0,
+              -constants.TRUCK_SIZE / 2
+            );
+          }
+
+
           // Aggiorna posizione
           this.positions.vehicles[airplane.id] = {
             x: airplaneX,
@@ -1513,7 +1523,11 @@ export default {
     },
     updateCapacityBar(truckName, packagesCount, capacity) {
       const svg = d3.select(this.$refs.svg);
-      const truckGroup = svg.select(`#truck-${truckName}`);
+      const truck = Object.values(this.vehicles).find(
+        (v) => v.name === truckName
+      );
+      const subtype = truck.subtype;
+      const truckGroup = svg.select(`#${subtype}-${truckName}`);
 
       if (truckGroup.empty()) return;
 

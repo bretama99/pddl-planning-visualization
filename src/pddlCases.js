@@ -1713,3 +1713,253 @@ export const plannumeric1 = `Plan computed:
  15.0000: (UNLOAD-TRUCK PACCO5 TRUCK1 CENTROROMA) [D:0.00; C:1.00]
  15.0000: (UNLOAD-TRUCK PACCO2 TRUCK1 CENTROROMA) [D:0.00; C:1.00]
 `;
+export const plannumeric2 = `
+NUMERIC_THREATS_MODE: 0
+
+; Command line: ./lpg-td -o dom.pddl -f prog.pddl -n 1
+
+
+Parsing domain file:  domain 'LOGISTICS' defined ... done.
+Parsing problem file:  problem 'LOGISTICS-COMPLEX-DELIVERY' defined ... done.
+
+
+
+Modality: Incremental Planner
+
+Number of actions             :    3190
+Number of conditional actions :       0
+Number of facts               :     406
+
+
+Analyzing Planning Problem:
+        Temporal Planning Problem: NO
+        Numeric Planning Problem: YES
+        Problem with Timed Initial Literals: NO
+        Problem with Derived Predicates: NO
+
+Evaluation function weights:
+     Action duration 0.00; Action cost 1.00
+
+
+Computing mutex... done
+
+Preprocessing total time: 0.04 seconds
+
+Searching ('.' = every 50 search steps):
+. solution found:
+ Recompute start times
+
+ first_solution_cpu_time: 0.09
+
+Plan computed:
+   Time: (ACTION) [action Duration; action Cost]
+ 0.0000: (DRIVE-TRUCK TRUCKC CENTRONAPOLI STAZIONETORINO NAPOLI TORINO) [D:9.00; C:1.00]
+ 0.0000: (LOAD-AIRPLANE PACCOL AEREO1 AEROPORTOMILANO) [D:0.00; C:1.00]
+ 0.0000: (FLY-AIRPLANE AEREO1 AEROPORTOMILANO AEROPORTONAPOLI MILANO NAPOLI) [D:8.00; C:1.00]
+ 0.0000: (DRIVE-TRUCK TRUCKD CENTROTORINO CENTROVENEZIA TORINO VENEZIA) [D:4.00; C:1.00]
+ 0.0000: (LOAD-AIRPLANE PACCOM AEREO2 AEROPORTOROMA) [D:0.00; C:1.00]
+ 0.0000: (FLY-AIRPLANE AEREO2 AEROPORTOROMA AEROPORTOVENEZIA ROMA VENEZIA) [D:5.00; C:1.00]
+ 0.0000: (DRIVE-TRUCK TRUCKA CENTROMILANO CENTRONAPOLI MILANO NAPOLI) [D:8.00; C:1.00]
+ 4.0000: (LOAD-TRUCK PACCOJ TRUCKD CENTROVENEZIA) [D:0.00; C:1.00]
+ 4.0000: (DRIVE-TRUCK TRUCKD CENTROVENEZIA AEROPORTONAPOLI VENEZIA NAPOLI) [D:6.00; C:1.00]
+ 5.0000: (UNLOAD-AIRPLANE PACCOM AEREO2 AEROPORTOVENEZIA) [D:0.00; C:1.00]
+ 8.0000: (UNLOAD-AIRPLANE PACCOL AEREO1 AEROPORTONAPOLI) [D:0.00; C:1.00]
+ 8.0000: (LOAD-TRUCK PACCOF TRUCKA CENTRONAPOLI) [D:0.00; C:1.00]
+ 8.0000: (DRIVE-TRUCK TRUCKA CENTRONAPOLI STAZIONEMILANO NAPOLI MILANO) [D:8.00; C:1.00]
+ 9.0000: (LOAD-TRUCK PACCOI TRUCKC STAZIONETORINO) [D:0.00; C:1.00]
+ 9.0000: (DRIVE-TRUCK TRUCKC STAZIONETORINO PORTNAPOLI TORINO NAPOLI) [D:9.00; C:1.00]
+ 10.0000: (UNLOAD-TRUCK PACCOJ TRUCKD AEROPORTONAPOLI) [D:0.00; C:1.00]
+ 10.0000: (DRIVE-TRUCK TRUCKD AEROPORTONAPOLI CENTROTORINO NAPOLI TORINO) [D:9.00; C:1.00]
+ 16.0000: (UNLOAD-TRUCK PACCOF TRUCKA STAZIONEMILANO) [D:0.00; C:1.00]
+ 18.0000: (UNLOAD-TRUCK PACCOI TRUCKC PORTNAPOLI) [D:0.00; C:1.00]
+ 18.0000: (DRIVE-TRUCK TRUCKC PORTNAPOLI AEROPORTONAPOLI NAPOLI NAPOLI) [D:0.00; C:1.00]
+ 18.0000: (LOAD-TRUCK PACCON TRUCKC AEROPORTONAPOLI) [D:0.00; C:1.00]
+ 18.0000: (LOAD-TRUCK PACCOL TRUCKC AEROPORTONAPOLI) [D:0.00; C:1.00]
+ 18.0000: (LOAD-TRUCK PACCOJ TRUCKC AEROPORTONAPOLI) [D:0.00; C:1.00]
+ 18.0000: (UNLOAD-TRUCK PACCOJ TRUCKC AEROPORTONAPOLI) [D:0.00; C:1.00]
+ 18.0000: (LOAD-TRUCK PACCOJ TRUCKC AEROPORTONAPOLI) [D:0.00; C:1.00]
+ 18.0000: (UNLOAD-TRUCK PACCOJ TRUCKC AEROPORTONAPOLI) [D:0.00; C:1.00]
+ 18.0000: (LOAD-TRUCK PACCOJ TRUCKC AEROPORTONAPOLI) [D:0.00; C:1.00]
+ 18.0000: (UNLOAD-TRUCK PACCOJ TRUCKC AEROPORTONAPOLI) [D:0.00; C:1.00]
+ 18.0000: (LOAD-TRUCK PACCOJ TRUCKC AEROPORTONAPOLI) [D:0.00; C:1.00]
+ 18.0000: (UNLOAD-TRUCK PACCOJ TRUCKC AEROPORTONAPOLI) [D:0.00; C:1.00]
+ 18.0000: (LOAD-TRUCK PACCOJ TRUCKC AEROPORTONAPOLI) [D:0.00; C:1.00]
+ 18.0000: (UNLOAD-TRUCK PACCOJ TRUCKC AEROPORTONAPOLI) [D:0.00; C:1.00]
+ 18.0000: (LOAD-TRUCK PACCOJ TRUCKC AEROPORTONAPOLI) [D:0.00; C:1.00]
+ 18.0000: (UNLOAD-TRUCK PACCOJ TRUCKC AEROPORTONAPOLI) [D:0.00; C:1.00]
+ 18.0000: (LOAD-TRUCK PACCOJ TRUCKC AEROPORTONAPOLI) [D:0.00; C:1.00]
+ 18.0000: (UNLOAD-TRUCK PACCOJ TRUCKC AEROPORTONAPOLI) [D:0.00; C:1.00]
+ 18.0000: (LOAD-TRUCK PACCOJ TRUCKC AEROPORTONAPOLI) [D:0.00; C:1.00]
+ 18.0000: (DRIVE-TRUCK TRUCKC AEROPORTONAPOLI STAZIONETORINO NAPOLI TORINO) [D:9.00; C:1.00]
+ 19.0000: (DRIVE-TRUCK TRUCKD CENTROTORINO PORTNAPOLI TORINO NAPOLI) [D:9.00; C:1.00]
+ 27.0000: (UNLOAD-TRUCK PACCON TRUCKC STAZIONETORINO) [D:0.00; C:1.00]
+ 27.0000: (DRIVE-TRUCK TRUCKC STAZIONETORINO CENTROMILANO TORINO MILANO) [D:2.00; C:1.00]
+ 28.0000: (LOAD-TRUCK PACCOG TRUCKD PORTNAPOLI) [D:0.00; C:1.00]
+ 28.0000: (DRIVE-TRUCK TRUCKD PORTNAPOLI CENTROTORINO NAPOLI TORINO) [D:9.00; C:1.00]
+ 29.0000: (LOAD-TRUCK PACCOA TRUCKC CENTROMILANO) [D:0.00; C:1.00]
+ 29.0000: (DRIVE-TRUCK TRUCKC CENTROMILANO CENTROROMA MILANO ROMA) [D:6.00; C:1.00]
+ 35.0000: (UNLOAD-TRUCK PACCOA TRUCKC CENTROROMA) [D:0.00; C:1.00]
+ 35.0000: (UNLOAD-TRUCK PACCOL TRUCKC CENTROROMA) [D:0.00; C:1.00]
+ 35.0000: (LOAD-TRUCK PACCOL TRUCKB CENTROROMA) [D:0.00; C:1.00]
+ 35.0000: (UNLOAD-TRUCK PACCOJ TRUCKC CENTROROMA) [D:0.00; C:1.00]
+ 35.0000: (DRIVE-TRUCK TRUCKC CENTROROMA CENTROTORINO ROMA TORINO) [D:7.00; C:1.00]
+ 37.0000: (UNLOAD-TRUCK PACCOG TRUCKD CENTROTORINO) [D:0.00; C:1.00]
+ 37.0000: (LOAD-TRUCK PACCOH TRUCKD CENTROTORINO) [D:0.00; C:1.00]
+ 37.0000: (DRIVE-TRUCK TRUCKD CENTROTORINO STAZIONEVENEZIA TORINO VENEZIA) [D:4.00; C:1.00]
+ 41.0000: (UNLOAD-TRUCK PACCOH TRUCKD STAZIONEVENEZIA) [D:0.00; C:1.00]
+ 41.0000: (DRIVE-TRUCK TRUCKD STAZIONEVENEZIA AEROPORTOVENEZIA VENEZIA VENEZIA) [D:0.00; C:1.00]
+ 41.0000: (LOAD-TRUCK PACCOP TRUCKD AEROPORTOVENEZIA) [D:0.00; C:1.00]
+ 41.0000: (LOAD-TRUCK PACCOM TRUCKD AEROPORTOVENEZIA) [D:0.00; C:1.00]
+ 41.0000: (DRIVE-TRUCK TRUCKD AEROPORTOVENEZIA STAZIONEMILANO VENEZIA MILANO) [D:3.00; C:1.00]
+ 42.0000: (DRIVE-TRUCK TRUCKC CENTROTORINO AEROPORTOTORINO TORINO TORINO) [D:0.00; C:1.00]
+ 42.0000: (LOAD-TRUCK PACCOO TRUCKC AEROPORTOTORINO) [D:0.00; C:1.00]
+ 42.0000: (DRIVE-TRUCK TRUCKC AEROPORTOTORINO CENTROROMA TORINO ROMA) [D:7.00; C:1.00]
+ 44.0000: (UNLOAD-TRUCK PACCOP TRUCKD STAZIONEMILANO) [D:0.00; C:1.00]
+ 44.0000: (LOAD-TRUCK PACCOC TRUCKD STAZIONEMILANO) [D:0.00; C:1.00]
+ 44.0000: (DRIVE-TRUCK TRUCKD STAZIONEMILANO CENTRONAPOLI MILANO NAPOLI) [D:8.00; C:1.00]
+ 49.0000: (UNLOAD-TRUCK PACCOO TRUCKC CENTROROMA) [D:0.00; C:1.00]
+ 49.0000: (LOAD-TRUCK PACCOO TRUCKB CENTROROMA) [D:0.00; C:1.00]
+ 49.0000: (DRIVE-TRUCK TRUCKC CENTROROMA STAZIONEVENEZIA ROMA VENEZIA) [D:5.00; C:1.00]
+ 49.0000: (LOAD-TRUCK PACCOD TRUCKB CENTROROMA) [D:0.00; C:1.00]
+ 49.0000: (DRIVE-TRUCK TRUCKB CENTROROMA CENTROMILANO ROMA MILANO) [D:6.00; C:1.00]
+ 52.0000: (UNLOAD-TRUCK PACCOC TRUCKD CENTRONAPOLI) [D:0.00; C:1.00]
+ 52.0000: (UNLOAD-TRUCK PACCOM TRUCKD CENTRONAPOLI) [D:0.00; C:1.00]
+ 54.0000: (LOAD-TRUCK PACCOK TRUCKC STAZIONEVENEZIA) [D:0.00; C:1.00]
+ 54.0000: (DRIVE-TRUCK TRUCKC STAZIONEVENEZIA CENTROMILANO VENEZIA MILANO) [D:3.00; C:1.00]
+ 55.0000: (UNLOAD-TRUCK PACCOD TRUCKB CENTROMILANO) [D:0.00; C:1.00]
+ 55.0000: (LOAD-TRUCK PACCOB TRUCKB CENTROMILANO) [D:0.00; C:1.00]
+ 55.0000: (DRIVE-TRUCK TRUCKB CENTROMILANO TERMINIROMA MILANO ROMA) [D:6.00; C:1.00]
+ 57.0000: (UNLOAD-TRUCK PACCOK TRUCKC CENTROMILANO) [D:0.00; C:1.00]
+ 61.0000: (UNLOAD-TRUCK PACCOB TRUCKB TERMINIROMA) [D:0.00; C:1.00]
+ 61.0000: (UNLOAD-TRUCK PACCOL TRUCKB TERMINIROMA) [D:0.00; C:1.00]
+ 61.0000: (LOAD-TRUCK PACCOE TRUCKB TERMINIROMA) [D:0.00; C:1.00]
+ 61.0000: (DRIVE-TRUCK TRUCKB TERMINIROMA CENTROVENEZIA ROMA VENEZIA) [D:5.00; C:1.00]
+ 66.0000: (UNLOAD-TRUCK PACCOE TRUCKB CENTROVENEZIA) [D:0.00; C:1.00]
+ 66.0000: (UNLOAD-TRUCK PACCOO TRUCKB CENTROVENEZIA) [D:0.00; C:1.00]
+
+
+Solution number: 1
+Total time:      0.09
+Search time:     0.05
+Actions:         83
+Duration:        66.000
+Plan quality:    83.000
+Total Num Flips: 96
+     Plan file:       plan_prog.pddl_1.SOL`;
+
+export const probnumeric2 = `(define (problem logistics-complex-delivery)
+  (:domain logistics)
+  (:objects
+    milano roma napoli torino venezia - city
+    centromilano stazionemilano aeroportomilano - location
+    centroroma terminiroma aeroportoroma - location
+    centronapoli portnapoli aeroportonapoli - location
+    centrotorino stazionetorino aeroportotorino - location
+    centrovenezia stazionevenezia aeroportovenezia - location
+    aeroportomilano aeroportoroma aeroportonapoli aeroportotorino aeroportovenezia - airport
+    paccoa paccob paccoc paccod paccoe paccof paccog paccoh paccoi paccoj paccok paccol paccom paccon paccoo paccop - package
+    trucka truckb truckc truckd - truck
+    aereo1 aereo2 - airplane
+  )
+  (:init
+    (in-city centromilano milano)
+    (in-city stazionemilano milano)
+    (in-city aeroportomilano milano)
+    (in-city centroroma roma)
+    (in-city terminiroma roma)
+    (in-city aeroportoroma roma)
+    (in-city centronapoli napoli)
+    (in-city portnapoli napoli)
+    (in-city aeroportonapoli napoli)
+    (in-city centrotorino torino)
+    (in-city stazionetorino torino)
+    (in-city aeroportotorino torino)
+    (in-city centrovenezia venezia)
+    (in-city stazionevenezia venezia)
+    (in-city aeroportovenezia venezia)
+    
+    (at trucka centromilano)
+    (at truckb centroroma)
+    (at truckc centronapoli)
+    (at truckd centrotorino)
+    (at aereo1 aeroportomilano)
+    (at aereo2 aeroportoroma)
+    
+    (at paccoa centromilano)
+    (at paccob centromilano)
+    (at paccoc stazionemilano)
+    (at paccod centroroma)
+    (at paccoe terminiroma)
+    (at paccof centronapoli)
+    (at paccog portnapoli)
+    (at paccoh centrotorino)
+    (at paccoi stazionetorino)
+    (at paccoj centrovenezia)
+    (at paccok stazionevenezia)
+    (at paccol aeroportomilano)
+    (at paccom aeroportoroma)
+    (at paccon aeroportonapoli)
+    (at paccoo aeroportotorino)
+    (at paccop aeroportovenezia)
+    
+    (= (distance milano milano) 0)
+    (= (distance milano roma) 6)
+    (= (distance milano napoli) 8)
+    (= (distance milano torino) 2)
+    (= (distance milano venezia) 3)
+    (= (distance roma milano) 6)
+    (= (distance roma roma) 0)
+    (= (distance roma napoli) 3)
+    (= (distance roma torino) 7)
+    (= (distance roma venezia) 5)
+    (= (distance napoli milano) 8)
+    (= (distance napoli roma) 3)
+    (= (distance napoli napoli) 0)
+    (= (distance napoli torino) 9)
+    (= (distance napoli venezia) 6)
+    (= (distance torino milano) 2)
+    (= (distance torino roma) 7)
+    (= (distance torino napoli) 9)
+    (= (distance torino torino) 0)
+    (= (distance torino venezia) 4)
+    (= (distance venezia milano) 3)
+    (= (distance venezia roma) 5)
+    (= (distance venezia napoli) 6)
+    (= (distance venezia torino) 4)
+    (= (distance venezia venezia) 0)
+    
+    (= (capacity trucka) 4)
+    (= (capacity truckb) 3)
+    (= (capacity truckc) 5)
+    (= (capacity truckd) 2)
+    (= (capacity aereo1) 8)
+    (= (capacity aereo2) 6)
+    
+    (= (current-load trucka) 0)
+    (= (current-load truckb) 0)
+    (= (current-load truckc) 0)
+    (= (current-load truckd) 0)
+    (= (current-load aereo1) 0)
+    (= (current-load aereo2) 0)
+  )
+  (:goal
+    (and
+      (at paccoa centroroma)
+      (at paccob terminiroma)
+      (at paccoc centronapoli)
+      (at paccod centromilano)
+      (at paccoe centrovenezia)
+      (at paccof stazionemilano)
+      (at paccog centrotorino)
+      (at paccoh stazionevenezia)
+      (at paccoi portnapoli)
+      (at paccoj centroroma)
+      (at paccok centromilano)
+      (at paccol terminiroma)
+      (at paccom centronapoli)
+      (at paccon stazionetorino)
+      (at paccoo centrovenezia)
+      (at paccop stazionemilano)
+    )
+  )
+)`;
