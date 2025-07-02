@@ -337,7 +337,7 @@
             <div class="action-content realistic-content">
               <!-- Smart Time Display - Only show if plan has explicit timing -->
               <span v-if="shouldDisplayTime && getActionTime(action)" class="time realistic-time">
-                {{ getActionTime(action) }}
+              
               </span>
               <span v-else-if="shouldDisplayTime" class="time-placeholder">—</span>
               
