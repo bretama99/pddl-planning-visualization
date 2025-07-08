@@ -1,6 +1,6 @@
 (define (problem logistics-temporal)
   (:domain logistics)
-  
+
   (:objects
     milano roma napoli torino bologna firenze - city
     centromilano stazionemilano - location
@@ -12,7 +12,7 @@
     pacco1 pacco2 pacco3 pacco4 pacco5 pacco6 - package
     truck1 truck2 truck3 truck4 - truck
   )
-  
+
   (:init
     (in-city centromilano milano)
     (in-city stazionemilano milano)
@@ -26,54 +26,54 @@
     (in-city mercato bologna)
     (in-city duomo firenze)
     (in-city pontevecchio firenze)
-    
+
     (at truck1 centromilano)
     (at truck2 centroroma)
     (at truck3 piazzacastello)
     (at truck4 duomo)
-    
+
     (at pacco1 stazionemilano)
     (at pacco2 terminiroma)
     (at pacco3 centronapoli)
     (at pacco4 lingotto)
     (at pacco5 mercato)
     (at pacco6 pontevecchio)
-    
+
     (= (distance milano milano) 0)
     (= (distance milano roma) 5)
     (= (distance milano napoli) 8)
     (= (distance milano torino) 2)
     (= (distance milano bologna) 3)
     (= (distance milano firenze) 4)
-    
+
     (= (distance roma milano) 5)
     (= (distance roma roma) 0)
     (= (distance roma napoli) 2)
     (= (distance roma torino) 7)
     (= (distance roma bologna) 4)
     (= (distance roma firenze) 3)
-    
+
     (= (distance napoli milano) 8)
     (= (distance napoli roma) 2)
     (= (distance napoli napoli) 0)
     (= (distance napoli torino) 10)
     (= (distance napoli bologna) 6)
     (= (distance napoli firenze) 5)
-    
+
     (= (distance torino milano) 2)
     (= (distance torino roma) 7)
     (= (distance torino napoli) 10)
     (= (distance torino torino) 0)
     (= (distance torino bologna) 4)
     (= (distance torino firenze) 6)
-    
+
     (= (distance bologna milano) 3)
     (= (distance bologna roma) 4)
     (= (distance bologna napoli) 6)
     (= (distance bologna torino) 4)
     (= (distance bologna bologna) 0)
     (= (distance bologna firenze) 2)
-    
+
     (= (distance firenze milano) 4)
     (= (distance firenze roma) 3)
     (= (distance firenze napoli) 5)
@@ -81,7 +81,7 @@
     (= (distance firenze bologna) 2)
     (= (distance firenze firenze) 0)
   )
-  
+
   (:goal
     (and
       (at pacco1 centroroma)
@@ -92,4 +92,6 @@
       (at pacco6 centromilano)
     )
   )
+      (:metric minimize total-time)
+
 )

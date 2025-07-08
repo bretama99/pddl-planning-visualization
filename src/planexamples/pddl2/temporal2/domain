@@ -13,8 +13,6 @@
   )
   (:functions
     (distance ?c1 - city ?c2 - city)
-    (capacity ?veh - vehicle)          ; capacità massima del veicolo
-    (current-load ?veh - vehicle)      ; carico attuale del veicolo
   )
 
   (:action load-truck
@@ -22,12 +20,10 @@
     :precondition (and
       (at ?truck ?loc)
       (at ?pkg ?loc)
-      (< (current-load ?truck) (capacity ?truck))  ; verifica capacità
     )
     :effect (and
       (not (at ?pkg ?loc))
       (in ?pkg ?truck)
-      (assign (current-load ?truck) (+ (current-load ?truck) 1))  ; incrementa carico
     )
   )
 
@@ -40,7 +36,6 @@
     :effect (and
       (not (in ?pkg ?truck))
       (at ?pkg ?loc)
-      (assign (current-load ?truck) (- (current-load ?truck) 1))  ; decrementa carico
     )
   )
 
@@ -49,12 +44,10 @@
     :precondition (and
       (at ?pkg ?loc)
       (at ?airplane ?loc)
-      (< (current-load ?airplane) (capacity ?airplane))  ; verifica capacità
     )
     :effect (and
       (not (at ?pkg ?loc))
       (in ?pkg ?airplane)
-      (assign (current-load ?airplane) (+ (current-load ?airplane) 1))  ; incrementa carico
     )
   )
 
@@ -67,7 +60,6 @@
     :effect (and
       (not (in ?pkg ?airplane))
       (at ?pkg ?loc)
-      (assign (current-load ?airplane) (- (current-load ?airplane) 1))  ; decrementa carico
     )
   )
 

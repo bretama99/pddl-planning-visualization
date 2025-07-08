@@ -1,4 +1,4 @@
-export const probA = `(define (problem logistics-multi-city)
+export const prob1_classic = `(define (problem logistics-multi-city)
   (:domain logistics)
   
   (:objects
@@ -43,18 +43,18 @@ export const probA = `(define (problem logistics-multi-city)
       (at pacco5 terminiroma)
     )
   )
-)`
-export const planA = `domain parsed
+)`;
+export const plan1_classic = `domain parsed
 problem parsed
 grounding..
-grounding time: 44
+grounding time: 45
 aibr preprocessing
 |f|:85
 |x|:0
 |a|:195
 |p|:0
 |e|:0
-h1 setup time (msec): 15
+h1 setup time (msec): 14
  g(n)= 1.0 h(n)=48.0
  g(n)= 2.0 h(n)=46.0
  g(n)= 3.0 h(n)=45.0
@@ -161,25 +161,204 @@ found plan:
 
 plan-length:55
 metric (search):55.0
-planning time (msec): 186
-heuristic time (msec): 142
-search time (msec): 179
+planning time (msec): 146
+heuristic time (msec): 113
+search time (msec): 142
 expanded nodes:84
 states evaluated:874
 number of dead-ends detected:176
-number of duplicates detected:341`
-export const probb = `(define (problem logistics-delivery)
+number of duplicates detected:341`;
+export const prob1_numeric = `(define (problem logistics-multi-city)
   (:domain logistics)
   
   (:objects
-    torino bologna firenze - city
-    caselle marconi peretola - airport
+    milano roma napoli - city
+    malpensa fiumicino capodichino - airport
+    centromilano stazionemilano - location
+    centroroma terminiroma - location
+    centronapoli portonapoli - location
+    pacco1 pacco2 pacco3 pacco4 pacco5 - package
+    truckmilano truckroma trucknapoli - truck
+    aereo1 aereo2 - airplane
+  )
+  
+  (:init
+    (in-city malpensa milano)
+    (in-city centromilano milano)
+    (in-city stazionemilano milano)
+    (in-city fiumicino roma)
+    (in-city centroroma roma)
+    (in-city terminiroma roma)
+    (in-city capodichino napoli)
+    (in-city centronapoli napoli)
+    (in-city portonapoli napoli)
+    (at truckmilano centromilano)
+    (at truckroma centroroma)
+    (at trucknapoli portonapoli)
+    (at aereo1 malpensa)
+    (at aereo2 fiumicino)
+    (at pacco1 stazionemilano)
+    (at pacco2 centromilano)
+    (at pacco3 terminiroma)
+    (at pacco4 centroroma)
+    (at pacco5 centronapoli)
+
+
+    (= (capacity truckmilano) 4)
+    (= (capacity truckroma) 3)
+    (= (capacity trucknapoli) 3)
+    (= (capacity aereo1) 8)
+    (= (capacity aereo2) 9)
+    
+    (= (current-load truckmilano) 0)
+    (= (current-load truckroma) 0)
+    (= (current-load trucknapoli) 0)
+    (= (current-load aereo1) 0)
+    (= (current-load aereo2) 0)
+  )
+  
+  (:goal
+    (and
+      (at pacco1 centroroma)
+      (at pacco2 portonapoli)
+      (at pacco3 centromilano)
+      (at pacco4 centronapoli)
+      (at pacco5 terminiroma)
+    )
+  )
+)`
+export const plan1_numeric = `domain parsed
+problem parsed
+grounding..
+grounding time: 47
+aibr preprocessing
+|f|:85
+|x|:5
+|a|:195
+|p|:0
+|e|:0
+h1 setup time (msec): 15
+ g(n)= 1.0 h(n)=48.0
+ g(n)= 2.0 h(n)=46.0
+ g(n)= 3.0 h(n)=45.0
+ g(n)= 4.0 h(n)=43.0
+ g(n)= 5.0 h(n)=42.0
+ g(n)= 6.0 h(n)=41.0
+ g(n)= 7.0 h(n)=40.0
+ g(n)= 8.0 h(n)=39.0
+ g(n)= 9.0 h(n)=38.0
+ g(n)= 11.0 h(n)=37.0
+ g(n)= 12.0 h(n)=36.0
+ g(n)= 13.0 h(n)=35.0
+ g(n)= 14.0 h(n)=34.0
+ g(n)= 15.0 h(n)=33.0
+ g(n)= 16.0 h(n)=32.0
+ g(n)= 17.0 h(n)=31.0
+ g(n)= 19.0 h(n)=30.0
+ g(n)= 20.0 h(n)=29.0
+ g(n)= 23.0 h(n)=27.0
+ g(n)= 24.0 h(n)=26.0
+ g(n)= 26.0 h(n)=25.0
+ g(n)= 27.0 h(n)=24.0
+ g(n)= 28.0 h(n)=23.0
+ g(n)= 29.0 h(n)=22.0
+ g(n)= 31.0 h(n)=21.0
+ g(n)= 32.0 h(n)=20.0
+ g(n)= 33.0 h(n)=19.0
+ g(n)= 34.0 h(n)=18.0
+ g(n)= 35.0 h(n)=16.0
+ g(n)= 36.0 h(n)=15.0
+ g(n)= 37.0 h(n)=14.0
+ g(n)= 38.0 h(n)=13.0
+ g(n)= 39.0 h(n)=12.0
+ g(n)= 40.0 h(n)=11.0
+ g(n)= 41.0 h(n)=10.0
+ g(n)= 42.0 h(n)=9.0
+ g(n)= 43.0 h(n)=8.0
+ g(n)= 44.0 h(n)=7.0
+ g(n)= 45.0 h(n)=6.0
+ g(n)= 46.0 h(n)=5.0
+ g(n)= 47.0 h(n)=4.0
+ g(n)= 48.0 h(n)=3.0
+ g(n)= 49.0 h(n)=2.0
+ g(n)= 50.0 h(n)=1.0
+problem solved
+
+found plan:
+0.0: (drive-truck trucknapoli portonapoli capodichino napoli)
+1.0: (drive-truck truckroma centroroma fiumicino roma)
+2.0: (load-truck pacco2 truckmilano centromilano)
+3.0: (drive-truck truckmilano centromilano malpensa milano)
+4.0: (unload-truck pacco2 truckmilano malpensa)
+5.0: (load-airplane pacco2 aereo1 malpensa)
+6.0: (fly-airplane aereo1 malpensa capodichino)
+7.0: (unload-airplane pacco2 aereo1 capodichino)
+8.0: (load-truck pacco2 trucknapoli capodichino)
+9.0: (drive-truck trucknapoli capodichino centronapoli napoli)
+10.0: (load-truck pacco5 trucknapoli centronapoli)
+11.0: (drive-truck trucknapoli centronapoli capodichino napoli)
+12.0: (unload-truck pacco5 trucknapoli capodichino)
+13.0: (load-airplane pacco5 aereo1 capodichino)
+14.0: (fly-airplane aereo1 capodichino fiumicino)
+15.0: (unload-airplane pacco5 aereo1 fiumicino)
+16.0: (load-truck pacco5 truckroma fiumicino)
+17.0: (drive-truck trucknapoli capodichino portonapoli napoli)
+18.0: (unload-truck pacco2 trucknapoli portonapoli)
+19.0: (drive-truck trucknapoli portonapoli capodichino napoli)
+20.0: (drive-truck truckmilano malpensa stazionemilano milano)
+21.0: (load-truck pacco1 truckmilano stazionemilano)
+22.0: (drive-truck truckmilano stazionemilano malpensa milano)
+23.0: (unload-truck pacco1 truckmilano malpensa)
+24.0: (fly-airplane aereo2 fiumicino malpensa)
+25.0: (load-airplane pacco1 aereo2 malpensa)
+26.0: (fly-airplane aereo2 malpensa fiumicino)
+27.0: (unload-airplane pacco1 aereo2 fiumicino)
+28.0: (load-truck pacco1 truckroma fiumicino)
+29.0: (drive-truck truckroma fiumicino centroroma roma)
+30.0: (load-truck pacco4 truckroma centroroma)
+31.0: (drive-truck truckroma centroroma terminiroma roma)
+32.0: (unload-truck pacco5 truckroma terminiroma)
+33.0: (load-truck pacco3 truckroma terminiroma)
+34.0: (drive-truck truckroma terminiroma fiumicino roma)
+35.0: (unload-truck pacco4 truckroma fiumicino)
+36.0: (load-airplane pacco4 aereo1 fiumicino)
+37.0: (fly-airplane aereo1 fiumicino capodichino)
+38.0: (unload-truck pacco3 truckroma fiumicino)
+39.0: (drive-truck truckroma fiumicino centroroma roma)
+40.0: (load-airplane pacco3 aereo2 fiumicino)
+41.0: (fly-airplane aereo2 fiumicino malpensa)
+42.0: (unload-airplane pacco4 aereo1 capodichino)
+43.0: (unload-airplane pacco3 aereo2 malpensa)
+44.0: (load-truck pacco4 trucknapoli capodichino)
+45.0: (drive-truck trucknapoli capodichino centronapoli napoli)
+46.0: (load-truck pacco3 truckmilano malpensa)
+47.0: (drive-truck truckmilano malpensa centromilano milano)
+48.0: (unload-truck pacco4 trucknapoli centronapoli)
+49.0: (unload-truck pacco3 truckmilano centromilano)
+50.0: (unload-truck pacco1 truckroma centroroma)
+
+plan-length:51
+metric (search):51.0
+planning time (msec): 175
+heuristic time (msec): 141
+search time (msec): 171
+expanded nodes:88
+states evaluated:839
+number of dead-ends detected:185
+number of duplicates detected:442`;
+export const prob2_classic = `(define (problem logistics-delivery)
+  (:domain logistics)
+  
+  (:objects
+    torino bologna firenze venezia - city
+    caselle marconi peretola marcotessera - airport
     piazzacastello lingotto - location
     stazionebologna mercato - location
     duomo pontevecchio - location
-    pacco1 pacco2 pacco3 pacco4 - package
-    trucktorino truckbologna truckfirenze - truck
-    aereo1 aereo2 - airplane
+    sanmarco rialto - location
+    pacco1 pacco2 pacco3 pacco4 pacco5 pacco6 - package
+    trucktorino truckbologna truckfirenze truckvenezia - truck
+    aereo1 aereo2 aereo3 - airplane
   )
   
   (:init
@@ -192,15 +371,23 @@ export const probb = `(define (problem logistics-delivery)
     (in-city peretola firenze)
     (in-city duomo firenze)
     (in-city pontevecchio firenze)
+    (in-city marcotessera venezia)
+    (in-city sanmarco venezia)
+    (in-city rialto venezia)
     (at trucktorino lingotto)
     (at truckbologna mercato)
     (at truckfirenze duomo)
+    (at truckvenezia sanmarco)
     (at aereo1 caselle)
     (at aereo2 marconi)
+    (at aereo3 marcotessera)
     (at pacco1 piazzacastello)
     (at pacco2 stazionebologna)
     (at pacco3 lingotto)
     (at pacco4 pontevecchio)
+    (at pacco5 sanmarco)
+    (at pacco6 rialto)
+    
   )
   
   (:goal
@@ -209,118 +396,371 @@ export const probb = `(define (problem logistics-delivery)
       (at pacco2 duomo)
       (at pacco3 stazionebologna)
       (at pacco4 piazzacastello)
+      (at pacco5 lingotto)
+      (at pacco6 pontevecchio)
     )
   )
 )`;
-export const planb = `domain parsed
+export const plan2_classic = `domain parsed
 problem parsed
 grounding..
-grounding time: 57
+grounding time: 49
 aibr preprocessing
-|f|:71
+|f|:138
 |x|:0
-|a|:165
+|a|:372
 |p|:0
 |e|:0
-h1 setup time (msec): 17
- g(n)= 1.0 h(n)=39.0
- g(n)= 2.0 h(n)=37.0
- g(n)= 3.0 h(n)=36.0
- g(n)= 6.0 h(n)=34.0
- g(n)= 7.0 h(n)=33.0
- g(n)= 8.0 h(n)=32.0
- g(n)= 10.0 h(n)=31.0
- g(n)= 11.0 h(n)=30.0
- g(n)= 12.0 h(n)=29.0
- g(n)= 14.0 h(n)=28.0
- g(n)= 15.0 h(n)=27.0
- g(n)= 16.0 h(n)=26.0
- g(n)= 17.0 h(n)=25.0
- g(n)= 19.0 h(n)=24.0
- g(n)= 20.0 h(n)=23.0
- g(n)= 22.0 h(n)=22.0
- g(n)= 23.0 h(n)=21.0
- g(n)= 24.0 h(n)=20.0
- g(n)= 26.0 h(n)=19.0
- g(n)= 27.0 h(n)=18.0
- g(n)= 28.0 h(n)=17.0
- g(n)= 29.0 h(n)=16.0
- g(n)= 30.0 h(n)=15.0
- g(n)= 31.0 h(n)=14.0
- g(n)= 32.0 h(n)=13.0
- g(n)= 33.0 h(n)=12.0
- g(n)= 34.0 h(n)=11.0
- g(n)= 37.0 h(n)=10.0
- g(n)= 38.0 h(n)=9.0
- g(n)= 39.0 h(n)=8.0
- g(n)= 40.0 h(n)=7.0
- g(n)= 41.0 h(n)=6.0
- g(n)= 42.0 h(n)=5.0
- g(n)= 43.0 h(n)=4.0
- g(n)= 44.0 h(n)=3.0
- g(n)= 45.0 h(n)=2.0
- g(n)= 46.0 h(n)=1.0
+h1 setup time (msec): 19
+ g(n)= 1.0 h(n)=59.0
+ g(n)= 2.0 h(n)=57.0
+ g(n)= 3.0 h(n)=55.0
+ g(n)= 4.0 h(n)=54.0
+ g(n)= 5.0 h(n)=52.0
+ g(n)= 6.0 h(n)=51.0
+ g(n)= 7.0 h(n)=50.0
+ g(n)= 9.0 h(n)=49.0
+ g(n)= 10.0 h(n)=48.0
+ g(n)= 11.0 h(n)=47.0
+ g(n)= 14.0 h(n)=46.0
+ g(n)= 15.0 h(n)=45.0
+ g(n)= 16.0 h(n)=44.0
+ g(n)= 18.0 h(n)=43.0
+ g(n)= 19.0 h(n)=42.0
+ g(n)= 20.0 h(n)=41.0
+ g(n)= 21.0 h(n)=40.0
+ g(n)= 24.0 h(n)=39.0
+ g(n)= 25.0 h(n)=38.0
+ g(n)= 26.0 h(n)=37.0
+ g(n)= 27.0 h(n)=36.0
+ g(n)= 29.0 h(n)=35.0
+ g(n)= 30.0 h(n)=34.0
+ g(n)= 31.0 h(n)=33.0
+ g(n)= 33.0 h(n)=32.0
+ g(n)= 34.0 h(n)=31.0
+ g(n)= 35.0 h(n)=30.0
+ g(n)= 36.0 h(n)=29.0
+ g(n)= 37.0 h(n)=28.0
+ g(n)= 38.0 h(n)=27.0
+ g(n)= 39.0 h(n)=26.0
+ g(n)= 40.0 h(n)=25.0
+ g(n)= 41.0 h(n)=24.0
+ g(n)= 42.0 h(n)=23.0
+ g(n)= 43.0 h(n)=22.0
+ g(n)= 44.0 h(n)=21.0
+ g(n)= 45.0 h(n)=20.0
+ g(n)= 46.0 h(n)=19.0
+ g(n)= 47.0 h(n)=18.0
+ g(n)= 48.0 h(n)=17.0
+ g(n)= 49.0 h(n)=16.0
+ g(n)= 50.0 h(n)=15.0
+ g(n)= 51.0 h(n)=14.0
+ g(n)= 52.0 h(n)=13.0
+ g(n)= 53.0 h(n)=12.0
+ g(n)= 54.0 h(n)=11.0
+ g(n)= 55.0 h(n)=10.0
+ g(n)= 56.0 h(n)=9.0
+ g(n)= 57.0 h(n)=8.0
+ g(n)= 58.0 h(n)=7.0
+ g(n)= 59.0 h(n)=6.0
+ g(n)= 60.0 h(n)=5.0
+ g(n)= 61.0 h(n)=4.0
+ g(n)= 62.0 h(n)=3.0
+ g(n)= 63.0 h(n)=2.0
+ g(n)= 64.0 h(n)=1.0
 problem solved
 
 found plan:
 0.0: (drive-truck trucktorino lingotto caselle torino)
 1.0: (drive-truck truckbologna mercato marconi bologna)
 2.0: (drive-truck truckfirenze duomo peretola firenze)
-3.0: (drive-truck trucktorino caselle piazzacastello torino)
-4.0: (load-truck pacco1 trucktorino piazzacastello)
-5.0: (drive-truck trucktorino piazzacastello caselle torino)
-6.0: (unload-truck pacco1 trucktorino caselle)
-7.0: (load-airplane pacco1 aereo1 caselle)
-8.0: (fly-airplane aereo2 marconi peretola)
-9.0: (fly-airplane aereo1 caselle marconi)
-10.0: (unload-airplane pacco1 aereo1 marconi)
-11.0: (load-truck pacco1 truckbologna marconi)
-12.0: (drive-truck truckbologna marconi stazionebologna bologna)
-13.0: (load-truck pacco2 truckbologna stazionebologna)
-14.0: (drive-truck truckbologna stazionebologna marconi bologna)
-15.0: (unload-truck pacco2 truckbologna marconi)
-16.0: (load-airplane pacco2 aereo1 marconi)
-17.0: (drive-truck truckbologna marconi mercato bologna)
-18.0: (unload-truck pacco1 truckbologna mercato)
-19.0: (drive-truck truckbologna mercato stazionebologna bologna)
-20.0: (fly-airplane aereo1 marconi peretola)
+3.0: (load-truck pacco5 truckvenezia sanmarco)
+4.0: (drive-truck truckvenezia sanmarco marcotessera venezia)
+5.0: (unload-truck pacco5 truckvenezia marcotessera)
+6.0: (load-airplane pacco5 aereo3 marcotessera)
+7.0: (fly-airplane aereo2 marconi peretola)
+8.0: (fly-airplane aereo3 marcotessera caselle)
+9.0: (unload-airplane pacco5 aereo3 caselle)
+10.0: (load-truck pacco5 trucktorino caselle)
+11.0: (fly-airplane aereo1 caselle peretola)
+12.0: (drive-truck truckvenezia marcotessera rialto venezia)
+13.0: (load-truck pacco6 truckvenezia rialto)
+14.0: (drive-truck truckvenezia rialto marcotessera venezia)
+15.0: (unload-truck pacco6 truckvenezia marcotessera)
+16.0: (fly-airplane aereo2 peretola marcotessera)
+17.0: (load-airplane pacco6 aereo2 marcotessera)
+18.0: (fly-airplane aereo2 marcotessera peretola)
+19.0: (unload-airplane pacco6 aereo2 peretola)
+20.0: (load-truck pacco6 truckfirenze peretola)
 21.0: (fly-airplane aereo2 peretola caselle)
-22.0: (unload-airplane pacco2 aereo1 peretola)
-23.0: (load-truck pacco2 truckfirenze peretola)
-24.0: (drive-truck truckfirenze peretola duomo firenze)
-25.0: (unload-truck pacco2 truckfirenze duomo)
-26.0: (drive-truck truckfirenze duomo pontevecchio firenze)
-27.0: (load-truck pacco4 truckfirenze pontevecchio)
-28.0: (drive-truck truckfirenze pontevecchio peretola firenze)
-29.0: (unload-truck pacco4 truckfirenze peretola)
-30.0: (load-airplane pacco4 aereo1 peretola)
-31.0: (fly-airplane aereo1 peretola caselle)
-32.0: (unload-airplane pacco4 aereo1 caselle)
-33.0: (load-truck pacco4 trucktorino caselle)
-34.0: (drive-truck truckbologna stazionebologna marconi bologna)
+22.0: (drive-truck truckfirenze peretola pontevecchio firenze)
+23.0: (load-truck pacco4 truckfirenze pontevecchio)
+24.0: (drive-truck truckfirenze pontevecchio peretola firenze)
+25.0: (unload-truck pacco4 truckfirenze peretola)
+26.0: (load-airplane pacco4 aereo1 peretola)
+27.0: (fly-airplane aereo2 caselle marconi)
+28.0: (fly-airplane aereo1 peretola caselle)
+29.0: (unload-airplane pacco4 aereo1 caselle)
+30.0: (load-truck pacco4 trucktorino caselle)
+31.0: (drive-truck trucktorino caselle piazzacastello torino)
+32.0: (load-truck pacco1 trucktorino piazzacastello)
+33.0: (drive-truck trucktorino piazzacastello caselle torino)
+34.0: (unload-truck pacco1 trucktorino caselle)
 35.0: (drive-truck trucktorino caselle lingotto torino)
 36.0: (load-truck pacco3 trucktorino lingotto)
-37.0: (drive-truck trucktorino lingotto caselle torino)
-38.0: (unload-truck pacco3 trucktorino caselle)
-39.0: (drive-truck trucktorino caselle piazzacastello torino)
-40.0: (load-airplane pacco3 aereo2 caselle)
-41.0: (fly-airplane aereo2 caselle marconi)
-42.0: (unload-airplane pacco3 aereo2 marconi)
-43.0: (load-truck pacco3 truckbologna marconi)
-44.0: (drive-truck truckbologna marconi stazionebologna bologna)
-45.0: (unload-truck pacco3 truckbologna stazionebologna)
-46.0: (unload-truck pacco4 trucktorino piazzacastello)
+37.0: (load-airplane pacco1 aereo1 caselle)
+38.0: (fly-airplane aereo1 caselle marconi)
+39.0: (unload-airplane pacco1 aereo1 marconi)
+40.0: (load-truck pacco1 truckbologna marconi)
+41.0: (unload-truck pacco5 trucktorino lingotto)
+42.0: (drive-truck trucktorino lingotto caselle torino)
+43.0: (unload-truck pacco3 trucktorino caselle)
+44.0: (drive-truck trucktorino caselle piazzacastello torino)
+45.0: (load-airplane pacco3 aereo3 caselle)
+46.0: (fly-airplane aereo3 caselle marconi)
+47.0: (unload-airplane pacco3 aereo3 marconi)
+48.0: (load-truck pacco3 truckbologna marconi)
+49.0: (drive-truck truckbologna marconi stazionebologna bologna)
+50.0: (load-truck pacco2 truckbologna stazionebologna)
+51.0: (unload-truck pacco3 truckbologna stazionebologna)
+52.0: (drive-truck truckbologna stazionebologna marconi bologna)
+53.0: (unload-truck pacco2 truckbologna marconi)
+54.0: (drive-truck truckbologna marconi mercato bologna)
+55.0: (load-airplane pacco2 aereo1 marconi)
+56.0: (fly-airplane aereo1 marconi peretola)
+57.0: (unload-airplane pacco2 aereo1 peretola)
+58.0: (load-truck pacco2 truckfirenze peretola)
+59.0: (drive-truck truckfirenze peretola duomo firenze)
+60.0: (unload-truck pacco4 trucktorino piazzacastello)
+61.0: (unload-truck pacco2 truckfirenze duomo)
+62.0: (drive-truck truckfirenze duomo pontevecchio firenze)
+63.0: (unload-truck pacco6 truckfirenze pontevecchio)
+64.0: (unload-truck pacco1 truckbologna mercato)
 
-plan-length:47
-metric (search):47.0
-planning time (msec): 164
-heuristic time (msec): 118
-search time (msec): 157
-expanded nodes:69
-states evaluated:704
-number of dead-ends detected:188
-number of duplicates detected:206`
-export const probc = `(define (problem logistics-five-cities)
+plan-length:65
+metric (search):65.0
+planning time (msec): 345
+heuristic time (msec): 305
+search time (msec): 341
+expanded nodes:86
+states evaluated:1696
+number of dead-ends detected:271
+number of duplicates detected:322`;
+export const prob2_numeric =`(define (problem logistics-delivery)
+  (:domain logistics)
+  
+  (:objects
+    torino bologna firenze venezia - city
+    caselle marconi peretola marcotessera - airport
+    piazzacastello lingotto - location
+    stazionebologna mercato - location
+    duomo pontevecchio - location
+    sanmarco rialto - location
+    pacco1 pacco2 pacco3 pacco4 pacco5 pacco6 - package
+    trucktorino truckbologna truckfirenze truckvenezia - truck
+    aereo1 aereo2 aereo3 - airplane
+  )
+  
+  (:init
+    (in-city caselle torino)
+    (in-city piazzacastello torino)
+    (in-city lingotto torino)
+    (in-city marconi bologna)
+    (in-city stazionebologna bologna)
+    (in-city mercato bologna)
+    (in-city peretola firenze)
+    (in-city duomo firenze)
+    (in-city pontevecchio firenze)
+    (in-city marcotessera venezia)
+    (in-city sanmarco venezia)
+    (in-city rialto venezia)
+    (at trucktorino lingotto)
+    (at truckbologna mercato)
+    (at truckfirenze duomo)
+    (at truckvenezia sanmarco)
+    (at aereo1 caselle)
+    (at aereo2 marconi)
+    (at aereo3 marcotessera)
+    (at pacco1 piazzacastello)
+    (at pacco2 stazionebologna)
+    (at pacco3 lingotto)
+    (at pacco4 pontevecchio)
+    (at pacco5 sanmarco)
+    (at pacco6 rialto)
+    (= (capacity trucktorino) 4)
+    (= (capacity truckbologna) 3)
+    (= (capacity truckfirenze) 3)
+    (= (capacity truckvenezia) 2)
+    (= (capacity aereo1) 8)
+    (= (capacity aereo2) 9)
+    (= (capacity aereo3) 6)
+    
+    (= (current-load trucktorino) 0)
+    (= (current-load truckbologna) 0)
+    (= (current-load truckfirenze) 0)
+    (= (current-load truckvenezia) 0)
+    (= (current-load aereo1) 0)
+    (= (current-load aereo2) 0)
+    (= (current-load aereo3) 0)
+  )
+  
+  (:goal
+    (and
+      (at pacco1 mercato)
+      (at pacco2 duomo)
+      (at pacco3 stazionebologna)
+      (at pacco4 piazzacastello)
+      (at pacco5 lingotto)
+      (at pacco6 pontevecchio)
+    )
+  )
+)`;
+export const plan2_numeric =`domain parsed
+problem parsed
+grounding..
+grounding time: 59
+aibr preprocessing
+|f|:138
+|x|:7
+|a|:372
+|p|:0
+|e|:0
+h1 setup time (msec): 18
+ g(n)= 1.0 h(n)=59.0
+ g(n)= 2.0 h(n)=57.0
+ g(n)= 3.0 h(n)=55.0
+ g(n)= 4.0 h(n)=54.0
+ g(n)= 5.0 h(n)=52.0
+ g(n)= 6.0 h(n)=51.0
+ g(n)= 7.0 h(n)=50.0
+ g(n)= 9.0 h(n)=49.0
+ g(n)= 10.0 h(n)=48.0
+ g(n)= 11.0 h(n)=47.0
+ g(n)= 14.0 h(n)=46.0
+ g(n)= 15.0 h(n)=45.0
+ g(n)= 16.0 h(n)=44.0
+ g(n)= 18.0 h(n)=43.0
+ g(n)= 19.0 h(n)=42.0
+ g(n)= 20.0 h(n)=41.0
+ g(n)= 21.0 h(n)=40.0
+ g(n)= 24.0 h(n)=39.0
+ g(n)= 25.0 h(n)=38.0
+ g(n)= 26.0 h(n)=37.0
+ g(n)= 28.0 h(n)=36.0
+ g(n)= 29.0 h(n)=35.0
+ g(n)= 30.0 h(n)=34.0
+ g(n)= 31.0 h(n)=33.0
+ g(n)= 33.0 h(n)=32.0
+ g(n)= 34.0 h(n)=31.0
+ g(n)= 35.0 h(n)=30.0
+ g(n)= 36.0 h(n)=29.0
+ g(n)= 37.0 h(n)=28.0
+ g(n)= 38.0 h(n)=27.0
+ g(n)= 39.0 h(n)=26.0
+ g(n)= 40.0 h(n)=25.0
+ g(n)= 41.0 h(n)=24.0
+ g(n)= 42.0 h(n)=23.0
+ g(n)= 43.0 h(n)=22.0
+ g(n)= 44.0 h(n)=21.0
+ g(n)= 45.0 h(n)=20.0
+ g(n)= 46.0 h(n)=19.0
+ g(n)= 47.0 h(n)=18.0
+ g(n)= 48.0 h(n)=17.0
+ g(n)= 49.0 h(n)=16.0
+ g(n)= 50.0 h(n)=15.0
+ g(n)= 51.0 h(n)=14.0
+ g(n)= 52.0 h(n)=13.0
+ g(n)= 53.0 h(n)=12.0
+ g(n)= 54.0 h(n)=11.0
+ g(n)= 55.0 h(n)=10.0
+ g(n)= 56.0 h(n)=9.0
+ g(n)= 57.0 h(n)=8.0
+ g(n)= 58.0 h(n)=7.0
+ g(n)= 59.0 h(n)=6.0
+ g(n)= 60.0 h(n)=5.0
+ g(n)= 61.0 h(n)=4.0
+ g(n)= 62.0 h(n)=3.0
+ g(n)= 63.0 h(n)=2.0
+ g(n)= 64.0 h(n)=1.0
+problem solved
+
+found plan:
+0.0: (drive-truck trucktorino lingotto caselle torino)
+1.0: (drive-truck truckbologna mercato marconi bologna)
+2.0: (drive-truck truckfirenze duomo peretola firenze)
+3.0: (load-truck pacco5 truckvenezia sanmarco)
+4.0: (drive-truck truckvenezia sanmarco marcotessera venezia)
+5.0: (unload-truck pacco5 truckvenezia marcotessera)
+6.0: (load-airplane pacco5 aereo3 marcotessera)
+7.0: (fly-airplane aereo2 marconi peretola)
+8.0: (fly-airplane aereo3 marcotessera caselle)
+9.0: (unload-airplane pacco5 aereo3 caselle)
+10.0: (load-truck pacco5 trucktorino caselle)
+11.0: (fly-airplane aereo1 caselle marconi)
+12.0: (drive-truck truckvenezia marcotessera rialto venezia)
+13.0: (load-truck pacco6 truckvenezia rialto)
+14.0: (drive-truck truckvenezia rialto marcotessera venezia)
+15.0: (unload-truck pacco6 truckvenezia marcotessera)
+16.0: (fly-airplane aereo2 peretola marcotessera)
+17.0: (load-airplane pacco6 aereo2 marcotessera)
+18.0: (fly-airplane aereo2 marcotessera peretola)
+19.0: (unload-airplane pacco6 aereo2 peretola)
+20.0: (load-truck pacco6 truckfirenze peretola)
+21.0: (fly-airplane aereo2 peretola marcotessera)
+22.0: (drive-truck truckfirenze peretola pontevecchio firenze)
+23.0: (load-truck pacco4 truckfirenze pontevecchio)
+24.0: (drive-truck truckfirenze pontevecchio peretola firenze)
+25.0: (unload-truck pacco4 truckfirenze peretola)
+26.0: (fly-airplane aereo2 marcotessera peretola)
+27.0: (load-airplane pacco4 aereo2 peretola)
+28.0: (fly-airplane aereo2 peretola caselle)
+29.0: (unload-airplane pacco4 aereo2 caselle)
+30.0: (load-truck pacco4 trucktorino caselle)
+31.0: (drive-truck trucktorino caselle piazzacastello torino)
+32.0: (load-truck pacco1 trucktorino piazzacastello)
+33.0: (drive-truck trucktorino piazzacastello caselle torino)
+34.0: (unload-truck pacco1 trucktorino caselle)
+35.0: (drive-truck trucktorino caselle lingotto torino)
+36.0: (load-truck pacco3 trucktorino lingotto)
+37.0: (load-airplane pacco1 aereo3 caselle)
+38.0: (fly-airplane aereo3 caselle marconi)
+39.0: (unload-airplane pacco1 aereo3 marconi)
+40.0: (load-truck pacco1 truckbologna marconi)
+41.0: (unload-truck pacco5 trucktorino lingotto)
+42.0: (drive-truck trucktorino lingotto caselle torino)
+43.0: (unload-truck pacco3 trucktorino caselle)
+44.0: (drive-truck trucktorino caselle piazzacastello torino)
+45.0: (load-airplane pacco3 aereo2 caselle)
+46.0: (fly-airplane aereo2 caselle marconi)
+47.0: (unload-airplane pacco3 aereo2 marconi)
+48.0: (load-truck pacco3 truckbologna marconi)
+49.0: (drive-truck truckbologna marconi stazionebologna bologna)
+50.0: (load-truck pacco2 truckbologna stazionebologna)
+51.0: (unload-truck pacco3 truckbologna stazionebologna)
+52.0: (drive-truck truckbologna stazionebologna marconi bologna)
+53.0: (unload-truck pacco2 truckbologna marconi)
+54.0: (drive-truck truckbologna marconi mercato bologna)
+55.0: (load-airplane pacco2 aereo1 marconi)
+56.0: (fly-airplane aereo1 marconi peretola)
+57.0: (unload-airplane pacco2 aereo1 peretola)
+58.0: (load-truck pacco2 truckfirenze peretola)
+59.0: (drive-truck truckfirenze peretola pontevecchio firenze)
+60.0: (unload-truck pacco4 trucktorino piazzacastello)
+61.0: (unload-truck pacco6 truckfirenze pontevecchio)
+62.0: (drive-truck truckfirenze pontevecchio duomo firenze)
+63.0: (unload-truck pacco2 truckfirenze duomo)
+64.0: (unload-truck pacco1 truckbologna mercato)
+
+plan-length:65
+metric (search):65.0
+planning time (msec): 381
+heuristic time (msec): 342
+search time (msec): 377
+expanded nodes:89
+states evaluated:1720
+number of dead-ends detected:202
+number of duplicates detected:442`; 
+export const prob3_classic = `(define (problem logistics-five-cities)
   (:domain logistics)
   
   (:objects
@@ -388,7 +828,7 @@ export const probc = `(define (problem logistics-five-cities)
     )
   )
 )`;
-export const planC = `domain parsed
+export const plan3_classic = `domain parsed
 problem parsed
 grounding..
 grounding time: 71
@@ -398,7 +838,7 @@ aibr preprocessing
 |a|:715
 |p|:0
 |e|:0
-h1 setup time (msec): 19
+h1 setup time (msec): 22
  g(n)= 1.0 h(n)=83.0
  g(n)= 2.0 h(n)=80.0
  g(n)= 3.0 h(n)=77.0
@@ -581,17 +1021,454 @@ found plan:
 
 plan-length:102
 metric (search):102.0
-planning time (msec): 3904
-heuristic time (msec): 3799
-search time (msec): 3899
+planning time (msec): 3710
+heuristic time (msec): 3603
+search time (msec): 3705
 expanded nodes:503
 states evaluated:10584
 number of dead-ends detected:2248
 number of duplicates detected:5529`;
 
-export const prob2ex1 = `(define (problem logistics-temporal)
+export const prob3_numeric =`(define (problem logistics-five-cities)
   (:domain logistics)
   
+  (:objects
+    milano roma napoli torino bologna - city
+    malpensa fiumicino capodichino caselle marconi - airport
+    centromilano stazionemilano navigli - location
+    centroroma terminiroma trastevere - location
+    centronapoli portonapoli quartierispagnoli - location
+    centrotorino portanuova lingotto - location
+    centrobologna stazionebologna universitabologna - location
+    pacco1 pacco2 pacco3 pacco4 pacco5 pacco6 pacco7 pacco8 - package
+    truckmilano truckroma trucknapoli trucktorino truckbologna - truck
+    aereo1 aereo2 aereo3 - airplane
+  )
+  
+  (:init
+    (in-city malpensa milano)
+    (in-city fiumicino roma)
+    (in-city capodichino napoli)
+    (in-city caselle torino)
+    (in-city marconi bologna)
+    (in-city centromilano milano)
+    (in-city stazionemilano milano)
+    (in-city navigli milano)
+    (in-city centroroma roma)
+    (in-city terminiroma roma)
+    (in-city trastevere roma)
+    (in-city centronapoli napoli)
+    (in-city portonapoli napoli)
+    (in-city quartierispagnoli napoli)
+    (in-city centrotorino torino)
+    (in-city portanuova torino)
+    (in-city lingotto torino)
+    (in-city centrobologna bologna)
+    (in-city stazionebologna bologna)
+    (in-city universitabologna bologna)
+    (at truckmilano centromilano)
+    (at truckroma centroroma)
+    (at trucknapoli centronapoli)
+    (at trucktorino centrotorino)
+    (at truckbologna centrobologna)
+    (at aereo1 malpensa)
+    (at aereo2 fiumicino)
+    (at aereo3 caselle)
+    (at pacco1 stazionemilano)
+    (at pacco2 navigli)
+    (at pacco3 terminiroma)
+    (at pacco4 trastevere)
+    (at pacco5 portonapoli)
+    (at pacco6 quartierispagnoli)
+    (at pacco7 portanuova)
+    (at pacco8 universitabologna)
+    
+    (= (capacity truckmilano) 4)
+    (= (capacity truckroma) 5)
+    (= (capacity trucknapoli) 3)
+    (= (capacity trucktorino) 4)
+    (= (capacity truckbologna) 3)
+    (= (capacity aereo1) 10)
+    (= (capacity aereo2) 8)
+    (= (capacity aereo3) 6)
+    
+    (= (current-load truckmilano) 0)
+    (= (current-load truckroma) 0)
+    (= (current-load trucknapoli) 0)
+    (= (current-load trucktorino) 0)
+    (= (current-load truckbologna) 0)
+    (= (current-load aereo1) 0)
+    (= (current-load aereo2) 0)
+    (= (current-load aereo3) 0)
+  )
+  
+  (:goal
+    (and
+      (at pacco1 centroroma)
+      (at pacco2 portonapoli)
+      (at pacco3 navigli)
+      (at pacco4 centronapoli)
+      (at pacco5 lingotto)
+      (at pacco6 stazionebologna)
+      (at pacco7 trastevere)
+      (at pacco8 stazionemilano)
+    )
+  )
+)`;
+export const plan3_numeric =`domain parsed
+problem parsed
+grounding..
+grounding time: 86
+aibr preprocessing
+|f|:259
+|x|:8
+|a|:715
+|p|:0
+|e|:0
+h1 setup time (msec): 26
+ g(n)= 1.0 h(n)=83.0
+ g(n)= 2.0 h(n)=80.0
+ g(n)= 3.0 h(n)=77.0
+ g(n)= 4.0 h(n)=75.0
+ g(n)= 5.0 h(n)=73.0
+ g(n)= 6.0 h(n)=72.0
+ g(n)= 11.0 h(n)=70.0
+ g(n)= 12.0 h(n)=69.0
+ g(n)= 13.0 h(n)=68.0
+ g(n)= 14.0 h(n)=67.0
+ g(n)= 15.0 h(n)=66.0
+ g(n)= 16.0 h(n)=65.0
+ g(n)= 22.0 h(n)=63.0
+ g(n)= 23.0 h(n)=62.0
+ g(n)= 24.0 h(n)=61.0
+ g(n)= 25.0 h(n)=60.0
+ g(n)= 26.0 h(n)=59.0
+ g(n)= 27.0 h(n)=58.0
+ g(n)= 29.0 h(n)=57.0
+ g(n)= 30.0 h(n)=56.0
+ g(n)= 31.0 h(n)=55.0
+ g(n)= 33.0 h(n)=54.0
+ g(n)= 34.0 h(n)=53.0
+ g(n)= 36.0 h(n)=52.0
+ g(n)= 37.0 h(n)=51.0
+ g(n)= 38.0 h(n)=50.0
+ g(n)= 39.0 h(n)=49.0
+ g(n)= 45.0 h(n)=47.0
+ g(n)= 46.0 h(n)=46.0
+ g(n)= 48.0 h(n)=45.0
+ g(n)= 49.0 h(n)=44.0
+ g(n)= 50.0 h(n)=43.0
+ g(n)= 51.0 h(n)=42.0
+ g(n)= 53.0 h(n)=41.0
+ g(n)= 54.0 h(n)=40.0
+ g(n)= 55.0 h(n)=39.0
+ g(n)= 56.0 h(n)=38.0
+ g(n)= 57.0 h(n)=37.0
+ g(n)= 58.0 h(n)=36.0
+ g(n)= 59.0 h(n)=35.0
+ g(n)= 61.0 h(n)=34.0
+ g(n)= 62.0 h(n)=33.0
+ g(n)= 63.0 h(n)=32.0
+ g(n)= 64.0 h(n)=31.0
+ g(n)= 65.0 h(n)=30.0
+ g(n)= 66.0 h(n)=29.0
+ g(n)= 67.0 h(n)=28.0
+ g(n)= 68.0 h(n)=27.0
+ g(n)= 69.0 h(n)=26.0
+ g(n)= 71.0 h(n)=25.0
+ g(n)= 72.0 h(n)=24.0
+ g(n)= 73.0 h(n)=23.0
+ g(n)= 74.0 h(n)=22.0
+ g(n)= 75.0 h(n)=21.0
+ g(n)= 76.0 h(n)=20.0
+ g(n)= 77.0 h(n)=19.0
+ g(n)= 78.0 h(n)=18.0
+ g(n)= 79.0 h(n)=17.0
+ g(n)= 80.0 h(n)=16.0
+ g(n)= 82.0 h(n)=15.0
+ g(n)= 83.0 h(n)=14.0
+ g(n)= 84.0 h(n)=13.0
+ g(n)= 85.0 h(n)=12.0
+ g(n)= 86.0 h(n)=11.0
+ g(n)= 87.0 h(n)=10.0
+ g(n)= 88.0 h(n)=9.0
+ g(n)= 89.0 h(n)=8.0
+ g(n)= 90.0 h(n)=7.0
+ g(n)= 91.0 h(n)=6.0
+ g(n)= 93.0 h(n)=5.0
+ g(n)= 94.0 h(n)=4.0
+ g(n)= 95.0 h(n)=3.0
+ g(n)= 97.0 h(n)=2.0
+ g(n)= 98.0 h(n)=1.0
+problem solved
+
+found plan:
+0.0: (drive-truck truckmilano centromilano malpensa milano)
+1.0: (drive-truck trucknapoli centronapoli capodichino napoli)
+2.0: (drive-truck truckroma centroroma fiumicino roma)
+3.0: (drive-truck truckbologna centrobologna marconi bologna)
+4.0: (drive-truck trucktorino centrotorino caselle torino)
+5.0: (fly-airplane aereo2 fiumicino capodichino)
+6.0: (fly-airplane aereo3 caselle fiumicino)
+7.0: (fly-airplane aereo1 malpensa marconi)
+8.0: (drive-truck truckbologna marconi universitabologna bologna)
+9.0: (load-truck pacco8 truckbologna universitabologna)
+10.0: (drive-truck truckbologna universitabologna marconi bologna)
+11.0: (unload-truck pacco8 truckbologna marconi)
+12.0: (load-airplane pacco8 aereo1 marconi)
+13.0: (fly-airplane aereo1 marconi malpensa)
+14.0: (unload-airplane pacco8 aereo1 malpensa)
+15.0: (load-truck pacco8 truckmilano malpensa)
+16.0: (fly-airplane aereo1 malpensa fiumicino)
+17.0: (fly-airplane aereo3 fiumicino malpensa)
+18.0: (drive-truck truckbologna marconi stazionebologna bologna)
+19.0: (drive-truck truckmilano malpensa navigli milano)
+20.0: (load-truck pacco2 truckmilano navigli)
+21.0: (drive-truck truckmilano navigli malpensa milano)
+22.0: (unload-truck pacco2 truckmilano malpensa)
+23.0: (load-airplane pacco2 aereo3 malpensa)
+24.0: (fly-airplane aereo3 malpensa capodichino)
+25.0: (unload-airplane pacco2 aereo3 capodichino)
+26.0: (load-truck pacco2 trucknapoli capodichino)
+27.0: (drive-truck truckmilano malpensa stazionemilano milano)
+28.0: (load-truck pacco1 truckmilano stazionemilano)
+29.0: (drive-truck truckmilano stazionemilano malpensa milano)
+30.0: (unload-truck pacco1 truckmilano malpensa)
+31.0: (drive-truck truckmilano malpensa stazionemilano milano)
+32.0: (unload-truck pacco8 truckmilano stazionemilano)
+33.0: (drive-truck truckmilano stazionemilano malpensa milano)
+34.0: (fly-airplane aereo2 capodichino malpensa)
+35.0: (load-airplane pacco1 aereo2 malpensa)
+36.0: (fly-airplane aereo2 malpensa fiumicino)
+37.0: (unload-airplane pacco1 aereo2 fiumicino)
+38.0: (load-truck pacco1 truckroma fiumicino)
+39.0: (fly-airplane aereo1 fiumicino capodichino)
+40.0: (drive-truck truckmilano malpensa navigli milano)
+41.0: (fly-airplane aereo3 capodichino fiumicino)
+42.0: (drive-truck trucktorino caselle portanuova torino)
+43.0: (load-truck pacco7 trucktorino portanuova)
+44.0: (drive-truck trucktorino portanuova caselle torino)
+45.0: (unload-truck pacco7 trucktorino caselle)
+46.0: (fly-airplane aereo2 fiumicino caselle)
+47.0: (load-airplane pacco7 aereo2 caselle)
+48.0: (fly-airplane aereo2 caselle fiumicino)
+49.0: (unload-airplane pacco7 aereo2 fiumicino)
+50.0: (load-truck pacco7 truckroma fiumicino)
+51.0: (drive-truck truckroma fiumicino trastevere roma)
+52.0: (load-truck pacco4 truckroma trastevere)
+53.0: (drive-truck truckroma trastevere fiumicino roma)
+54.0: (unload-truck pacco4 truckroma fiumicino)
+55.0: (load-airplane pacco4 aereo3 fiumicino)
+56.0: (fly-airplane aereo3 fiumicino capodichino)
+57.0: (unload-airplane pacco4 aereo3 capodichino)
+58.0: (load-truck pacco4 trucknapoli capodichino)
+59.0: (drive-truck trucknapoli capodichino portonapoli napoli)
+60.0: (load-truck pacco5 trucknapoli portonapoli)
+61.0: (drive-truck trucknapoli portonapoli capodichino napoli)
+62.0: (unload-truck pacco5 trucknapoli capodichino)
+63.0: (load-airplane pacco5 aereo1 capodichino)
+64.0: (fly-airplane aereo1 capodichino caselle)
+65.0: (unload-airplane pacco5 aereo1 caselle)
+66.0: (load-truck pacco5 trucktorino caselle)
+67.0: (drive-truck trucktorino caselle lingotto torino)
+68.0: (unload-truck pacco5 trucktorino lingotto)
+69.0: (drive-truck trucknapoli capodichino quartierispagnoli napoli)
+70.0: (load-truck pacco6 trucknapoli quartierispagnoli)
+71.0: (drive-truck trucknapoli quartierispagnoli centronapoli napoli)
+72.0: (unload-truck pacco4 trucknapoli centronapoli)
+73.0: (drive-truck trucknapoli centronapoli capodichino napoli)
+74.0: (unload-truck pacco6 trucknapoli capodichino)
+75.0: (drive-truck trucknapoli capodichino portonapoli napoli)
+76.0: (load-airplane pacco6 aereo3 capodichino)
+77.0: (fly-airplane aereo3 capodichino marconi)
+78.0: (unload-airplane pacco6 aereo3 marconi)
+79.0: (unload-truck pacco2 trucknapoli portonapoli)
+80.0: (drive-truck truckroma fiumicino trastevere roma)
+81.0: (unload-truck pacco7 truckroma trastevere)
+82.0: (drive-truck truckroma trastevere centroroma roma)
+83.0: (unload-truck pacco1 truckroma centroroma)
+84.0: (drive-truck truckroma centroroma terminiroma roma)
+85.0: (load-truck pacco3 truckroma terminiroma)
+86.0: (drive-truck truckroma terminiroma fiumicino roma)
+87.0: (unload-truck pacco3 truckroma fiumicino)
+88.0: (load-airplane pacco3 aereo2 fiumicino)
+89.0: (fly-airplane aereo2 fiumicino malpensa)
+90.0: (unload-airplane pacco3 aereo2 malpensa)
+91.0: (drive-truck truckmilano navigli malpensa milano)
+92.0: (load-truck pacco3 truckmilano malpensa)
+93.0: (drive-truck truckmilano malpensa navigli milano)
+94.0: (unload-truck pacco3 truckmilano navigli)
+95.0: (drive-truck truckbologna stazionebologna marconi bologna)
+96.0: (load-truck pacco6 truckbologna marconi)
+97.0: (drive-truck truckbologna marconi stazionebologna bologna)
+98.0: (unload-truck pacco6 truckbologna stazionebologna)
+
+plan-length:99
+metric (search):99.0
+planning time (msec): 3808
+heuristic time (msec): 3689
+search time (msec): 3804
+expanded nodes:465
+states evaluated:9684
+number of dead-ends detected:1851
+number of duplicates detected:5536`;
+export const probb = `(define (problem logistics-delivery)
+  (:domain logistics)
+  
+  (:objects
+    torino bologna firenze - city
+    caselle marconi peretola - airport
+    piazzacastello lingotto - location
+    stazionebologna mercato - location
+    duomo pontevecchio - location
+    pacco1 pacco2 pacco3 pacco4 - package
+    trucktorino truckbologna truckfirenze - truck
+    aereo1 aereo2 - airplane
+  )
+  
+  (:init
+    (in-city caselle torino)
+    (in-city piazzacastello torino)
+    (in-city lingotto torino)
+    (in-city marconi bologna)
+    (in-city stazionebologna bologna)
+    (in-city mercato bologna)
+    (in-city peretola firenze)
+    (in-city duomo firenze)
+    (in-city pontevecchio firenze)
+    (at trucktorino lingotto)
+    (at truckbologna mercato)
+    (at truckfirenze duomo)
+    (at aereo1 caselle)
+    (at aereo2 marconi)
+    (at pacco1 piazzacastello)
+    (at pacco2 stazionebologna)
+    (at pacco3 lingotto)
+    (at pacco4 pontevecchio)
+  )
+  
+  (:goal
+    (and
+      (at pacco1 mercato)
+      (at pacco2 duomo)
+      (at pacco3 stazionebologna)
+      (at pacco4 piazzacastello)
+    )
+  )
+)`;
+export const planb = `domain parsed
+problem parsed
+grounding..
+grounding time: 57
+aibr preprocessing
+|f|:71
+|x|:0
+|a|:165
+|p|:0
+|e|:0
+h1 setup time (msec): 17
+ g(n)= 1.0 h(n)=39.0
+ g(n)= 2.0 h(n)=37.0
+ g(n)= 3.0 h(n)=36.0
+ g(n)= 6.0 h(n)=34.0
+ g(n)= 7.0 h(n)=33.0
+ g(n)= 8.0 h(n)=32.0
+ g(n)= 10.0 h(n)=31.0
+ g(n)= 11.0 h(n)=30.0
+ g(n)= 12.0 h(n)=29.0
+ g(n)= 14.0 h(n)=28.0
+ g(n)= 15.0 h(n)=27.0
+ g(n)= 16.0 h(n)=26.0
+ g(n)= 17.0 h(n)=25.0
+ g(n)= 19.0 h(n)=24.0
+ g(n)= 20.0 h(n)=23.0
+ g(n)= 22.0 h(n)=22.0
+ g(n)= 23.0 h(n)=21.0
+ g(n)= 24.0 h(n)=20.0
+ g(n)= 26.0 h(n)=19.0
+ g(n)= 27.0 h(n)=18.0
+ g(n)= 28.0 h(n)=17.0
+ g(n)= 29.0 h(n)=16.0
+ g(n)= 30.0 h(n)=15.0
+ g(n)= 31.0 h(n)=14.0
+ g(n)= 32.0 h(n)=13.0
+ g(n)= 33.0 h(n)=12.0
+ g(n)= 34.0 h(n)=11.0
+ g(n)= 37.0 h(n)=10.0
+ g(n)= 38.0 h(n)=9.0
+ g(n)= 39.0 h(n)=8.0
+ g(n)= 40.0 h(n)=7.0
+ g(n)= 41.0 h(n)=6.0
+ g(n)= 42.0 h(n)=5.0
+ g(n)= 43.0 h(n)=4.0
+ g(n)= 44.0 h(n)=3.0
+ g(n)= 45.0 h(n)=2.0
+ g(n)= 46.0 h(n)=1.0
+problem solved
+
+found plan:
+0.0: (drive-truck trucktorino lingotto caselle torino)
+1.0: (drive-truck truckbologna mercato marconi bologna)
+2.0: (drive-truck truckfirenze duomo peretola firenze)
+3.0: (drive-truck trucktorino caselle piazzacastello torino)
+4.0: (load-truck pacco1 trucktorino piazzacastello)
+5.0: (drive-truck trucktorino piazzacastello caselle torino)
+6.0: (unload-truck pacco1 trucktorino caselle)
+7.0: (load-airplane pacco1 aereo1 caselle)
+8.0: (fly-airplane aereo2 marconi peretola)
+9.0: (fly-airplane aereo1 caselle marconi)
+10.0: (unload-airplane pacco1 aereo1 marconi)
+11.0: (load-truck pacco1 truckbologna marconi)
+12.0: (drive-truck truckbologna marconi stazionebologna bologna)
+13.0: (load-truck pacco2 truckbologna stazionebologna)
+14.0: (drive-truck truckbologna stazionebologna marconi bologna)
+15.0: (unload-truck pacco2 truckbologna marconi)
+16.0: (load-airplane pacco2 aereo1 marconi)
+17.0: (drive-truck truckbologna marconi mercato bologna)
+18.0: (unload-truck pacco1 truckbologna mercato)
+19.0: (drive-truck truckbologna mercato stazionebologna bologna)
+20.0: (fly-airplane aereo1 marconi peretola)
+21.0: (fly-airplane aereo2 peretola caselle)
+22.0: (unload-airplane pacco2 aereo1 peretola)
+23.0: (load-truck pacco2 truckfirenze peretola)
+24.0: (drive-truck truckfirenze peretola duomo firenze)
+25.0: (unload-truck pacco2 truckfirenze duomo)
+26.0: (drive-truck truckfirenze duomo pontevecchio firenze)
+27.0: (load-truck pacco4 truckfirenze pontevecchio)
+28.0: (drive-truck truckfirenze pontevecchio peretola firenze)
+29.0: (unload-truck pacco4 truckfirenze peretola)
+30.0: (load-airplane pacco4 aereo1 peretola)
+31.0: (fly-airplane aereo1 peretola caselle)
+32.0: (unload-airplane pacco4 aereo1 caselle)
+33.0: (load-truck pacco4 trucktorino caselle)
+34.0: (drive-truck truckbologna stazionebologna marconi bologna)
+35.0: (drive-truck trucktorino caselle lingotto torino)
+36.0: (load-truck pacco3 trucktorino lingotto)
+37.0: (drive-truck trucktorino lingotto caselle torino)
+38.0: (unload-truck pacco3 trucktorino caselle)
+39.0: (drive-truck trucktorino caselle piazzacastello torino)
+40.0: (load-airplane pacco3 aereo2 caselle)
+41.0: (fly-airplane aereo2 caselle marconi)
+42.0: (unload-airplane pacco3 aereo2 marconi)
+43.0: (load-truck pacco3 truckbologna marconi)
+44.0: (drive-truck truckbologna marconi stazionebologna bologna)
+45.0: (unload-truck pacco3 truckbologna stazionebologna)
+46.0: (unload-truck pacco4 trucktorino piazzacastello)
+
+plan-length:47
+metric (search):47.0
+planning time (msec): 164
+heuristic time (msec): 118
+search time (msec): 157
+expanded nodes:69
+states evaluated:704
+number of dead-ends detected:188
+number of duplicates detected:206`
+
+
+export const prob2ex1 = `(define (problem logistics-temporal)
+  (:domain logistics)
+
   (:objects
     milano roma napoli torino bologna firenze - city
     centromilano stazionemilano - location
@@ -603,7 +1480,7 @@ export const prob2ex1 = `(define (problem logistics-temporal)
     pacco1 pacco2 pacco3 pacco4 pacco5 pacco6 - package
     truck1 truck2 truck3 truck4 - truck
   )
-  
+
   (:init
     (in-city centromilano milano)
     (in-city stazionemilano milano)
@@ -617,54 +1494,54 @@ export const prob2ex1 = `(define (problem logistics-temporal)
     (in-city mercato bologna)
     (in-city duomo firenze)
     (in-city pontevecchio firenze)
-    
+
     (at truck1 centromilano)
     (at truck2 centroroma)
     (at truck3 piazzacastello)
     (at truck4 duomo)
-    
+
     (at pacco1 stazionemilano)
     (at pacco2 terminiroma)
     (at pacco3 centronapoli)
     (at pacco4 lingotto)
     (at pacco5 mercato)
     (at pacco6 pontevecchio)
-    
+
     (= (distance milano milano) 0)
     (= (distance milano roma) 5)
     (= (distance milano napoli) 8)
     (= (distance milano torino) 2)
     (= (distance milano bologna) 3)
     (= (distance milano firenze) 4)
-    
+
     (= (distance roma milano) 5)
     (= (distance roma roma) 0)
     (= (distance roma napoli) 2)
     (= (distance roma torino) 7)
     (= (distance roma bologna) 4)
     (= (distance roma firenze) 3)
-    
+
     (= (distance napoli milano) 8)
     (= (distance napoli roma) 2)
     (= (distance napoli napoli) 0)
     (= (distance napoli torino) 10)
     (= (distance napoli bologna) 6)
     (= (distance napoli firenze) 5)
-    
+
     (= (distance torino milano) 2)
     (= (distance torino roma) 7)
     (= (distance torino napoli) 10)
     (= (distance torino torino) 0)
     (= (distance torino bologna) 4)
     (= (distance torino firenze) 6)
-    
+
     (= (distance bologna milano) 3)
     (= (distance bologna roma) 4)
     (= (distance bologna napoli) 6)
     (= (distance bologna torino) 4)
     (= (distance bologna bologna) 0)
     (= (distance bologna firenze) 2)
-    
+
     (= (distance firenze milano) 4)
     (= (distance firenze roma) 3)
     (= (distance firenze napoli) 5)
@@ -672,7 +1549,7 @@ export const prob2ex1 = `(define (problem logistics-temporal)
     (= (distance firenze bologna) 2)
     (= (distance firenze firenze) 0)
   )
-  
+
   (:goal
     (and
       (at pacco1 centroroma)
@@ -683,12 +1560,13 @@ export const prob2ex1 = `(define (problem logistics-temporal)
       (at pacco6 centromilano)
     )
   )
+      (:metric minimize total-time)
+
 )`;
 export const plan2ex1 = `
-
 NUMERIC_THREATS_MODE: 0
 
-; Command line: ./lpg-td -o dom.pddl -f prog.pddl -n 1
+; Command line: ./lpg-td -o dom.pddl -f prog.pddl -n 3
 
 
 Parsing domain file:  domain 'LOGISTICS' defined ... done.
@@ -704,68 +1582,91 @@ Number of facts               :     144
 
 
 Analyzing Planning Problem:
-        Temporal Planning Problem: NO
+        Temporal Planning Problem: YES
         Numeric Planning Problem: YES
         Problem with Timed Initial Literals: NO
         Problem with Derived Predicates: NO
 
 Evaluation function weights:
-     Action duration 0.00; Action cost 1.00
+     Action duration 1.00; Action cost 0.00
 
 
 Computing mutex... done
 
-Preprocessing total time: 0.00 seconds
+Preprocessing total time: 0.01 seconds
 
 Searching ('.' = every 50 search steps):
  solution found:
  Recompute start times
 
- first_solution_cpu_time: 0.02
+ first_solution_cpu_time: 0.04
+Solution number: 1
+Total time:      0.04
+Search time:     0.03
+Actions:         31
+Duration:        24.000
+Plan quality:    24.000
+Total Num Flips: 32
+     Plan file:       plan_prog.pddl_1.SOL Restart using stored plan
+. solution found:
+ Recompute start times
+
+Solution number: 2
+Total time:      0.05
+Search time:     0.04
+Actions:         30
+Duration:        19.000
+Plan quality:    19.000
+Total Num Flips: 83
+     Plan file:       plan_prog.pddl_2.SOL Restart using stored plan
+ solution found:
+ Recompute start times
+
 
 Plan computed:
    Time: (ACTION) [action Duration; action Cost]
- 0.0000: (DRIVE-TRUCK TRUCK3 PIAZZACASTELLO CENTRONAPOLI TORINO NAPOLI) [D:10.00; C:1.00]
- 0.0000: (DRIVE-TRUCK TRUCK2 CENTROROMA STAZIONEMILANO ROMA MILANO) [D:5.00; C:1.00]
- 5.0000: (LOAD-TRUCK PACCO1 TRUCK2 STAZIONEMILANO) [D:0.00; C:1.00]
- 5.0000: (DRIVE-TRUCK TRUCK2 STAZIONEMILANO CENTROROMA MILANO ROMA) [D:5.00; C:1.00]
- 10.0000: (LOAD-TRUCK PACCO3 TRUCK3 CENTRONAPOLI) [D:0.00; C:1.00]
- 10.0000: (DRIVE-TRUCK TRUCK3 CENTRONAPOLI PIAZZACASTELLO NAPOLI TORINO) [D:10.00; C:1.00]
- 10.0000: (UNLOAD-TRUCK PACCO1 TRUCK2 CENTROROMA) [D:0.00; C:1.00]
- 10.0000: (DRIVE-TRUCK TRUCK2 CENTROROMA TERMINIROMA ROMA ROMA) [D:0.00; C:1.00]
- 10.0000: (LOAD-TRUCK PACCO2 TRUCK2 TERMINIROMA) [D:0.00; C:1.00]
- 10.0000: (DRIVE-TRUCK TRUCK2 TERMINIROMA PORTONAPOLI ROMA NAPOLI) [D:2.00; C:1.00]
- 12.0000: (UNLOAD-TRUCK PACCO2 TRUCK2 PORTONAPOLI) [D:0.00; C:1.00]
- 12.0000: (DRIVE-TRUCK TRUCK2 PORTONAPOLI LINGOTTO NAPOLI TORINO) [D:10.00; C:1.00]
- 20.0000: (UNLOAD-TRUCK PACCO3 TRUCK3 PIAZZACASTELLO) [D:0.00; C:1.00]
- 20.0000: (DRIVE-TRUCK TRUCK3 PIAZZACASTELLO CENTROROMA TORINO ROMA) [D:7.00; C:1.00]
- 22.0000: (LOAD-TRUCK PACCO4 TRUCK2 LINGOTTO) [D:0.00; C:1.00]
- 22.0000: (DRIVE-TRUCK TRUCK2 LINGOTTO MERCATO TORINO BOLOGNA) [D:4.00; C:1.00]
- 26.0000: (UNLOAD-TRUCK PACCO4 TRUCK2 MERCATO) [D:0.00; C:1.00]
- 26.0000: (LOAD-TRUCK PACCO5 TRUCK2 MERCATO) [D:0.00; C:1.00]
- 26.0000: (DRIVE-TRUCK TRUCK2 MERCATO PIAZZACASTELLO BOLOGNA TORINO) [D:4.00; C:1.00]
- 27.0000: (LOAD-TRUCK PACCO1 TRUCK3 CENTROROMA) [D:0.00; C:1.00]
- 27.0000: (UNLOAD-TRUCK PACCO1 TRUCK3 CENTROROMA) [D:0.00; C:1.00]
- 30.0000: (DRIVE-TRUCK TRUCK2 PIAZZACASTELLO DUOMO TORINO FIRENZE) [D:6.00; C:1.00]
- 36.0000: (UNLOAD-TRUCK PACCO5 TRUCK2 DUOMO) [D:0.00; C:1.00]
- 36.0000: (LOAD-TRUCK PACCO5 TRUCK4 DUOMO) [D:0.00; C:1.00]
- 36.0000: (UNLOAD-TRUCK PACCO5 TRUCK4 DUOMO) [D:0.00; C:1.00]
- 36.0000: (DRIVE-TRUCK TRUCK2 DUOMO PONTEVECCHIO FIRENZE FIRENZE) [D:0.00; C:1.00]
- 36.0000: (LOAD-TRUCK PACCO6 TRUCK2 PONTEVECCHIO) [D:0.00; C:1.00]
- 36.0000: (DRIVE-TRUCK TRUCK2 PONTEVECCHIO CENTROMILANO FIRENZE MILANO) [D:4.00; C:1.00]
- 40.0000: (UNLOAD-TRUCK PACCO6 TRUCK2 CENTROMILANO) [D:0.00; C:1.00]
- 40.0000: (LOAD-TRUCK PACCO6 TRUCK1 CENTROMILANO) [D:0.00; C:1.00]
- 40.0000: (UNLOAD-TRUCK PACCO6 TRUCK1 CENTROMILANO) [D:0.00; C:1.00]
+ 0.0000: (DRIVE-TRUCK TRUCK3 PIAZZACASTELLO STAZIONEMILANO TORINO MILANO) [D:2.00; C:0.10]
+ 0.0000: (DRIVE-TRUCK TRUCK4 DUOMO TERMINIROMA FIRENZE ROMA) [D:3.00; C:0.10]
+ 0.0000: (DRIVE-TRUCK TRUCK1 CENTROMILANO LINGOTTO MILANO TORINO) [D:2.00; C:0.10]
+ 0.0000: (DRIVE-TRUCK TRUCK2 CENTROROMA CENTRONAPOLI ROMA NAPOLI) [D:2.00; C:0.10]
+ 2.0000: (LOAD-TRUCK PACCO1 TRUCK3 STAZIONEMILANO) [D:0.00; C:0.10]
+ 2.0000: (DRIVE-TRUCK TRUCK3 STAZIONEMILANO CENTROROMA MILANO ROMA) [D:5.00; C:0.10]
+ 2.0000: (LOAD-TRUCK PACCO4 TRUCK1 LINGOTTO) [D:0.00; C:0.10]
+ 2.0000: (DRIVE-TRUCK TRUCK1 LINGOTTO MERCATO TORINO BOLOGNA) [D:4.00; C:0.10]
+ 2.0000: (LOAD-TRUCK PACCO3 TRUCK2 CENTRONAPOLI) [D:0.00; C:0.10]
+ 2.0000: (DRIVE-TRUCK TRUCK2 CENTRONAPOLI MERCATO NAPOLI BOLOGNA) [D:6.00; C:0.10]
+ 3.0000: (LOAD-TRUCK PACCO2 TRUCK4 TERMINIROMA) [D:0.00; C:0.10]
+ 3.0000: (DRIVE-TRUCK TRUCK4 TERMINIROMA PORTONAPOLI ROMA NAPOLI) [D:2.00; C:0.10]
+ 5.0000: (UNLOAD-TRUCK PACCO2 TRUCK4 PORTONAPOLI) [D:0.00; C:0.10]
+ 5.0000: (DRIVE-TRUCK TRUCK4 PORTONAPOLI PONTEVECCHIO NAPOLI FIRENZE) [D:5.00; C:0.10]
+ 6.0000: (UNLOAD-TRUCK PACCO4 TRUCK1 MERCATO) [D:0.00; C:0.10]
+ 6.0000: (LOAD-TRUCK PACCO5 TRUCK1 MERCATO) [D:0.00; C:0.10]
+ 6.0000: (DRIVE-TRUCK TRUCK1 MERCATO CENTROROMA BOLOGNA ROMA) [D:4.00; C:0.10]
+ 7.0000: (UNLOAD-TRUCK PACCO1 TRUCK3 CENTROROMA) [D:0.00; C:0.10]
+ 8.0000: (UNLOAD-TRUCK PACCO3 TRUCK2 MERCATO) [D:0.00; C:0.10]
+ 8.0000: (LOAD-TRUCK PACCO3 TRUCK2 MERCATO) [D:0.00; C:0.10]
+ 8.0000: (DRIVE-TRUCK TRUCK2 MERCATO STAZIONEMILANO BOLOGNA MILANO) [D:3.00; C:0.10]
+ 10.0000: (LOAD-TRUCK PACCO6 TRUCK4 PONTEVECCHIO) [D:0.00; C:0.10]
+ 10.0000: (DRIVE-TRUCK TRUCK4 PONTEVECCHIO CENTROMILANO FIRENZE MILANO) [D:4.00; C:0.10]
+ 10.0000: (DRIVE-TRUCK TRUCK1 CENTROROMA PORTONAPOLI ROMA NAPOLI) [D:2.00; C:0.10]
+ 11.0000: (DRIVE-TRUCK TRUCK2 STAZIONEMILANO CENTROMILANO MILANO MILANO) [D:0.00; C:0.10]
+ 11.0000: (DRIVE-TRUCK TRUCK2 CENTROMILANO PIAZZACASTELLO MILANO TORINO) [D:2.00; C:0.10]
+ 12.0000: (DRIVE-TRUCK TRUCK1 PORTONAPOLI DUOMO NAPOLI FIRENZE) [D:5.00; C:0.10]
+ 13.0000: (UNLOAD-TRUCK PACCO3 TRUCK2 PIAZZACASTELLO) [D:0.00; C:0.10]
+ 14.0000: (UNLOAD-TRUCK PACCO6 TRUCK4 CENTROMILANO) [D:0.00; C:0.10]
+ 17.0000: (UNLOAD-TRUCK PACCO5 TRUCK1 DUOMO) [D:0.00; C:0.10]
 
 
-Solution number: 1
-Total time:      0.02
-Search time:     0.02
-Actions:         31
-Duration:        40.000
-Plan quality:    31.000
-Total Num Flips: 36
-     Plan file:       plan_prog.pddl_1.SOL`;
+
+METRIC_VALUE = 17.00
+Solution number: 3
+Total time:      0.05
+Search time:     0.04
+Actions:         30
+Duration:        17.000
+Plan quality:    17.000
+Total Num Flips: 93
+     Plan file:       plan_prog.pddl_3.SOL`;
 export const prob2ex2 = `(define (problem logistics-temporal-air)
   (:domain logistics)
   
@@ -823,12 +1724,13 @@ export const prob2ex2 = `(define (problem logistics-temporal-air)
       (at pacco4 fiumicino)
     )
   )
+  (:metric minimize total-time)
 )`;
 export const plan2ex2 = `
 
 NUMERIC_THREATS_MODE: 0
 
-; Command line: ./lpg-td -o dom2.pddl -f prog.pddl -n 1
+; Command line: ./lpg-td -o dom.pddl -f prog.pddl -n 4
 
 
 Parsing domain file:  domain 'LOGISTICS' defined ... done.
@@ -844,59 +1746,93 @@ Number of facts               :      89
 
 
 Analyzing Planning Problem:
-        Temporal Planning Problem: NO
+        Temporal Planning Problem: YES
         Numeric Planning Problem: YES
         Problem with Timed Initial Literals: NO
         Problem with Derived Predicates: NO
 
 Evaluation function weights:
-     Action duration 0.00; Action cost 1.00
+     Action duration 1.00; Action cost 0.00
 
 
 Computing mutex... done
 
-Preprocessing total time: 0.00 seconds
+Preprocessing total time: 0.01 seconds
 
 Searching ('.' = every 50 search steps):
  solution found:
  Recompute start times
 
- first_solution_cpu_time: 0.03
+ first_solution_cpu_time: 0.02
+Solution number: 1
+Total time:      0.02
+Search time:     0.01
+Actions:         18
+Duration:        28.000
+Plan quality:    28.000
+Total Num Flips: 18
+     Plan file:       plan_prog.pddl_1.SOL Restart using stored plan
+ solution found:
+ Recompute start times
+
+Solution number: 2
+Total time:      0.02
+Search time:     0.01
+Actions:         20
+Duration:        14.000
+Plan quality:    14.000
+Total Num Flips: 32
+     Plan file:       plan_prog.pddl_2.SOL Restart using stored plan
+. solution found:
+ Recompute start times
+
+Solution number: 3
+Total time:      0.03
+Search time:     0.02
+Actions:         17
+Duration:        9.000
+Plan quality:    9.000
+Total Num Flips: 102
+     Plan file:       plan_prog.pddl_3.SOL Restart using null plan
+ Restart using stored plan
+ Restart using stored plan
+. Restart using null plan
+..... solution found:
+ Recompute start times
+
 
 Plan computed:
    Time: (ACTION) [action Duration; action Cost]
- 0.0000: (DRIVE-TRUCK TRUCK2 CENTROROMA LINGOTTO ROMA TORINO) [D:7.00; C:1.00]
- 0.0000: (LOAD-AIRPLANE PACCO2 AEREO2 FIUMICINO) [D:0.00; C:1.00]
- 0.0000: (FLY-AIRPLANE AEREO2 FIUMICINO CASELLE ROMA TORINO) [D:7.00; C:1.00]
- 7.0000: (LOAD-TRUCK PACCO3 TRUCK2 LINGOTTO) [D:0.00; C:1.00]
- 7.0000: (DRIVE-TRUCK TRUCK2 LINGOTTO CENTROMILANO TORINO MILANO) [D:2.00; C:1.00]
- 7.0000: (FLY-AIRPLANE AEREO2 CASELLE MALPENSA TORINO MILANO) [D:2.00; C:1.00]
- 9.0000: (UNLOAD-TRUCK PACCO3 TRUCK2 CENTROMILANO) [D:0.00; C:1.00]
- 9.0000: (LOAD-TRUCK PACCO3 TRUCK1 CENTROMILANO) [D:0.00; C:1.00]
- 9.0000: (UNLOAD-TRUCK PACCO3 TRUCK1 CENTROMILANO) [D:0.00; C:1.00]
- 9.0000: (UNLOAD-AIRPLANE PACCO2 AEREO2 MALPENSA) [D:0.00; C:1.00]
- 9.0000: (LOAD-AIRPLANE PACCO1 AEREO2 MALPENSA) [D:0.00; C:1.00]
- 9.0000: (FLY-AIRPLANE AEREO2 MALPENSA FIUMICINO MILANO ROMA) [D:5.00; C:1.00]
- 14.0000: (FLY-AIRPLANE AEREO2 FIUMICINO CASELLE ROMA TORINO) [D:7.00; C:1.00]
- 21.0000: (UNLOAD-AIRPLANE PACCO1 AEREO2 CASELLE) [D:0.00; C:1.00]
- 21.0000: (LOAD-AIRPLANE PACCO4 AEREO2 CASELLE) [D:0.00; C:1.00]
- 21.0000: (FLY-AIRPLANE AEREO2 CASELLE MALPENSA TORINO MILANO) [D:2.00; C:1.00]
- 23.0000: (FLY-AIRPLANE AEREO2 MALPENSA FIUMICINO MILANO ROMA) [D:5.00; C:1.00]
- 28.0000: (UNLOAD-AIRPLANE PACCO4 AEREO2 FIUMICINO) [D:0.00; C:1.00]
+ 0.0000: (LOAD-AIRPLANE PACCO2 AEREO2 FIUMICINO) [D:0.00; C:0.10]
+ 0.0000: (FLY-AIRPLANE AEREO2 FIUMICINO MALPENSA ROMA MILANO) [D:5.00; C:0.10]
+ 0.0000: (DRIVE-TRUCK TRUCK1 CENTROMILANO LINGOTTO MILANO TORINO) [D:2.00; C:0.10]
+ 0.0000: (DRIVE-TRUCK TRUCK3 PIAZZACASTELLO CASELLE TORINO TORINO) [D:0.00; C:0.10]
+ 0.0000: (LOAD-TRUCK PACCO4 TRUCK3 CASELLE) [D:0.00; C:0.10]
+ 0.0000: (DRIVE-TRUCK TRUCK3 CASELLE FIUMICINO TORINO ROMA) [D:7.00; C:0.10]
+ 2.0000: (LOAD-TRUCK PACCO3 TRUCK1 LINGOTTO) [D:0.00; C:0.10]
+ 2.0000: (DRIVE-TRUCK TRUCK1 LINGOTTO CENTROMILANO TORINO MILANO) [D:2.00; C:0.10]
+ 4.0000: (UNLOAD-TRUCK PACCO3 TRUCK1 CENTROMILANO) [D:0.00; C:0.10]
+ 5.0000: (UNLOAD-AIRPLANE PACCO2 AEREO2 MALPENSA) [D:0.00; C:0.10]
+ 5.0000: (LOAD-AIRPLANE PACCO1 AEREO2 MALPENSA) [D:0.00; C:0.10]
+ 5.0000: (FLY-AIRPLANE AEREO2 MALPENSA CASELLE MILANO TORINO) [D:2.00; C:0.10]
+ 7.0000: (UNLOAD-AIRPLANE PACCO1 AEREO2 CASELLE) [D:0.00; C:0.10]
+ 7.0000: (UNLOAD-TRUCK PACCO4 TRUCK3 FIUMICINO) [D:0.00; C:0.10]
 
 
-Solution number: 1
-Total time:      0.03
-Search time:     0.03
-Actions:         18
-Duration:        28.000
-Plan quality:    18.000
-Total Num Flips: 20
-     Plan file:       plan_prog.pddl_1.SOL
+
+METRIC_VALUE = 7.00
+Solution number: 4
+Total time:      0.05
+Search time:     0.04
+Actions:         14
+Duration:        7.000
+Plan quality:    7.000
+Total Num Flips: 513
+     Plan file:       plan_prog.pddl_4.SOL
 `
 export const prob2ex3 = `(define (problem logistics-temporal-air-4cities)
   (:domain logistics)
-  
+
   (:objects
     milano roma torino napoli - city
     malpensa fiumicino caselle capodichino - airport
@@ -908,37 +1844,37 @@ export const prob2ex3 = `(define (problem logistics-temporal-air-4cities)
     truck1 truck2 truck3 truck4 - truck
     aereo1 aereo2 aereo3 - airplane
   )
-  
+
   (:init
     (in-city malpensa milano)
     (in-city centromilano milano)
     (in-city stazionemilano milano)
     (in-city duomo milano)
-    
+
     (in-city fiumicino roma)
     (in-city centroroma roma)
     (in-city terminiroma roma)
     (in-city colosseo roma)
-    
+
     (in-city caselle torino)
     (in-city piazzacastello torino)
     (in-city lingotto torino)
     (in-city portanuova torino)
-    
+
     (in-city capodichino napoli)
     (in-city centralenapoli napoli)
     (in-city vomero napoli)
     (in-city posillipo napoli)
-    
+
     (at truck1 centromilano)
     (at truck2 centroroma)
     (at truck3 piazzacastello)
     (at truck4 centralenapoli)
-    
+
     (at aereo1 malpensa)
     (at aereo2 fiumicino)
     (at aereo3 capodichino)
-    
+
     (at pacco1 duomo)
     (at pacco2 colosseo)
     (at pacco3 lingotto)
@@ -949,23 +1885,23 @@ export const prob2ex3 = `(define (problem logistics-temporal-air-4cities)
     (= (distance milano roma) 5)
     (= (distance milano torino) 2)
     (= (distance milano napoli) 8)
-    
+
     (= (distance roma milano) 5)
     (= (distance roma roma) 0)
     (= (distance roma torino) 7)
     (= (distance roma napoli) 3)
-    
+
     (= (distance torino milano) 2)
     (= (distance torino roma) 7)
     (= (distance torino torino) 0)
     (= (distance torino napoli) 10)
-    
+
     (= (distance napoli milano) 8)
     (= (distance napoli roma) 3)
     (= (distance napoli torino) 10)
     (= (distance napoli napoli) 0)
   )
-  
+
   (:goal
     (and
       (at pacco1 capodichino)
@@ -976,11 +1912,12 @@ export const prob2ex3 = `(define (problem logistics-temporal-air-4cities)
       (at pacco6 fiumicino)
     )
   )
+(:metric minimize total-time)
 )`;
 export const plan2ex3 = `
 NUMERIC_THREATS_MODE: 0
 
-; Command line: ./lpg-td -o dom2.pddl -f prog.pddl -n 1
+; Command line: ./lpg-td -o dom.pddl -f prog.pddl -n 3
 
 
 Parsing domain file:  domain 'LOGISTICS' defined ... done.
@@ -996,64 +1933,91 @@ Number of facts               :     214
 
 
 Analyzing Planning Problem:
-        Temporal Planning Problem: NO
+        Temporal Planning Problem: YES
         Numeric Planning Problem: YES
         Problem with Timed Initial Literals: NO
         Problem with Derived Predicates: NO
 
 Evaluation function weights:
-     Action duration 0.00; Action cost 1.00
+     Action duration 1.00; Action cost 0.00
 
 
 Computing mutex... done
 
-Preprocessing total time: 0.00 seconds
+Preprocessing total time: 0.01 seconds
 
 Searching ('.' = every 50 search steps):
  solution found:
  Recompute start times
 
  first_solution_cpu_time: 0.03
+Solution number: 1
+Total time:      0.03
+Search time:     0.02
+Actions:         27
+Duration:        29.000
+Plan quality:    29.000
+Total Num Flips: 28
+     Plan file:       plan_prog.pddl_1.SOL Restart using stored plan
+. solution found:
+ Recompute start times
+
+Solution number: 2
+Total time:      0.04
+Search time:     0.03
+Actions:         32
+Duration:        19.000
+Plan quality:    19.000
+Total Num Flips: 109
+     Plan file:       plan_prog.pddl_2.SOL Restart using stored plan
+ solution found:
+ Recompute start times
+
 
 Plan computed:
    Time: (ACTION) [action Duration; action Cost]
- 0.0000: (DRIVE-TRUCK TRUCK1 CENTROMILANO VOMERO MILANO NAPOLI) [D:8.00; C:1.00]
- 0.0000: (DRIVE-TRUCK TRUCK3 PIAZZACASTELLO COLOSSEO TORINO ROMA) [D:7.00; C:1.00]
- 0.0000: (FLY-AIRPLANE AEREO2 FIUMICINO CASELLE ROMA TORINO) [D:7.00; C:1.00]
- 7.0000: (LOAD-TRUCK PACCO2 TRUCK3 COLOSSEO) [D:0.00; C:1.00]
- 7.0000: (DRIVE-TRUCK TRUCK3 COLOSSEO PORTANUOVA ROMA TORINO) [D:7.00; C:1.00]
- 7.0000: (LOAD-AIRPLANE PACCO6 AEREO2 CASELLE) [D:0.00; C:1.00]
- 7.0000: (FLY-AIRPLANE AEREO2 CASELLE FIUMICINO TORINO ROMA) [D:7.00; C:1.00]
- 8.0000: (LOAD-TRUCK PACCO4 TRUCK1 VOMERO) [D:0.00; C:1.00]
- 8.0000: (DRIVE-TRUCK TRUCK1 VOMERO STAZIONEMILANO NAPOLI MILANO) [D:8.00; C:1.00]
- 14.0000: (UNLOAD-TRUCK PACCO2 TRUCK3 PORTANUOVA) [D:0.00; C:1.00]
- 14.0000: (DRIVE-TRUCK TRUCK3 PORTANUOVA LINGOTTO TORINO TORINO) [D:0.00; C:1.00]
- 14.0000: (LOAD-TRUCK PACCO3 TRUCK3 LINGOTTO) [D:0.00; C:1.00]
- 14.0000: (DRIVE-TRUCK TRUCK3 LINGOTTO TERMINIROMA TORINO ROMA) [D:7.00; C:1.00]
- 14.0000: (UNLOAD-AIRPLANE PACCO6 AEREO2 FIUMICINO) [D:0.00; C:1.00]
- 16.0000: (UNLOAD-TRUCK PACCO4 TRUCK1 STAZIONEMILANO) [D:0.00; C:1.00]
- 16.0000: (DRIVE-TRUCK TRUCK1 STAZIONEMILANO PORTANUOVA MILANO TORINO) [D:2.00; C:1.00]
- 18.0000: (DRIVE-TRUCK TRUCK1 PORTANUOVA PIAZZACASTELLO TORINO TORINO) [D:0.00; C:1.00]
- 18.0000: (DRIVE-TRUCK TRUCK1 PIAZZACASTELLO MALPENSA TORINO MILANO) [D:2.00; C:1.00]
- 20.0000: (LOAD-TRUCK PACCO5 TRUCK1 MALPENSA) [D:0.00; C:1.00]
- 20.0000: (DRIVE-TRUCK TRUCK1 MALPENSA POSILLIPO MILANO NAPOLI) [D:8.00; C:1.00]
- 21.0000: (UNLOAD-TRUCK PACCO3 TRUCK3 TERMINIROMA) [D:0.00; C:1.00]
- 28.0000: (UNLOAD-TRUCK PACCO5 TRUCK1 POSILLIPO) [D:0.00; C:1.00]
- 28.0000: (DRIVE-TRUCK TRUCK1 POSILLIPO CENTROMILANO NAPOLI MILANO) [D:8.00; C:1.00]
- 36.0000: (DRIVE-TRUCK TRUCK1 CENTROMILANO DUOMO MILANO MILANO) [D:0.00; C:1.00]
- 36.0000: (LOAD-TRUCK PACCO1 TRUCK1 DUOMO) [D:0.00; C:1.00]
- 36.0000: (DRIVE-TRUCK TRUCK1 DUOMO CAPODICHINO MILANO NAPOLI) [D:8.00; C:1.00]
- 44.0000: (UNLOAD-TRUCK PACCO1 TRUCK1 CAPODICHINO) [D:0.00; C:1.00]
+ 0.0000: (FLY-AIRPLANE AEREO2 FIUMICINO CASELLE ROMA TORINO) [D:7.00; C:0.10]
+ 0.0000: (DRIVE-TRUCK TRUCK4 CENTRALENAPOLI COLOSSEO NAPOLI ROMA) [D:3.00; C:0.10]
+ 0.0000: (DRIVE-TRUCK TRUCK3 PIAZZACASTELLO VOMERO TORINO NAPOLI) [D:10.00; C:0.10]
+ 0.0000: (DRIVE-TRUCK TRUCK2 CENTROROMA STAZIONEMILANO ROMA MILANO) [D:5.00; C:0.10]
+ 0.0000: (DRIVE-TRUCK TRUCK1 CENTROMILANO LINGOTTO MILANO TORINO) [D:2.00; C:0.10]
+ 2.0000: (LOAD-TRUCK PACCO3 TRUCK1 LINGOTTO) [D:0.00; C:0.10]
+ 2.0000: (DRIVE-TRUCK TRUCK1 LINGOTTO TERMINIROMA TORINO ROMA) [D:7.00; C:0.10]
+ 3.0000: (LOAD-TRUCK PACCO2 TRUCK4 COLOSSEO) [D:0.00; C:0.10]
+ 3.0000: (DRIVE-TRUCK TRUCK4 COLOSSEO CENTRALENAPOLI ROMA NAPOLI) [D:3.00; C:0.10]
+ 5.0000: (DRIVE-TRUCK TRUCK2 STAZIONEMILANO MALPENSA MILANO MILANO) [D:0.00; C:0.10]
+ 5.0000: (LOAD-TRUCK PACCO5 TRUCK2 MALPENSA) [D:0.00; C:0.10]
+ 5.0000: (DRIVE-TRUCK TRUCK2 MALPENSA PORTANUOVA MILANO TORINO) [D:2.00; C:0.10]
+ 6.0000: (DRIVE-TRUCK TRUCK4 CENTRALENAPOLI PORTANUOVA NAPOLI TORINO) [D:10.00; C:0.10]
+ 7.0000: (LOAD-AIRPLANE PACCO6 AEREO2 CASELLE) [D:0.00; C:0.10]
+ 7.0000: (FLY-AIRPLANE AEREO2 CASELLE FIUMICINO TORINO ROMA) [D:7.00; C:0.10]
+ 7.0000: (DRIVE-TRUCK TRUCK2 PORTANUOVA DUOMO TORINO MILANO) [D:2.00; C:0.10]
+ 9.0000: (LOAD-TRUCK PACCO1 TRUCK2 DUOMO) [D:0.00; C:0.10]
+ 9.0000: (DRIVE-TRUCK TRUCK2 DUOMO MALPENSA MILANO MILANO) [D:0.00; C:0.10]
+ 9.0000: (UNLOAD-TRUCK PACCO1 TRUCK2 MALPENSA) [D:0.00; C:0.10]
+ 9.0000: (LOAD-AIRPLANE PACCO1 AEREO1 MALPENSA) [D:0.00; C:0.10]
+ 9.0000: (FLY-AIRPLANE AEREO1 MALPENSA CAPODICHINO MILANO NAPOLI) [D:8.00; C:0.10]
+ 9.0000: (DRIVE-TRUCK TRUCK2 MALPENSA POSILLIPO MILANO NAPOLI) [D:8.00; C:0.10]
+ 9.0000: (UNLOAD-TRUCK PACCO3 TRUCK1 TERMINIROMA) [D:0.00; C:0.10]
+ 10.0000: (LOAD-TRUCK PACCO4 TRUCK3 VOMERO) [D:0.00; C:0.10]
+ 10.0000: (DRIVE-TRUCK TRUCK3 VOMERO STAZIONEMILANO NAPOLI MILANO) [D:8.00; C:0.10]
+ 14.0000: (UNLOAD-AIRPLANE PACCO6 AEREO2 FIUMICINO) [D:0.00; C:0.10]
+ 16.0000: (UNLOAD-TRUCK PACCO2 TRUCK4 PORTANUOVA) [D:0.00; C:0.10]
+ 17.0000: (UNLOAD-AIRPLANE PACCO1 AEREO1 CAPODICHINO) [D:0.00; C:0.10]
+ 17.0000: (UNLOAD-TRUCK PACCO5 TRUCK2 POSILLIPO) [D:0.00; C:0.10]
+ 18.0000: (UNLOAD-TRUCK PACCO4 TRUCK3 STAZIONEMILANO) [D:0.00; C:0.10]
 
 
-Solution number: 1
-Total time:      0.03
-Search time:     0.03
-Actions:         27
-Duration:        44.000
-Plan quality:    27.000
-Total Num Flips: 28
-     Plan file:       plan_prog.pddl_1.SOL`;
+
+METRIC_VALUE = 18.00
+Solution number: 3
+Total time:      0.05
+Search time:     0.04
+Actions:         30
+Duration:        18.000
+Plan quality:    18.000
+Total Num Flips: 116
+     Plan file:       plan_prog.pddl_3.SOL`;
 export const domainpddlplus = `(define (domain logistics)
   (:requirements :strips :typing :fluents :time :processes :events)
   (:types
@@ -1195,7 +2159,7 @@ export const domainpddlplus = `(define (domain logistics)
     )
   )
 )`;
-export const problogpddlplus = `(define (problem logistics-fuel-test)
+export const prob1plus = `(define (problem logistics-fuel-test)
   (:domain logistics)
   (:objects
     pos1 pos2 pos3 - location
@@ -1232,7 +2196,7 @@ export const problogpddlplus = `(define (problem logistics-fuel-test)
     (at obj11 pos3)
   ))
 )`;
-export const planpddlplus = `Domain parsed
+export const plan1plus = `Domain parsed
 Problem parsed
 Grounding..
 Grounding Time: 88
@@ -1281,7 +2245,7 @@ States Evaluated:1028
 Fixed constraint violations during search (zero-crossing):0
 Number of Dead-Ends detected:18
 Number of Duplicates detected:156`
-export const problogpddlplus2 = `(define (problem logistics-fuel-test-v2)
+export const prob2plus = `(define (problem logistics-fuel-test-v2)
   (:domain logistics)
   (:objects
     pos1 pos2 pos3 - location
@@ -1323,7 +2287,7 @@ export const problogpddlplus2 = `(define (problem logistics-fuel-test-v2)
     (at obj11 pos3)
   ))
 )`;
-export const planpddlplus2 = `domain parsed
+export const plan2plus = `domain parsed
 problem parsed
 grounding..
 grounding time: 68
@@ -1376,7 +2340,7 @@ states evaluated:3451
 number of dead-ends detected:91
 number of duplicates detected:376`
 
-export const problogpddlplus3 = `(define (problem logistics-two-trucks)
+export const prob3plus = `(define (problem logistics-two-trucks)
   (:domain logistics)
   (:objects
     pos1 pos3 - location
@@ -1412,7 +2376,7 @@ export const problogpddlplus3 = `(define (problem logistics-two-trucks)
     (at obj2 pos1)
       ))
 )`;
-export const planpddlplus3 = `Domain parsed
+export const plan3plus = `Domain parsed
 Problem parsed
 Grounding..
 Grounding Time: 38
@@ -1477,7 +2441,7 @@ Fixed constraint violations during search (zero-crossing):0
 Number of Dead-Ends detected:46
 Number of Duplicates detected:417`;
 
-export const problogpddlplus4cities = `(define (problem logistics-four-cities)
+export const prob4plus = `(define (problem logistics-four-cities)
   (:domain logistics)
   (:objects
     depot1 store1 - location
@@ -1565,7 +2529,7 @@ export const problogpddlplus4cities = `(define (problem logistics-four-cities)
   ))
 )`;
 
-export const planpddlplus4cities = `Domain parsed
+export const plan4plus = `Domain parsed
 Problem parsed
 Grounding..
 Grounding Time: 89
@@ -1902,31 +2866,31 @@ export const probnumeric2 = `(define (problem logistics-complex-delivery)
     (at paccoo aeroportotorino)
     (at paccop aeroportovenezia)
     
-    (= (distance milano milano) 0)
-    (= (distance milano roma) 6)
-    (= (distance milano napoli) 8)
-    (= (distance milano torino) 2)
-    (= (distance milano venezia) 3)
-    (= (distance roma milano) 6)
-    (= (distance roma roma) 0)
-    (= (distance roma napoli) 3)
-    (= (distance roma torino) 7)
-    (= (distance roma venezia) 5)
-    (= (distance napoli milano) 8)
-    (= (distance napoli roma) 3)
-    (= (distance napoli napoli) 0)
-    (= (distance napoli torino) 9)
-    (= (distance napoli venezia) 6)
-    (= (distance torino milano) 2)
-    (= (distance torino roma) 7)
-    (= (distance torino napoli) 9)
-    (= (distance torino torino) 0)
-    (= (distance torino venezia) 4)
-    (= (distance venezia milano) 3)
-    (= (distance venezia roma) 5)
-    (= (distance venezia napoli) 6)
-    (= (distance venezia torino) 4)
-    (= (distance venezia venezia) 0)
+    (= (distance milano milano) 1)
+    (= (distance milano roma) 1)
+    (= (distance milano napoli) 1)
+    (= (distance milano torino) 1)
+    (= (distance milano venezia) 1)
+    (= (distance roma milano) 1)
+    (= (distance roma roma) 1)
+    (= (distance roma napoli) 1)
+    (= (distance roma torino) 1)
+    (= (distance roma venezia) 1)
+    (= (distance napoli milano) 1)
+    (= (distance napoli roma) 1)
+    (= (distance napoli napoli) 1)
+    (= (distance napoli torino) 1)
+    (= (distance napoli venezia) 1)
+    (= (distance torino milano) 1)
+    (= (distance torino roma) 1)
+    (= (distance torino napoli) 1)
+    (= (distance torino torino) 1)
+    (= (distance torino venezia) 1)
+    (= (distance venezia milano) 1)
+    (= (distance venezia roma) 1)
+    (= (distance venezia napoli) 1)
+    (= (distance venezia torino) 1)
+    (= (distance venezia venezia) 1)
     
     (= (capacity trucka) 4)
     (= (capacity truckb) 3)

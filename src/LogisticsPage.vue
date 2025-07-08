@@ -34,37 +34,68 @@
 import { ref, computed, watch, nextTick } from 'vue';
 import extractPDDLSections, { getDistances, parseInitLegacy, parseObjects, parseInit, extractPlanRobust, extractFuelRates, parsePlanWithDurations, extractPlanRobustPDDL2 } from './pddlParser.js';
 import MapVisualizer from './components/GraphVisualization.vue';
-import { probA, planA, probb, planb, prob2ex1, plan2ex1, prob2ex2, plan2ex2, domainpddlplus, problogpddlplus, planpddlplus, problogpddlplus2, planpddlplus2, problogpddlplus3, planpddlplus3, prob2ex3, plan2ex3, probc, planC, problogpddlplus4cities, planpddlplus4cities, probnumeric1, plannumeric1, probnumeric2, plannumeric2 } from './pddlCases.js';
+import {
+  //classic e numeric
+  prob1_numeric, plan1_numeric, prob1_classic, plan1_classic,
+  prob2_numeric, plan2_numeric, prob2_classic, plan2_classic,
+  prob3_classic, plan3_classic, prob3_numeric, plan3_numeric,
+  //temporal
+  prob2ex1, plan2ex1, prob2ex2, plan2ex2, prob2ex3, plan2ex3,
+  //pddl+
+  domainpddlplus, prob1plus, plan1plus,
+  prob2plus, plan2plus,
+  prob3plus, plan3plus,
+  prob4plus, plan4plus,
+  probnumeric1, plannumeric1, probnumeric2, plannumeric2
+} from './pddlCases.js';
 import { reactive } from 'vue';
 
 // --- CASES DEFINITION ---
 const cases = {
-  classicA: {
-    name: "Logistics Multi-City A",
-    prob: probA,
-    plan: planA,
+  classic1: {
+    name: "3 cities classic",
+    prob: prob1_classic,
+    plan: plan1_classic,
     launcher: launchpddl1
   },
-  classicB: {
-    name: "Logistics Delivery B",
-    prob: probb,
-    plan: planb,
+  numeric1: {
+    name: "3 cities numeric",
+    prob: prob1_numeric,
+    plan: plan1_numeric,
     launcher: launchpddl1
   },
-  classicC: {
-    name: "Logistics Delivery C",
-    prob: probc,
-    plan: planC,
+  classic2: {
+    name: "4 cities classic",
+    prob: prob2_classic,
+    plan: plan2_classic,
+    launcher: launchpddl1
+  },
+  numeric2: {
+    name: "4 cities numeric",
+    prob: prob2_numeric,
+    plan: plan2_numeric,
+    launcher: launchpddl1
+  },
+  classic3: {
+    name: "5 cities classic",
+    prob: prob3_classic,
+    plan: plan3_classic,
+    launcher: launchpddl1
+  },
+    numeric3: {
+    name: "5 cities numeric",
+    prob: prob3_numeric,
+    plan: plan3_numeric,
     launcher: launchpddl1
   },
   temporal1: {
-    name: "Temporal Trucks Only",
+    name: "Temporal 6 cities",
     prob: prob2ex1,
     plan: plan2ex1,
     launcher: launchpddl2
   },
   temporal2: {
-    name: "Temporal with Airplanes",
+    name: "Temporal 3 cities and planes",
     prob: prob2ex2,
     plan: plan2ex2,
     launcher: launchpddl2
@@ -75,35 +106,35 @@ const cases = {
     plan: plan2ex3,
     launcher: launchpddl2
   },
-  pddlplus: {
+  pddlplus1: {
     name: "Logistics with Fuel (PDDL+)",
-    prob: problogpddlplus,
-    plan: planpddlplus,
+    prob: prob1plus,
+    plan: plan1plus,
     domain: domainpddlplus,
     launcher: launchpddlplus
   },
   pddlplus2: {
     name: "Logistics with Fuel 2 refuels (PDDL+)",
-    prob: problogpddlplus2,
-    plan: planpddlplus2,
+    prob: prob2plus,
+    plan: plan2plus,
     domain: domainpddlplus,
     launcher: launchpddlplus
   },
   pddlplus3: {
     name: "Logistics refuels back and forth (PDDL+)",
-    prob: problogpddlplus3,
-    plan: planpddlplus3,
+    prob: prob3plus,
+    plan: plan3plus,
     domain: domainpddlplus,
     launcher: launchpddlplus
   },
-  pddlplus4cities: {
+  pddlplus4: {
     name: "Logistics 4 cities (PDDL+)",
-    prob: problogpddlplus4cities,
-    plan: planpddlplus4cities,
+    prob: prob4plus,
+    plan: plan4plus,
     domain: domainpddlplus,
     launcher: launchpddlplus
   },
-  pddlnumeric1: {
+/*   pddlnumeric1: {
     name: "numeric capacity problem",
     prob: probnumeric1,
     plan: plannumeric1,
@@ -114,12 +145,12 @@ const cases = {
     prob: probnumeric2,
     plan: plannumeric2,
     launcher: launchpddl2
-  }
+  } */
 };
 
 const plannerOptions = {
-  launchpddl1: 'PDDL 1.2',
-  launchpddl2: 'PDDL 2.1',
+  launchpddl1: 'PDDL 1.2 & Numerics',
+  launchpddl2: 'PDDL 2.1 Temporal',
   launchpddlplus: 'PDDL+',
 };
 
@@ -236,6 +267,10 @@ function applyNumericFunctions(numericFunctions, vehicles) {
 function launchpddl1(probString, planString) {
   const extracted = extractPDDLSections(probString);
   const { cities, places, vehicles, packages } = parseObjects(extracted.objects);
+
+  const parsed = parseInit(extracted.init);
+  applyNumericFunctions(parsed.numericFunctions, vehicles);
+
   const predicates = parseInitLegacy(extracted.init);
   applyPredicates(predicates, places, vehicles, packages, cities);
   const steps = extractPlanRobust(planString);
