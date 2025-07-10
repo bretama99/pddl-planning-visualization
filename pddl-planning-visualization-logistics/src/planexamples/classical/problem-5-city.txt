@@ -1,0 +1,66 @@
+(define (problem logistics-5cities-en)
+  (:domain logistics)
+  
+  (:objects
+    milan rome naples turin venice - city
+    malpensa fiumicino capodichino caselle marco-polo - airport
+    center-milan station-milan - location
+    center-rome terminal-rome - location
+    center-naples port-naples - location
+    center-turin port-turin - location
+    center-venice port-venice - location
+    pkg1 pkg2 pkg3 pkg4 pkg5 pkg6 pkg7 pkg8 - package
+    truck-milan truck-rome truck-naples truck-turin truck-venice - truck
+    plane1 plane2 plane3 - airplane
+  )
+  
+  (:init
+    (in-city malpensa milan)
+    (in-city center-milan milan)
+    (in-city station-milan milan)
+    (in-city fiumicino rome)
+    (in-city center-rome rome)
+    (in-city terminal-rome rome)
+    (in-city capodichino naples)
+    (in-city center-naples naples)
+    (in-city port-naples naples)
+    (in-city caselle turin)
+    (in-city center-turin turin)
+    (in-city port-turin turin)
+    (in-city marco-polo venice)
+    (in-city center-venice venice)
+    (in-city port-venice venice)
+    
+    (at truck-milan center-milan)
+    (at truck-rome center-rome)
+    (at truck-naples port-naples)
+    (at truck-turin center-turin)
+    (at truck-venice port-venice)
+    
+    (at plane1 malpensa)
+    (at plane2 fiumicino)
+    (at plane3 caselle)
+    
+    (at pkg1 station-milan)
+    (at pkg2 center-milan)
+    (at pkg3 terminal-rome)
+    (at pkg4 center-rome)
+    (at pkg5 center-naples)
+    (at pkg6 port-turin)
+    (at pkg7 center-venice)
+    (at pkg8 marco-polo)
+  )
+  
+  (:goal
+    (and
+      (at pkg1 center-rome)
+      (at pkg2 port-naples)
+      (at pkg3 center-milan)
+      (at pkg4 center-naples)
+      (at pkg5 terminal-rome)
+      (at pkg6 center-venice)
+      (at pkg7 port-turin)
+      (at pkg8 caselle)
+    )
+  )
+)

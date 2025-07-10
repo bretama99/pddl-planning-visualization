@@ -2,12 +2,12 @@
   <div class="app">
     <h1 class="main-title">LOGISTICS PLANNING VISUALIZER</h1>
     <div class="dropdown-row">
-      <label class="dropdown-label">Tipo di planner:
+      <label class="dropdown-label">Planner Type:
         <select v-model="selectedPlanner" @change="onPlannerChange" class="dropdown-select">
           <option v-for="(label, key) in plannerOptions" :key="key" :value="key">{{ label }}</option>
         </select>
       </label>
-      <label class="dropdown-label">Istanza:
+      <label class="dropdown-label">Instance:
         <select v-model="selectedInstanceKey" @change="onInstanceChange" class="dropdown-select">
           <option v-for="instance in filteredInstances" :key="instance.key" :value="instance.key">{{ instance.name }}</option>
         </select>
@@ -39,6 +39,8 @@ import {
   prob1_numeric, plan1_numeric, prob1_classic, plan1_classic,
   prob2_numeric, plan2_numeric, prob2_classic, plan2_classic,
   prob3_classic, plan3_classic, prob3_numeric, plan3_numeric,
+  prob1_ext2_classic, plan1_ext2_classic,
+  prob5_classic, plan5_classic,
   //temporal
   prob2ex1, plan2ex1, prob2ex2, plan2ex2, prob2ex3, plan2ex3,
   //pddl+
@@ -70,6 +72,13 @@ const cases = {
     plan: plan2_classic,
     launcher: launchpddl1
   },
+
+    classic3: {
+    name: "5 cities classic",
+    prob: prob5_classic,
+    plan: plan5_classic,
+    launcher: launchpddl1
+  },
   numeric2: {
     name: "4 cities numeric",
     prob: prob2_numeric,
@@ -86,6 +95,12 @@ const cases = {
     name: "5 cities numeric",
     prob: prob3_numeric,
     plan: plan3_numeric,
+    launcher: launchpddl1
+  },
+    ext2: {
+    name: "Cities and drones",
+    prob: prob1_ext2_classic,
+    plan: plan1_ext2_classic,
     launcher: launchpddl1
   },
   temporal1: {
@@ -323,7 +338,11 @@ function logWorldState(cities, places, trucks, packages) {
   font-weight: bold;
   margin-bottom: 18px;
   margin-top: 18px;
-  text-align: center;
+  display: block;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center !important;
   color: #000000;
   letter-spacing: 1px;
 }

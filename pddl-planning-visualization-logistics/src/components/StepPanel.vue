@@ -1,6 +1,6 @@
 <template>
   <div class="steps-visualization">
-    <h3>Step del piano</h3>
+    <h3>Steps of the plan</h3>
     <div class="steps-list-container">
       <ol>
         <li

@@ -168,6 +168,259 @@ expanded nodes:84
 states evaluated:874
 number of dead-ends detected:176
 number of duplicates detected:341`;
+
+
+
+
+export const prob5_classic = `(define (problem logistics-multi-city)
+  (:domain logistics)
+  
+  (:objects
+    milan rome naples turin venice - city
+    malpensa fiumicino capodichino caselle marco-polo - airport
+    center-milan station-milan - location
+    center-rome terminal-rome - location
+    center-naples port-naples - location
+    center-turin port-turin - location
+    center-venice port-venice - location
+    pkg1 pkg2 pkg3 pkg4 pkg5 pkg6 pkg7 pkg8 - package
+    truck-milan truck-rome truck-naples truck-turin truck-venice - truck
+    plane1 plane2 plane3 - airplane
+  )
+  
+  (:init
+    (in-city malpensa milan)
+    (in-city center-milan milan)
+    (in-city station-milan milan)
+    (in-city fiumicino rome)
+    (in-city center-rome rome)
+    (in-city terminal-rome rome)
+    (in-city capodichino naples)
+    (in-city center-naples naples)
+    (in-city port-naples naples)
+    (in-city caselle turin)
+    (in-city center-turin turin)
+    (in-city port-turin turin)
+    (in-city marco-polo venice)
+    (in-city center-venice venice)
+    (in-city port-venice venice)
+    
+    (at truck-milan center-milan)
+    (at truck-rome center-rome)
+    (at truck-naples port-naples)
+    (at truck-turin center-turin)
+    (at truck-venice port-venice)
+    
+    (at plane1 malpensa)
+    (at plane2 fiumicino)
+    (at plane3 caselle)
+    
+    (at pkg1 station-milan)
+    (at pkg2 center-milan)
+    (at pkg3 terminal-rome)
+    (at pkg4 center-rome)
+    (at pkg5 center-naples)
+    (at pkg6 port-turin)
+    (at pkg7 center-venice)
+    (at pkg8 marco-polo)
+  )
+  
+  (:goal
+    (and
+      (at pkg1 center-rome)
+      (at pkg2 port-naples)
+      (at pkg3 center-milan)
+      (at pkg4 center-naples)
+      (at pkg5 terminal-rome)
+      (at pkg6 center-venice)
+      (at pkg7 port-turin)
+      (at pkg8 caselle)
+    )
+  )
+)`;
+
+
+export const plan5_classic = `domain parsed
+problem parsed
+grounding..
+grounding time: 78
+aibr preprocessing
+|f|:214
+|x|:0
+|a|:570
+|p|:0
+|e|:0
+h1 setup time (msec): 19
+ g(n)= 1.0 h(n)=73.0
+ g(n)= 2.0 h(n)=71.0
+ g(n)= 3.0 h(n)=69.0
+ g(n)= 4.0 h(n)=67.0
+ g(n)= 5.0 h(n)=66.0
+ g(n)= 6.0 h(n)=64.0
+ g(n)= 7.0 h(n)=63.0
+ g(n)= 8.0 h(n)=62.0
+ g(n)= 9.0 h(n)=61.0
+ g(n)= 10.0 h(n)=60.0
+ g(n)= 11.0 h(n)=59.0
+ g(n)= 13.0 h(n)=58.0
+ g(n)= 14.0 h(n)=57.0
+ g(n)= 15.0 h(n)=56.0
+ g(n)= 17.0 h(n)=55.0
+ g(n)= 18.0 h(n)=54.0
+ g(n)= 19.0 h(n)=53.0
+ g(n)= 20.0 h(n)=52.0
+ g(n)= 21.0 h(n)=51.0
+ g(n)= 22.0 h(n)=50.0
+ g(n)= 23.0 h(n)=49.0
+ g(n)= 24.0 h(n)=48.0
+ g(n)= 25.0 h(n)=47.0
+ g(n)= 26.0 h(n)=46.0
+ g(n)= 27.0 h(n)=45.0
+ g(n)= 28.0 h(n)=44.0
+ g(n)= 29.0 h(n)=43.0
+ g(n)= 30.0 h(n)=42.0
+ g(n)= 31.0 h(n)=41.0
+ g(n)= 32.0 h(n)=40.0
+ g(n)= 33.0 h(n)=39.0
+ g(n)= 34.0 h(n)=38.0
+ g(n)= 37.0 h(n)=37.0
+ g(n)= 38.0 h(n)=36.0
+ g(n)= 39.0 h(n)=35.0
+ g(n)= 41.0 h(n)=34.0
+ g(n)= 42.0 h(n)=33.0
+ g(n)= 43.0 h(n)=32.0
+ g(n)= 44.0 h(n)=31.0
+ g(n)= 46.0 h(n)=30.0
+ g(n)= 47.0 h(n)=29.0
+ g(n)= 53.0 h(n)=27.0
+ g(n)= 54.0 h(n)=26.0
+ g(n)= 55.0 h(n)=25.0
+ g(n)= 57.0 h(n)=24.0
+ g(n)= 58.0 h(n)=23.0
+ g(n)= 59.0 h(n)=22.0
+ g(n)= 60.0 h(n)=21.0
+ g(n)= 61.0 h(n)=20.0
+ g(n)= 63.0 h(n)=19.0
+ g(n)= 64.0 h(n)=18.0
+ g(n)= 65.0 h(n)=17.0
+ g(n)= 67.0 h(n)=16.0
+ g(n)= 68.0 h(n)=15.0
+ g(n)= 69.0 h(n)=14.0
+ g(n)= 70.0 h(n)=13.0
+ g(n)= 72.0 h(n)=12.0
+ g(n)= 73.0 h(n)=11.0
+ g(n)= 75.0 h(n)=10.0
+ g(n)= 76.0 h(n)=9.0
+ g(n)= 77.0 h(n)=8.0
+ g(n)= 78.0 h(n)=7.0
+ g(n)= 79.0 h(n)=6.0
+ g(n)= 80.0 h(n)=5.0
+ g(n)= 81.0 h(n)=4.0
+ g(n)= 82.0 h(n)=3.0
+ g(n)= 83.0 h(n)=2.0
+ g(n)= 84.0 h(n)=1.0
+problem solved
+
+found plan:
+0.0: (drive truck-venice port-venice marco-polo venice)
+1.0: (drive truck-turin center-turin caselle turin)
+2.0: (drive truck-naples port-naples capodichino naples)
+3.0: (drive truck-rome center-rome fiumicino rome)
+4.0: (load-truck pkg2 truck-milan center-milan milan)
+5.0: (drive truck-milan center-milan malpensa milan)
+6.0: (unload-truck pkg2 truck-milan malpensa milan)
+7.0: (load-airplane pkg2 plane1 malpensa milan)
+8.0: (fly plane1 malpensa capodichino milan naples)
+9.0: (unload-airplane pkg2 plane1 capodichino naples)
+10.0: (load-truck pkg2 truck-naples capodichino naples)
+11.0: (fly plane3 caselle marco-polo turin venice)
+12.0: (load-airplane pkg8 plane3 marco-polo venice)
+13.0: (fly plane3 marco-polo caselle venice turin)
+14.0: (unload-airplane pkg8 plane3 caselle turin)
+15.0: (drive truck-turin caselle port-turin turin)
+16.0: (load-truck pkg6 truck-turin port-turin turin)
+17.0: (drive truck-turin port-turin caselle turin)
+18.0: (unload-truck pkg6 truck-turin caselle turin)
+19.0: (load-airplane pkg6 plane3 caselle turin)
+20.0: (fly plane3 caselle marco-polo turin venice)
+21.0: (unload-airplane pkg6 plane3 marco-polo venice)
+22.0: (load-truck pkg6 truck-venice marco-polo venice)
+23.0: (drive truck-venice marco-polo center-venice venice)
+24.0: (load-truck pkg7 truck-venice center-venice venice)
+25.0: (unload-truck pkg6 truck-venice center-venice venice)
+26.0: (drive truck-venice center-venice marco-polo venice)
+27.0: (unload-truck pkg7 truck-venice marco-polo venice)
+28.0: (load-airplane pkg7 plane3 marco-polo venice)
+29.0: (fly plane3 marco-polo caselle venice turin)
+30.0: (unload-airplane pkg7 plane3 caselle turin)
+31.0: (load-truck pkg7 truck-turin caselle turin)
+32.0: (drive truck-turin caselle port-turin turin)
+33.0: (unload-truck pkg7 truck-turin port-turin turin)
+34.0: (fly plane1 capodichino malpensa naples milan)
+35.0: (drive truck-naples capodichino center-naples naples)
+36.0: (load-truck pkg5 truck-naples center-naples naples)
+37.0: (drive truck-naples center-naples capodichino naples)
+38.0: (unload-truck pkg5 truck-naples capodichino naples)
+39.0: (fly plane1 malpensa capodichino milan naples)
+40.0: (load-airplane pkg5 plane1 capodichino naples)
+41.0: (fly plane1 capodichino fiumicino naples rome)
+42.0: (unload-airplane pkg5 plane1 fiumicino rome)
+43.0: (load-truck pkg5 truck-rome fiumicino rome)
+44.0: (drive truck-naples capodichino port-naples naples)
+45.0: (unload-truck pkg2 truck-naples port-naples naples)
+46.0: (drive truck-naples port-naples capodichino naples)
+47.0: (fly plane3 caselle marco-polo turin venice)
+48.0: (fly plane2 fiumicino marco-polo rome venice)
+49.0: (drive truck-turin port-turin center-turin turin)
+50.0: (drive truck-rome fiumicino center-rome rome)
+51.0: (load-truck pkg4 truck-rome center-rome rome)
+52.0: (drive truck-rome center-rome fiumicino rome)
+53.0: (unload-truck pkg4 truck-rome fiumicino rome)
+54.0: (load-airplane pkg4 plane1 fiumicino rome)
+55.0: (fly plane3 marco-polo malpensa venice milan)
+56.0: (fly plane1 fiumicino capodichino rome naples)
+57.0: (unload-airplane pkg4 plane1 capodichino naples)
+58.0: (load-truck pkg4 truck-naples capodichino naples)
+59.0: (drive truck-naples capodichino center-naples naples)
+60.0: (unload-truck pkg4 truck-naples center-naples naples)
+61.0: (drive truck-rome fiumicino terminal-rome rome)
+62.0: (load-truck pkg3 truck-rome terminal-rome rome)
+63.0: (drive truck-rome terminal-rome fiumicino rome)
+64.0: (unload-truck pkg3 truck-rome fiumicino rome)
+65.0: (fly plane1 capodichino fiumicino naples rome)
+66.0: (load-airplane pkg3 plane1 fiumicino rome)
+67.0: (fly plane1 fiumicino malpensa rome milan)
+68.0: (unload-airplane pkg3 plane1 malpensa milan)
+69.0: (load-truck pkg3 truck-milan malpensa milan)
+70.0: (drive truck-rome fiumicino terminal-rome rome)
+71.0: (unload-truck pkg5 truck-rome terminal-rome rome)
+72.0: (drive truck-rome terminal-rome fiumicino rome)
+73.0: (drive truck-milan malpensa center-milan milan)
+74.0: (unload-truck pkg3 truck-milan center-milan milan)
+75.0: (drive truck-milan center-milan station-milan milan)
+76.0: (load-truck pkg1 truck-milan station-milan milan)
+77.0: (drive truck-milan station-milan malpensa milan)
+78.0: (unload-truck pkg1 truck-milan malpensa milan)
+79.0: (load-airplane pkg1 plane3 malpensa milan)
+80.0: (fly plane3 malpensa fiumicino milan rome)
+81.0: (unload-airplane pkg1 plane3 fiumicino rome)
+82.0: (load-truck pkg1 truck-rome fiumicino rome)
+83.0: (drive truck-rome fiumicino center-rome rome)
+84.0: (unload-truck pkg1 truck-rome center-rome rome)
+
+plan-length:85
+metric (search):85.0
+planning time (msec): 9188
+heuristic time (msec): 8943
+search time (msec): 9184
+expanded nodes:3817
+states evaluated:35993
+number of dead-ends detected:0
+number of duplicates detected:57117`;
+
+
+
+
 export const prob1_numeric = `(define (problem logistics-multi-city)
   (:domain logistics)
   
