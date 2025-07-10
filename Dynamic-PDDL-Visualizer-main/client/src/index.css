@@ -1,0 +1,350 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(222, 84%, 4.9%);
+  --foreground: hsl(210, 40%, 98%);
+  --muted: hsl(217, 32%, 17%);
+  --muted-foreground: hsl(215, 20%, 65%);
+  --popover: hsl(222, 84%, 4.9%);
+  --popover-foreground: hsl(210, 40%, 98%);
+  --card: hsl(222, 84%, 4.9%);
+  --card-foreground: hsl(210, 40%, 98%);
+  --border: hsl(217, 32%, 17%);
+  --input: hsl(217, 32%, 17%);
+  --primary: hsl(213, 93%, 58%);
+  --primary-foreground: hsl(217, 100%, 99%);
+  --secondary: hsl(217, 32%, 17%);
+  --secondary-foreground: hsl(210, 40%, 98%);
+  --accent: hsl(142, 76%, 36%);
+  --accent-foreground: hsl(210, 40%, 98%);
+  --destructive: hsl(0, 84%, 60%);
+  --destructive-foreground: hsl(210, 40%, 98%);
+  --warning: hsl(32, 95%, 48%);
+  --warning-foreground: hsl(210, 40%, 98%);
+  --ring: hsl(213, 93%, 58%);
+  --radius: 0.5rem;
+  
+  /* Sidebar colors */
+  --sidebar-background: hsl(222, 84%, 4.9%);
+  --sidebar-foreground: hsl(210, 40%, 98%);
+  --sidebar-primary: hsl(213, 93%, 58%);
+  --sidebar-primary-foreground: hsl(217, 100%, 99%);
+  --sidebar-accent: hsl(142, 76%, 36%);
+  --sidebar-accent-foreground: hsl(210, 40%, 98%);
+  --sidebar-border: hsl(217, 32%, 17%);
+  --sidebar-ring: hsl(213, 93%, 58%);
+  
+  /* Custom PDDL Visualizer colors */
+  --visualizer-bg: hsl(222, 84%, 4.9%);
+  --visualizer-card: hsl(220, 13%, 18%);
+  --visualizer-border: hsl(215, 28%, 17%);
+  --visualizer-text: hsl(210, 40%, 98%);
+  --visualizer-text-muted: hsl(215, 20%, 65%);
+  --visualizer-accent-blue: hsl(213, 93%, 58%);
+  --visualizer-accent-green: hsl(142, 76%, 36%);
+  --visualizer-accent-yellow: hsl(32, 95%, 48%);
+  --visualizer-accent-red: hsl(0, 84%, 60%);
+}
+
+.dark {
+  --background: hsl(222, 84%, 4.9%);
+  --foreground: hsl(210, 40%, 98%);
+  --muted: hsl(217, 32%, 17%);
+  --muted-foreground: hsl(215, 20%, 65%);
+  --popover: hsl(222, 84%, 4.9%);
+  --popover-foreground: hsl(210, 40%, 98%);
+  --card: hsl(222, 84%, 4.9%);
+  --card-foreground: hsl(210, 40%, 98%);
+  --border: hsl(217, 32%, 17%);
+  --input: hsl(217, 32%, 17%);
+  --primary: hsl(213, 93%, 58%);
+  --primary-foreground: hsl(217, 100%, 99%);
+  --secondary: hsl(217, 32%, 17%);
+  --secondary-foreground: hsl(210, 40%, 98%);
+  --accent: hsl(142, 76%, 36%);
+  --accent-foreground: hsl(210, 40%, 98%);
+  --destructive: hsl(0, 84%, 60%);
+  --destructive-foreground: hsl(210, 40%, 98%);
+  --ring: hsl(213, 93%, 58%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-visualizer-bg text-visualizer-text font-sans antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  
+  code, pre, .font-mono {
+    font-family: 'JetBrains Mono', Monaco, monospace;
+  }
+}
+
+/* Custom animations for PDDL visualizer */
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 5px currentColor;
+  }
+  50% {
+    opacity: 0.7;
+    box-shadow: 0 0 20px currentColor;
+  }
+}
+
+@keyframes float-up {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-float-up {
+  animation: float-up 2s ease-out forwards;
+}
+
+/* Three.js canvas styling */
+.three-canvas {
+  background: linear-gradient(135deg, 
+    hsl(220, 13%, 18%) 0%, 
+    hsl(222, 84%, 4.9%) 100%);
+}
+
+/* File upload zone styling */
+.file-upload-zone {
+  transition: all 0.2s ease-in-out;
+}
+
+.file-upload-zone:hover {
+  border-color: hsl(215, 20%, 65%);
+  background-color: hsl(217, 32%, 17%);
+}
+
+.file-upload-zone.drag-over {
+  border-color: hsl(213, 93%, 58%);
+  background-color: hsla(213, 93%, 58%, 0.05);
+}
+
+/* Timeline styling */
+.timeline-track {
+  background: linear-gradient(90deg, 
+    hsl(217, 32%, 17%) 0%, 
+    hsl(213, 93%, 58%) var(--progress, 0%), 
+    hsl(217, 32%, 17%) var(--progress, 0%));
+}
+
+/* Numeric fluent bars */
+.fluent-bar {
+  background-color: hsl(217, 32%, 17%);
+}
+
+.fluent-bar-fill {
+  background-color: hsl(213, 93%, 58%);
+  height: 100%;
+}
+
+.fluent-bar-warning .fluent-bar-fill {
+  background-color: hsl(32, 95%, 48%);
+}
+
+.fluent-bar-danger .fluent-bar-fill {
+  background-color: hsl(0, 84%, 60%);
+}
+
+/* Loading spinner */
+.spinner {
+  border: 2px solid hsl(217, 32%, 17%);
+  border-top: 2px solid hsl(213, 93%, 58%);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Modal backdrop */
+.modal-backdrop {
+  background: hsla(222, 84%, 4.9%, 0.8);
+  backdrop-filter: blur(4px);
+}
+
+/* Scrollbar styling */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(217, 32%, 17%) transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: hsl(217, 32%, 17%);
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(215, 20%, 65%);
+}
+
+/* Action card styling */
+.action-card-active {
+  background: hsla(213, 93%, 58%, 0.2);
+  border-color: hsla(213, 93%, 58%, 0.4);
+  box-shadow: 0 0 10px hsla(213, 93%, 58%, 0.3);
+}
+
+.action-card-completed {
+  background: hsla(217, 32%, 17%, 0.5);
+  opacity: 0.6;
+}
+
+.action-card-pending {
+  background: hsla(217, 32%, 17%, 0.3);
+}
+
+/* Status indicators */
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.status-indicator.active {
+  background-color: hsl(142, 76%, 36%);
+  animation: pulse-glow 1s ease-in-out infinite;
+}
+
+.status-indicator.completed {
+  background-color: hsl(142, 76%, 36%);
+}
+
+.status-indicator.pending {
+  background-color: hsl(215, 20%, 65%);
+}
+
+.status-indicator.failed {
+  background-color: hsl(0, 84%, 60%);
+}
+
+/* Numeric fluent displays */
+.fluent-bar {
+  background: hsl(217, 32%, 17%);
+  overflow: hidden;
+  border-radius: 9999px;
+}
+
+.fluent-bar-fill {
+  background: hsl(142, 76%, 36%);
+  transition: width 0.3s ease-in-out;
+  height: 100%;
+}
+
+.fluent-bar-warning {
+  background: hsl(32, 95%, 48%);
+}
+
+.fluent-bar-danger {
+  background: hsl(0, 84%, 60%);
+}
+
+/* Room grid styling */
+.room-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
+  gap: 4px;
+}
+
+.room-cell {
+  aspect-ratio: 1;
+  background: hsl(217, 32%, 17%);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  color: hsl(210, 40%, 98%);
+}
+
+/* Scrollbar styling */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(217, 32%, 17%) transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: hsl(217, 32%, 17%);
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(215, 20%, 65%);
+}
+
+/* Button focus styles */
+.btn-focus:focus-visible {
+  outline: 2px solid hsl(213, 93%, 58%);
+  outline-offset: 2px;
+}
+
+/* Loading spinner */
+.spinner {
+  border: 2px solid hsl(217, 32%, 17%);
+  border-top: 2px solid hsl(213, 93%, 58%);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Tooltip styling */
+.tooltip {
+  background: hsl(222, 84%, 4.9%);
+  border: 1px solid hsl(217, 32%, 17%);
+  color: hsl(210, 40%, 98%);
+  font-size: 12px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  backdrop-filter: blur(8px);
+}
+
+/* Modal backdrop */
+.modal-backdrop {
+  background: hsla(222, 84%, 4.9%, 0.75);
+  backdrop-filter: blur(4px);
+}

@@ -1,0 +1,84 @@
+(define (problem logistics-temporal-air-4cities)
+  (:domain logistics)
+
+  (:objects
+    milano roma torino napoli - city
+    malpensa fiumicino caselle capodichino - airport
+    centromilano stazionemilano duomo - location
+    centroroma terminiroma colosseo - location
+    piazzacastello lingotto portanuova - location
+    centralenapoli vomero posillipo - location
+    pacco1 pacco2 pacco3 pacco4 pacco5 pacco6 - package
+    truck1 truck2 truck3 truck4 - truck
+    aereo1 aereo2 aereo3 - airplane
+  )
+
+  (:init
+    (in-city malpensa milano)
+    (in-city centromilano milano)
+    (in-city stazionemilano milano)
+    (in-city duomo milano)
+
+    (in-city fiumicino roma)
+    (in-city centroroma roma)
+    (in-city terminiroma roma)
+    (in-city colosseo roma)
+
+    (in-city caselle torino)
+    (in-city piazzacastello torino)
+    (in-city lingotto torino)
+    (in-city portanuova torino)
+
+    (in-city capodichino napoli)
+    (in-city centralenapoli napoli)
+    (in-city vomero napoli)
+    (in-city posillipo napoli)
+
+    (at truck1 centromilano)
+    (at truck2 centroroma)
+    (at truck3 piazzacastello)
+    (at truck4 centralenapoli)
+
+    (at aereo1 malpensa)
+    (at aereo2 fiumicino)
+    (at aereo3 capodichino)
+
+    (at pacco1 duomo)
+    (at pacco2 colosseo)
+    (at pacco3 lingotto)
+    (at pacco4 vomero)
+    (at pacco5 malpensa)
+    (at pacco6 caselle)
+    (= (distance milano milano) 0)
+    (= (distance milano roma) 5)
+    (= (distance milano torino) 2)
+    (= (distance milano napoli) 8)
+
+    (= (distance roma milano) 5)
+    (= (distance roma roma) 0)
+    (= (distance roma torino) 7)
+    (= (distance roma napoli) 3)
+
+    (= (distance torino milano) 2)
+    (= (distance torino roma) 7)
+    (= (distance torino torino) 0)
+    (= (distance torino napoli) 10)
+
+    (= (distance napoli milano) 8)
+    (= (distance napoli roma) 3)
+    (= (distance napoli torino) 10)
+    (= (distance napoli napoli) 0)
+  )
+
+  (:goal
+    (and
+      (at pacco1 capodichino)
+      (at pacco2 portanuova)
+      (at pacco3 terminiroma)
+      (at pacco4 stazionemilano)
+      (at pacco5 posillipo)
+      (at pacco6 fiumicino)
+    )
+  )
+(:metric minimize total-time)
+)

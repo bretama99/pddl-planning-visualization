@@ -53,7 +53,7 @@
         <div class="progress-info">
           <span class="step-counter">Step {{ currentStep }} of {{ parsedActions?.length || 0 }}</span>
           <span class="duration-info" v-if="totalDuration && totalDuration > 0">
-            Duration: {{ totalDuration.toFixed(1) }}{{ pddlType === 'classical' ? ' steps' : 's' }}
+            Duration: {{ totalDuration.toFixed(1) }}s
           </span>
         </div>
         <div class="progress-bar">
@@ -115,121 +115,15 @@
           <div v-else-if="pddlType === 'numerical'" class="pddl-info numerical-info">
             💰 Cost: {{ currentAction.cost }} | 🚀 Step: {{ currentAction.step }}
           </div>
-        </div>
-      </div>
-
-      <!-- Robot Status Panel - NEW! -->
-      <div v-if="planRobots?.length" class="robot-status-panel">
-        <h3 class="status-title">
-          <span class="status-icon">🤖</span>
-          Robot Status
-        </h3>
-        <div class="robots-status-grid">
-          <div 
-            v-for="robot in planRobots" 
-            :key="robot"
-            class="robot-status-card"
-            :class="{ 
-              'active': activeRobots.has(robot),
-              'moving': isRobotMoving(robot),
-              'charging': isRobotCharging(robot)
-            }"
-          >
-            <div class="robot-status-header">
-              <span class="robot-status-name">{{ robot.toUpperCase() }}</span>
-              <span class="robot-status-state">
-                <span v-if="isRobotCharging(robot)" class="status-charging">🔋 Charging</span>
-                <span v-else-if="isRobotMoving(robot)" class="status-moving">🚶‍♂️ Moving</span>
-                <span v-else-if="activeRobots.has(robot)" class="status-working">⚙️ Working</span>
-                <span v-else class="status-idle">😴 Idle</span>
-              </span>
+          
+          <div class="action-progress-container">
+            <div class="action-progress-bar">
+              <div 
+                class="action-progress-fill" 
+                :style="{ width: `${actionProgress}%` }"
+              ></div>
             </div>
-
-            <!-- Energy System Display -->
-            <div v-if="getRobotCapabilities(robot).hasEnergySystem" class="energy-system">
-              <div class="energy-header">
-                <span class="energy-label">🔋 Energy</span>
-                <span class="energy-value">{{ getRobotEnergy(robot).toFixed(0) }}/{{ getRobotMaxEnergy(robot) }}</span>
-              </div>
-              <div class="energy-bar">
-                <div 
-                  class="energy-fill" 
-                  :class="{ 
-                    'low-energy': getRobotEnergy(robot) < getRobotMaxEnergy(robot) * 0.3,
-                    'charging': isRobotCharging(robot)
-                  }"
-                  :style="{ width: `${(getRobotEnergy(robot) / getRobotMaxEnergy(robot)) * 100}%` }"
-                ></div>
-              </div>
-            </div>
-
-            <!-- Fuel System Display (Logistics) -->
-            <div v-if="getRobotCapabilities(robot).hasFuelSystem" class="fuel-system">
-              <div class="fuel-header">
-                <span class="fuel-label">⛽ Fuel</span>
-                <span class="fuel-value">{{ getRobotFuel(robot).toFixed(0) }}</span>
-              </div>
-              <div class="fuel-bar">
-                <div 
-                  class="fuel-fill" 
-                  :class="{ 'low-fuel': getRobotFuel(robot) < 100 }"
-                  :style="{ width: `${Math.min(100, getRobotFuel(robot))}%` }"
-                ></div>
-              </div>
-            </div>
-
-            <!-- Carrying Capacity Display -->
-            <div class="capacity-system">
-              <div class="capacity-header">
-                <span class="capacity-label">🎒 Capacity</span>
-                <span class="capacity-value">{{ getRobotCapacity(robot) }}/{{ getRobotMaxCapacity(robot) }}</span>
-              </div>
-              <div class="capacity-bar">
-                <div 
-                  class="capacity-fill" 
-                  :class="{ 'full-capacity': getRobotCapacity(robot) >= getRobotMaxCapacity(robot) }"
-                  :style="{ width: `${(getRobotCapacity(robot) / getRobotMaxCapacity(robot)) * 100}%` }"
-                ></div>
-              </div>
-              <div v-if="getRobotCarrying(robot).length > 0" class="carrying-items">
-                <span 
-                  v-for="item in getRobotCarrying(robot)" 
-                  :key="item"
-                  class="carrying-item"
-                >
-                  {{ getObjectIcon(item) }} {{ item }}
-                </span>
-              </div>
-            </div>
-
-            <!-- Movement Speed Display -->
-            <div class="speed-system">
-              <div class="speed-header">
-                <span class="speed-label">🏃‍♂️ Speed</span>
-                <span class="speed-value">{{ getRobotCapabilities(robot).movementSpeed?.toFixed(1) || '1.0' }}s/move</span>
-              </div>
-              <div v-if="isRobotMoving(robot)" class="movement-progress">
-                <div class="movement-bar">
-                  <div 
-                    class="movement-fill" 
-                    :style="{ width: `${getRobotMovementProgress(robot) * 100}%` }"
-                  ></div>
-                </div>
-                <span class="movement-text">
-                  {{ robotStartRooms[robot] }} → {{ robotTargetRooms[robot] }}
-                  ({{ Math.round(getRobotMovementProgress(robot) * 100) }}%)
-                </span>
-              </div>
-            </div>
-
-            <!-- Capabilities Summary -->
-            <div class="capabilities-summary">
-              <span v-if="getRobotCapabilities(robot).hasEnergySystem" class="capability-badge energy">🔋 Energy</span>
-              <span v-if="getRobotCapabilities(robot).hasFuelSystem" class="capability-badge fuel">⛽ Fuel</span>
-              <span v-if="getRobotCapabilities(robot).maxCarryingCapacity > 1" class="capability-badge multi-carry">🎒 Multi-carry</span>
-              <span v-if="getRobotCapabilities(robot).supportsProcesses" class="capability-badge processes">🔄 Processes</span>
-              <span v-if="getRobotCapabilities(robot).canMoveParallel" class="capability-badge parallel">⚡ Parallel</span>
-            </div>
+            <span class="progress-text">{{ actionProgress?.toFixed(0) || '0' }}%</span>
           </div>
         </div>
       </div>
@@ -249,7 +143,7 @@
         </ul>
       </div>
 
-      <!-- Room Grid with Enhanced Movement Visualization -->
+      <!-- Room Grid with Movement Visualization -->
       <div v-if="parsedActions?.length" class="room-grid-container">
         <div class="room-grid">
           <div 
@@ -279,7 +173,7 @@
               </div>
             </div>
 
-            <!-- Enhanced Robots in Room -->
+            <!-- Robots in Room (only show if not moving) -->
             <div class="room-robots">
               <div 
                 v-for="robot in getRobotsInRoom(room)" 
@@ -287,43 +181,20 @@
                 v-show="!isRobotMoving(robot)"
                 class="robot-container"
               >
-                <!-- Enhanced Robot Figure with Status Indicators -->
+                <!-- Robot Figure -->
                 <div class="robot-figure" 
                      :class="{ 
-                       'holding': getRobotCarrying(robot).length > 0,
-                       'low-energy': getRobotCapabilities(robot).hasEnergySystem && getRobotEnergy(robot) < getRobotMaxEnergy(robot) * 0.3,
-                       'charging': isRobotCharging(robot),
-                       'overloaded': getRobotCapacity(robot) >= getRobotMaxCapacity(robot)
+                       'holding': getRobotCarrying(robot).length > 0
                      }">
                   
-                  <!-- Robot Head with Status Indicators -->
+                  <!-- Robot Head -->
                   <div class="robot-head">
-                    <div class="robot-eyes" :class="{ 'low-energy-eyes': getRobotCapabilities(robot).hasEnergySystem && getRobotEnergy(robot) < 30 }"></div>
-                    
-                    <!-- Energy Indicator -->
-                    <div v-if="getRobotCapabilities(robot).hasEnergySystem" class="energy-indicator">
-                      <div class="energy-level" :style="{ width: `${(getRobotEnergy(robot) / getRobotMaxEnergy(robot)) * 100}%` }"></div>
-                    </div>
-                    
-                    <!-- Charging Indicator -->
-                    <div v-if="isRobotCharging(robot)" class="charging-indicator">⚡</div>
+                    <div class="robot-eyes"></div>
                   </div>
                   
-                  <!-- Robot Body with Capacity Indicator -->
+                  <!-- Robot Body -->
                   <div class="robot-body">
-                    <div class="activity-light" :class="{ 'active': activeRobots.has(robot) }"></div>
-                    
-                    <!-- Capacity Indicator -->
-                    <div v-if="getRobotMaxCapacity(robot) > 1" class="capacity-indicator">
-                      <div class="capacity-dots">
-                        <div 
-                          v-for="n in getRobotMaxCapacity(robot)" 
-                          :key="n"
-                          class="capacity-dot"
-                          :class="{ 'filled': n <= getRobotCapacity(robot) }"
-                        ></div>
-                      </div>
-                    </div>
+                    <div class="activity-light"></div>
                   </div>
                   
                   <!-- Robot Arms -->
@@ -334,7 +205,7 @@
                   <div class="robot-leg left"></div>
                   <div class="robot-leg right"></div>
                   
-                  <!-- Enhanced Carried Objects Display -->
+                  <!-- Carried Objects in Robot's Hands -->
                   <div v-if="getRobotCarrying(robot).length > 0" class="robot-hands">
                     <div class="hand left-hand">
                       <div v-if="getRobotCarrying(robot)[0]" class="carried-object-in-hand">
@@ -346,40 +217,19 @@
                         <span class="object-icon">{{ getObjectIcon(getRobotCarrying(robot)[1]) }}</span>
                       </div>
                     </div>
-                    <!-- Additional objects indicator -->
-                    <div v-if="getRobotCarrying(robot).length > 2" class="additional-objects">
-                      +{{ getRobotCarrying(robot).length - 2 }}
-                    </div>
                   </div>
                 </div>
                 
-                <!-- Enhanced Robot Info with Dynamic Data -->
+                <!-- Robot Info -->
                 <div class="robot-info">
                   <div class="robot-name">{{ (robot || '').toUpperCase() }}</div>
                   <div class="robot-status">
-                    <div v-if="isRobotCharging(robot)" class="status-charging">
-                      🔋 Charging ({{ getRobotEnergy(robot).toFixed(0) }}/{{ getRobotMaxEnergy(robot) }})
-                    </div>
-                    <div v-else-if="getRobotCarrying(robot).length > 0" class="status-carrying">
+                    <div v-if="getRobotCarrying(robot).length > 0" class="status-carrying">
                       🤏 Carrying: {{ getRobotCarrying(robot).join(', ') }}
-                      <div class="capacity-info">({{ getRobotCapacity(robot) }}/{{ getRobotMaxCapacity(robot) }})</div>
                     </div>
                     <div v-else class="status-idle">
                       😴 Waiting
                     </div>
-                  </div>
-                  
-                  <!-- Speed Indicator -->
-                  <div class="speed-info">
-                    🏃‍♂️ Speed: {{ getRobotCapabilities(robot).movementSpeed?.toFixed(1) || '1.0' }}s
-                  </div>
-                  
-                  <!-- Warning Messages -->
-                  <div v-if="getRobotCapabilities(robot).hasEnergySystem && getRobotEnergy(robot) < 20" class="warning-message energy-warning">
-                    ⚠️ Low Energy!
-                  </div>
-                  <div v-if="getRobotCapacity(robot) >= getRobotMaxCapacity(robot)" class="warning-message capacity-warning">
-                    ⚠️ At Capacity!
                   </div>
                 </div>
               </div>
@@ -387,7 +237,7 @@
           </div>
         </div>
 
-        <!-- Enhanced Moving Robots Overlay with Speed Differences -->
+        <!-- Moving Robots Overlay -->
         <div class="moving-robots-overlay">
           <div 
             v-for="robot in getMovingRobots()" 
@@ -398,52 +248,31 @@
             <div class="robot-figure moving-figure" 
                  :class="{ 
                    'holding': getRobotCarrying(robot).length > 0,
-                   'walking': true,
-                   'fast-robot': getRobotCapabilities(robot).movementSpeed < 2.0,
-                   'slow-robot': getRobotCapabilities(robot).movementSpeed > 4.0,
-                   'low-energy': getRobotCapabilities(robot).hasEnergySystem && getRobotEnergy(robot) < 30
+                   'walking': true
                  }">
               
-              <!-- Enhanced Robot Head with Movement Indicators -->
+              <!-- Robot Head -->
               <div class="robot-head">
-                <div class="robot-eyes eyes-focused" :class="{ 'low-energy-eyes': getRobotEnergy(robot) < 30 }"></div>
+                <div class="robot-eyes eyes-focused"></div>
                 <div class="movement-indicator">
                   <div class="movement-arrow">➡️</div>
                 </div>
-                
-                <!-- Speed-based Movement Trail -->
-                <div class="speed-trail" :class="{
-                  'fast-trail': getRobotCapabilities(robot).movementSpeed < 2.0,
-                  'normal-trail': getRobotCapabilities(robot).movementSpeed >= 2.0 && getRobotCapabilities(robot).movementSpeed <= 4.0,
-                  'slow-trail': getRobotCapabilities(robot).movementSpeed > 4.0
-                }"></div>
               </div>
               
-              <!-- Robot Body with Dynamic Activity -->
+              <!-- Robot Body -->
               <div class="robot-body">
-                <div class="activity-light active" :class="{
-                  'fast-activity': getRobotCapabilities(robot).movementSpeed < 2.0,
-                  'slow-activity': getRobotCapabilities(robot).movementSpeed > 4.0
-                }"></div>
+                <div class="activity-light active"></div>
               </div>
               
-              <!-- Speed-adjusted Robot Arms -->
-              <div class="robot-arm left arm-swinging" :style="{
-                'animation-duration': getRobotCapabilities(robot).movementSpeed + 's'
-              }"></div>
-              <div class="robot-arm right arm-swinging" :style="{
-                'animation-duration': getRobotCapabilities(robot).movementSpeed + 's'
-              }"></div>
+              <!-- Robot Arms -->
+              <div class="robot-arm left arm-swinging"></div>
+              <div class="robot-arm right arm-swinging"></div>
               
-              <!-- Speed-adjusted Robot Legs -->
-              <div class="robot-leg left leg-walking" :style="{
-                'animation-duration': getRobotCapabilities(robot).movementSpeed + 's'
-              }"></div>
-              <div class="robot-leg right leg-walking" :style="{
-                'animation-duration': getRobotCapabilities(robot).movementSpeed + 's'
-              }"></div>
+              <!-- Robot Legs -->
+              <div class="robot-leg left leg-walking"></div>
+              <div class="robot-leg right leg-walking"></div>
               
-              <!-- Enhanced Carried Objects in Movement -->
+              <!-- Carried Objects in Moving Robot's Hands -->
               <div v-if="getRobotCarrying(robot).length > 0" class="robot-hands">
                 <div class="hand left-hand moving-hand">
                   <div v-if="getRobotCarrying(robot)[0]" class="carried-object-in-hand moving-object">
@@ -457,35 +286,35 @@
                 </div>
               </div>
               
-              <!-- Dynamic Movement Progress Bar -->
+              <!-- Movement Progress Bar with PDDL-specific information -->
               <div v-if="isRobotMoving(robot)" class="movement-progress-bar">
                 <div class="movement-progress-fill" 
-                     :style="{ width: `${getRobotMovementProgress(robot) * 100}%` }"
-                     :class="{
-                       'fast-progress': getRobotCapabilities(robot).movementSpeed < 2.0,
-                       'slow-progress': getRobotCapabilities(robot).movementSpeed > 4.0
-                     }"></div>
+                     :style="{ width: `${getRobotMovementProgress(robot) * 100}%` }"></div>
               </div>
               
-              <!-- Enhanced Movement Information with Real Capabilities -->
+              <!-- PDDL-specific delivery time information -->
               <div v-if="isRobotMoving(robot)" class="delivery-time-info" 
                    :class="`delivery-${pddlType}`">
                 <template v-if="pddlType === 'temporal'">
                   <div class="temporal-timing">
-                    ⏱️ Move Time: {{ getRobotCapabilities(robot).movementSpeed?.toFixed(1) || '1.0' }}s
+                    ⏱️ Delivery Time: {{ getCurrentActionForRobot(robot)?.duration?.toFixed(1) || '1.0' }}s
                     <div class="temporal-schedule">
-                      Speed Rating: {{ getSpeedRating(getRobotCapabilities(robot).movementSpeed) }}
+                      Start: {{ getCurrentActionForRobot(robot)?.start?.toFixed(1) || '0.0' }}s | 
+                      End: {{ getCurrentActionForRobot(robot)?.end?.toFixed(1) || '1.0' }}s
                     </div>
                   </div>
                 </template>
                 
                 <template v-else-if="pddlType === 'pddl+'">
                   <div class="pddl-plus-timing">
-                    <div class="process-info">
-                      🔄 Process: {{ getRobotCapabilities(robot).movementSpeed?.toFixed(1) || '1.0' }}s
+                    <div v-if="getCurrentActionForRobot(robot)?.isProcess">
+                      🔄 Process: {{ getCurrentActionForRobot(robot)?.duration?.toFixed(1) || '1.0' }}s
                     </div>
-                    <div v-if="getRobotCapabilities(robot).hasEnergySystem" class="energy-consumption">
-                      ⚡ Energy: {{ getRobotEnergy(robot).toFixed(0) }}/{{ getRobotMaxEnergy(robot) }}
+                    <div v-else-if="getCurrentActionForRobot(robot)?.isWaiting">
+                      ⏳ Waiting: {{ getCurrentActionForRobot(robot)?.duration?.toFixed(1) || '1.0' }}s
+                    </div>
+                    <div v-else>
+                      ⚡ Event: {{ getCurrentActionForRobot(robot)?.duration?.toFixed(1) || '1.0' }}s
                     </div>
                   </div>
                 </template>
@@ -493,49 +322,53 @@
                 <template v-else-if="pddlType === 'numerical'">
                   <div class="numerical-timing">
                     💰 Cost: {{ getCurrentActionForRobot(robot)?.cost || 1 }}
-                    <div v-if="getRobotCapabilities(robot).hasFuelSystem" class="fuel-indicator">
-                      ⛽ Fuel: {{ getRobotFuel(robot).toFixed(0) }}
+                    <div class="fuel-indicator">
+                      ⛽ Fuel: {{ getRobotFuel(robot) }}%
                     </div>
                   </div>
                 </template>
                 
                 <template v-else>
                   <div class="classical-timing">
-                    🚀 Moving: {{ getRobotCapabilities(robot).movementSpeed?.toFixed(1) || '1.0' }}s
+                    🚀 Moving: {{ getCurrentActionForRobot(robot)?.duration?.toFixed(1) || '1.0' }}s
                   </div>
                 </template>
               </div>
             </div>
             
-            <!-- Enhanced Moving Robot Info with Capabilities -->
+            <!-- Moving Robot Info -->
             <div class="moving-robot-info">
               <div class="robot-name-moving">{{ (robot || '').toUpperCase() }}</div>
               <div class="movement-status">
-                🚶‍♂️ {{ robotStartRooms[robot] }} → {{ robotTargetRooms[robot] }}
-                ({{ Math.round((getRobotMovementProgress(robot) || 0) * 100) }}%)
+                🚶‍♂️ Moving to {{ robotTargetRooms[robot] || 'Unknown' }}... 
+                {{ Math.round((getRobotMovementProgress(robot) || 0) * 100) }}%
               </div>
               
-              <!-- Real-time Capability Display -->
-              <div class="capability-status" :class="`status-${pddlType}`">
-                <div class="capability-row">
-                  <span class="capability-label">Speed:</span>
-                  <span class="capability-value">{{ getRobotCapabilities(robot).movementSpeed?.toFixed(1) || '1.0' }}s</span>
-                </div>
+              <!-- PDDL-specific status information -->
+              <div class="pddl-status" :class="`status-${pddlType}`">
+                <template v-if="pddlType === 'temporal'">
+                  <div class="temporal-status">
+                    ⏰ Scheduled Action | Makespan: {{ getTotalMakespan() }}s
+                  </div>
+                </template>
                 
-                <div v-if="getRobotCapabilities(robot).hasEnergySystem" class="capability-row">
-                  <span class="capability-label">Energy:</span>
-                  <span class="capability-value">{{ getRobotEnergy(robot).toFixed(0) }}/{{ getRobotMaxEnergy(robot) }}</span>
-                </div>
+                <template v-else-if="pddlType === 'pddl+'">
+                  <div class="pddl-plus-status">
+                    🔄 Continuous Process | Elapsed: {{ getElapsedTime() }}s
+                  </div>
+                </template>
                 
-                <div v-if="getRobotCapabilities(robot).hasFuelSystem" class="capability-row">
-                  <span class="capability-label">Fuel:</span>
-                  <span class="capability-value">{{ getRobotFuel(robot).toFixed(0) }}</span>
-                </div>
+                <template v-else-if="pddlType === 'numerical'">
+                  <div class="numerical-status">
+                    📊 Efficiency: {{ getEfficiencyScore() }}% | Total Cost: {{ totalCost }}
+                  </div>
+                </template>
                 
-                <div class="capability-row">
-                  <span class="capability-label">Load:</span>
-                  <span class="capability-value">{{ getRobotCapacity(robot) }}/{{ getRobotMaxCapacity(robot) }}</span>
-                </div>
+                <template v-else>
+                  <div class="classical-status">
+                    📝 Step {{ currentStep }} of {{ parsedActions?.length || 0 }}
+                  </div>
+                </template>
               </div>
             </div>
           </div>
@@ -543,9 +376,9 @@
       </div>
     </div>
 
-    <!-- Enhanced Statistics Panel with Dynamic Capabilities -->
+    <!-- Statistics Panel -->
     <div class="stats-panel">
-      <h3 class="stats-title">📊 Advanced Simulation Statistics</h3>
+      <h3 class="stats-title">📊 Simulation Statistics</h3>
       <div class="stats-grid">
         <div class="stat-item">
           <span class="stat-label">Total Actions:</span>
@@ -569,28 +402,7 @@
         </div>
         <div v-if="totalDuration && totalDuration > 0" class="stat-item">
           <span class="stat-label">Duration:</span>
-          <span class="stat-value">{{ totalDuration.toFixed(1) }}{{ pddlType === 'classical' ? ' steps' : 's' }}</span>
-        </div>
-        
-        <!-- Dynamic Capability Statistics -->
-        <div v-if="getEnergyEnabledRobots().length > 0" class="stat-item energy-stat">
-          <span class="stat-label">Energy Systems:</span>
-          <span class="stat-value">{{ getEnergyEnabledRobots().length }}/{{ planRobots?.length || 0 }}</span>
-        </div>
-        
-        <div v-if="getFuelEnabledRobots().length > 0" class="stat-item fuel-stat">
-          <span class="stat-label">Fuel Systems:</span>
-          <span class="stat-value">{{ getFuelEnabledRobots().length }}/{{ planRobots?.length || 0 }}</span>
-        </div>
-        
-        <div class="stat-item speed-stat">
-          <span class="stat-label">Avg Speed:</span>
-          <span class="stat-value">{{ getAverageSpeed().toFixed(1) }}s</span>
-        </div>
-        
-        <div class="stat-item capacity-stat">
-          <span class="stat-label">Total Capacity:</span>
-          <span class="stat-value">{{ getTotalCapacity() }}</span>
+          <span class="stat-value">{{ totalDuration.toFixed(1) }}s</span>
         </div>
       </div>
     </div>
@@ -611,16 +423,12 @@ export default {
     entities: {
       type: Object,
       default: () => ({})
-    },
-    pddlType: {
-      type: String,
-      default: 'classical'
     }
   },
   setup(props) {
-    const pddlType = props.pddlType || 'classical'
+    const pddlType = props.entities?.pddlType || 'classical'
     
-    console.log('🚀 Enhanced RobotSimulator setup with dynamic capabilities:', {
+    console.log('🚀 RobotSimulator setup:', {
       actionsType: typeof props.actions,
       actionsLength: Array.isArray(props.actions) ? props.actions.length : 'string length: ' + (typeof props.actions === 'string' ? props.actions.length : 'unknown'),
       pddlType,
@@ -634,7 +442,7 @@ export default {
     
     const simulator = createRobotSimulator(simulatorProps)
     
-    // Helper functions for enhanced movement visualization
+    // Helper functions for smooth movement visualization
     const hasMovingRobotInRoom = (room) => {
       return simulator.planRobots.value.some(robot => {
         if (simulator.isRobotMoving(robot)) {
@@ -651,7 +459,7 @@ export default {
       return simulator.planRobots.value.filter(robot => simulator.isRobotMoving(robot))
     }
     
-    // Calculate position for moving robot based on progress and speed
+    // Calculate position for moving robot based on progress between rooms
     const getMovingRobotStyle = (robot) => {
       if (!simulator.isRobotMoving(robot)) {
         return { display: 'none' }
@@ -665,28 +473,35 @@ export default {
         return { display: 'none' }
       }
       
-      // Get room positions based on actual room layout
+      console.log(`🎯 Moving ${robot}: ${startRoom} → ${targetRoom} (${Math.round(progress * 100)}%)`)
+      
+      // Get room positions based on actual room layout (adjust based on your grid)
       const roomPositions = {}
       const rooms = simulator.planRooms.value
       
       // Calculate positions dynamically based on room grid
       rooms.forEach((room, index) => {
-        const roomsPerRow = Math.min(3, rooms.length)
+        const roomsPerRow = Math.min(3, rooms.length) // Max 3 rooms per row
         const row = Math.floor(index / roomsPerRow)
         const col = index % roomsPerRow
         
         roomPositions[room] = {
-          x: 20 + (col * 30),
-          y: 20 + (row * 40)
+          x: 20 + (col * 30), // Spread rooms horizontally
+          y: 20 + (row * 40)  // Stack rows vertically
         }
       })
+      
+      console.log(`📍 Room positions:`, roomPositions)
+      console.log(`🚀 ${robot} moving from ${startRoom} (${roomPositions[startRoom]?.x}, ${roomPositions[startRoom]?.y}) to ${targetRoom} (${roomPositions[targetRoom]?.x}, ${roomPositions[targetRoom]?.y})`)
       
       const startPos = roomPositions[startRoom] || { x: 20, y: 20 }
       const targetPos = roomPositions[targetRoom] || { x: 80, y: 20 }
       
-      // Calculate interpolated position with speed-based adjustments
+      // Calculate interpolated position
       const currentX = startPos.x + (targetPos.x - startPos.x) * progress
       const currentY = startPos.y + (targetPos.y - startPos.y) * progress
+      
+      console.log(`📐 Calculated position: (${currentX}, ${currentY})`)
       
       return {
         position: 'absolute',
@@ -694,52 +509,16 @@ export default {
         top: `${currentY}%`,
         transform: 'translate(-50%, -50%)',
         zIndex: 1000,
-        transition: 'none'
+        transition: 'none' // We're manually animating
       }
-    }
-    
-    // Helper functions for dynamic capabilities display
-    const getEnergyEnabledRobots = () => {
-      return simulator.planRobots.value.filter(robot => 
-        simulator.getRobotCapabilities(robot).hasEnergySystem
-      )
-    }
-    
-    const getFuelEnabledRobots = () => {
-      return simulator.planRobots.value.filter(robot => 
-        simulator.getRobotCapabilities(robot).hasFuelSystem
-      )
-    }
-    
-    const getAverageSpeed = () => {
-      const speeds = simulator.planRobots.value.map(robot => 
-        simulator.getRobotCapabilities(robot).movementSpeed || 1.0
-      )
-      return speeds.length > 0 ? speeds.reduce((a, b) => a + b, 0) / speeds.length : 1.0
-    }
-    
-    const getTotalCapacity = () => {
-      return simulator.planRobots.value.reduce((total, robot) => 
-        total + (simulator.getRobotMaxCapacity(robot) || 1), 0
-      )
-    }
-    
-    const getSpeedRating = (speed) => {
-      if (speed < 2.0) return 'Fast ⚡'
-      if (speed > 4.0) return 'Slow 🐌'
-      return 'Normal 🚶‍♂️'
     }
     
     return {
       ...simulator,
+      pddlType,
       hasMovingRobotInRoom,
       getMovingRobots,
-      getMovingRobotStyle,
-      getEnergyEnabledRobots,
-      getFuelEnabledRobots,
-      getAverageSpeed,
-      getTotalCapacity,
-      getSpeedRating
+      getMovingRobotStyle
     }
   }
 }

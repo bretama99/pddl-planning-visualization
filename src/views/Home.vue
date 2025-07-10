@@ -50,7 +50,7 @@
         </h1>
         <nav class="navigation">
           <button 
-            @click="selectDomain('robot')" 
+            @click="navigateToRobot" 
             :class="{ active: selectedDomain === 'robot' }"
             class="nav-btn robot-btn"
           >
@@ -68,7 +68,7 @@
             <div class="btn-glow"></div>
           </button>
           <button 
-            @click="selectDomain('logistics')" 
+            @click="navigateToLogistics" 
             :class="{ active: selectedDomain === 'logistics' }"
             class="nav-btn logistics-btn"
           >
@@ -123,6 +123,13 @@
             <select v-model="selectedPDDLType" class="pddl-type-dropdown">
               <option value="classical">Classical PDDL</option>
               <option value="temporal">Temporal PDDL</option>
+            </select>
+            <div class="pddl-type-description">
+              {{ getPDDLTypeDescription(selectedPDDLType) }}
+            </div>
+          </div>
+          <div class="pddl-type-selector">
+            <select v-model="selectedPDDLType" class="pddl-type-dropdown">
               <option value="numerical">Numerical PDDL</option>
               <option value="pddl_plus">PDDL+</option>
             </select>
@@ -181,7 +188,7 @@
                   {{ item.label }}:
                 </span>
                 <span class="value">{{ item.value }}</span>
-                <div class="value-bar" :style="{ width: item.percentage + '%' }"></div>
+                <div class="value-bar" :style="{ width: safePercentage(item.percentage) + '%' }"></div>
               </div>
             </div>
           </div>
@@ -246,10 +253,14 @@
                        v-for="domain in domains" 
                        :key="domain.id"
                        :class="{ active: selectedDomain === domain.id }"
-                       @click="selectDomain(domain.id)">
+                       @click="handleDomainCardClick(domain.id)">
                     <div class="card-icon">{{ domain.icon }}</div>
                     <div class="card-title">{{ domain.name }}</div>
                     <div class="card-description">{{ domain.description }}</div>
+                    <div v-if="domain.link" class="card-link">
+                      <span class="link-icon">🔗</span>
+                      <span class="link-text">External App</span>
+                    </div>
                     <div class="card-glow"></div>
                   </div>
                 </div>
@@ -262,24 +273,30 @@
             <RobotSimulator 
               v-if="selectedDomain === 'robot'"
               :actions="parsedActions" 
-              :entities="parsedEntities"
-              :pddlType="selectedPDDLType"
+              :entities="parsedEntities" 
             />
             
             <!-- Elevator Domain -->
-            <ElevatorSimulator 
-              v-else-if="selectedDomain === 'elevator'"
-              :actions="parsedActions" 
-              :entities="parsedEntities"
-              :pddlType="selectedPDDLType"
-            />
+   <ElevatorSimulator 
+    v-else-if="selectedDomain === 'elevator' && selectedPDDLType !== 'pddl_plus'&& selectedPDDLType !== 'numerical'"
+    :actions="parsedActions" 
+    :entities="parsedEntities"
+    :pddl-type="selectedPDDLType"
+  />
+
+  <!-- Elevator Domain - PDDL+ Type -->
+  <ElevatorSimulatorPDDL 
+    v-else-if="selectedDomain === 'elevator' && selectedPDDLType === 'pddl_plus' || selectedPDDLType === 'pddl+'|| selectedPDDLType === 'numerical'"
+    :actions="parsedActions" 
+    :entities="parsedEntities"
+    :pddl-type="selectedPDDLType"
+  />
             
             <!-- Logistics Domain -->
             <LogisticsSimulator 
               v-else-if="selectedDomain === 'logistics'"
               :actions="parsedActions" 
               :entities="parsedEntities"
-              :pddlType="selectedPDDLType"
             />
           </div>
         </transition>
@@ -288,29 +305,13 @@
   </div>
 </template>
 
-// File: src/components/visualization/PDDLVisualizer.vue - Script Section Update
-// FIXED: Import dynamic parsers and remove hardcoded domain detection
-
 <script>
-// Updated PDDLVisualizer.vue script section with integrated debug code and FIXED dynamic imports
+// Complete Home.vue JavaScript section with BULLETPROOF safety fixes
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-
-// FIXED: Updated imports to use the new organized structure with dynamic functions
-import { parseRobotDomain } from '@/utils/robot/robotParser.js'
-import { parseElevatorDomain } from '@/utils/elevator/elevatorParser.js'
-import { parseLogisticsDomain } from '@/utils/logistics/logisticsParser.js' // FIXED parser
-import { calculateTotalDuration } from '@/utils/common/pddlUtils.js'
-
-// FIXED: Import domain-specific types with dynamic capabilities
-import { getRobotPDDLTypeConfig } from '@/utils/robot/robotTypes.js'
-import { getElevatorPDDLTypeConfig } from '@/utils/elevator/elevatorTypes.js'
-import { getLogisticsPDDLTypeConfig } from '@/utils/logistics/logisticsTypes.js' // FIXED types
-
-// FIXED: Import dynamic detection functions
-import { detectEntityTypeDynamic, detectVehicleTypeDynamic } from '@/components/visualization/dynamicLogisticsFunctions.js'
-
+import { parsePlanFile, calculateTotalDuration } from '@/utils/enhancedPDDLParser.js'
 import RobotSimulator from '@/components/visualization/RobotSimulator.vue'
 import ElevatorSimulator from '@/components/visualization/ElevatorSimulator.vue'
+import ElevatorSimulatorPDDL from '@/components/visualization/ElevatorSimulatorPDDL+.vue'
 import LogisticsSimulator from '@/components/visualization/LogisticsSimulator.vue'
 
 export default {
@@ -318,19 +319,20 @@ export default {
   components: { 
     RobotSimulator,
     ElevatorSimulator, 
-    LogisticsSimulator
+    LogisticsSimulator,
+    ElevatorSimulatorPDDL
   },
   setup() {
     // State
     const selectedDomain = ref('robot')
-    const selectedPDDLType = ref('classical')
+    const selectedPDDLType = ref('')
     const fileName = ref('')
     const fileSize = ref('')
     const simulationActive = ref(false)
     const error = ref('')
     const successMessage = ref('')
     const parsedActions = ref([])
-    const parsedEntities = ref({})
+    const parsedEntities = ref({ rooms: [], objects: [], robots: [] })
     const planMetrics = ref({})
     const fileContent = ref('')
     const isUploading = ref(false)
@@ -338,11 +340,56 @@ export default {
     const particles = ref([])
     const particleTimer = ref(null)
 
-    // Static data
+    // PDDL Types configuration
+    const pddlTypes = [
+      { 
+        id: 'classical', 
+        name: 'Classical PDDL', 
+        description: 'Step-based planning with discrete actions',
+        icon: '🎯'
+      },
+      { 
+        id: 'temporal', 
+        name: 'Temporal PDDL', 
+        description: 'Time-based planning with durative actions',
+        icon: '⏱️'
+      },
+      { 
+        id: 'numerical', 
+        name: 'Numerical PDDL', 
+        description: 'Planning with numeric fluents and constraints',
+        icon: '🔢'
+      },
+      { 
+        id: 'pddl_plus', 
+        name: 'PDDL+', 
+        description: 'Hybrid discrete/continuous planning',
+        icon: '🌐'
+      }
+    ]
+
+    // Static data with navigation links
     const domains = [
-      { id: 'robot', name: 'Robot', icon: '🤖', description: 'Autonomous robot navigation and task execution' },
-      { id: 'elevator', name: 'Elevator', icon: '🛗', description: 'Multi-floor passenger transportation system' },
-      { id: 'logistics', name: 'Logistics', icon: '🚚', description: 'Complex package delivery and routing network' }
+      { 
+        id: 'robot', 
+        name: 'Robot', 
+        icon: '🤖', 
+        description: 'Autonomous robot navigation and task execution',
+        link: 'http://localhost:5000'
+      },
+      { 
+        id: 'elevator', 
+        name: 'Elevator', 
+        icon: '🛗', 
+        description: 'Multi-floor passenger transportation system'
+      },
+      { 
+        id: 'logistics', 
+        name: 'Logistics', 
+        icon: '🚚', 
+        description: 'Complex package delivery and routing network',
+        link: 'http://localhost:8081'
+      }
     ]
 
     const features = [
@@ -351,156 +398,366 @@ export default {
       { icon: '📊', text: 'Advanced plan metrics' },
       { icon: '🔄', text: 'Temporal & numerical parsing' },
       { icon: '🎯', text: 'Domain-specific optimizations' },
-      { icon: '📱', text: 'Responsive design' }
+      { icon: '📱', text: 'Responsive design' },
+      { icon: '🔗', text: 'External app integration' }
     ]
 
     const steps = [
       { title: 'Upload Plan File', description: 'Select your PDDL plan file from your computer' },
       { title: 'Select PDDL Type', description: 'Choose your plan type (Classical, Temporal, Numerical, or PDDL+)' },
-      { title: 'Choose Domain', description: 'Select the appropriate domain type (Robot/Elevator/Logistics)' },
+      { title: 'Choose Domain', description: 'Select the appropriate domain type or navigate to external apps' },
       { title: 'Start Visualization', description: 'Click the start button to begin the interactive simulation' }
     ]
 
-    // FIXED: Domain-specific parsers mapping - Updated to use new structure
-    const domainParsers = {
-      robot: parseRobotDomain,
-      elevator: parseElevatorDomain,
-      logistics: parseLogisticsDomain // FIXED parser
-    }
-
-    // FIXED: Domain-specific PDDL type config getters
-    const domainPDDLTypeConfigs = {
-      robot: getRobotPDDLTypeConfig,
-      elevator: getElevatorPDDLTypeConfig,
-      logistics: getLogisticsPDDLTypeConfig // FIXED types
-    }
-
-    // FIXED: Enhanced domain detection function - completely dynamic
-    const detectDomainFromContent = (content) => {
-      const contentLower = content.toLowerCase();
-      
-      // FIXED: Dynamic keyword detection using extensible patterns
-      const domainKeywordPatterns = {
-        robot: ['robot', 'room', 'pick', 'drop', 'move', 'carry', 'gripper', 'at-robby'],
-        elevator: ['elevator', 'floor', 'passenger', 'lift', 'board', 'up', 'down', 'above', 'below'],
-        logistics: ['truck', 'airplane', 'package', 'load', 'unload', 'drive', 'fly', 'cargo', 'airport', 'city', 'obj', 'tru', 'apn', 'apt', 'pos', 'cit']
-      }
-      
-      // FIXED: Dynamic entity detection in content
-      const detectedEntities = {
-        robot: 0,
-        elevator: 0,
-        logistics: 0
-      }
-      
-      // Count keyword matches
-      Object.keys(domainKeywordPatterns).forEach(domain => {
-        domainKeywordPatterns[domain].forEach(keyword => {
-          const matches = (contentLower.match(new RegExp(keyword, 'g')) || []).length
-          detectedEntities[domain] += matches
-        })
-      })
-      
-      // FIXED: Also detect by entity patterns in the content
-      const words = contentLower.split(/\s+/)
-      words.forEach(word => {
-        const entityType = detectEntityTypeDynamic(word)
-        const vehicleType = detectVehicleTypeDynamic(word)
-        
-        // Boost logistics score for detected logistics entities
-        if (['package', 'vehicle', 'airport', 'city'].includes(entityType) ||
-            ['truck', 'airplane', 'ship'].includes(vehicleType)) {
-          detectedEntities.logistics += 2
-        }
-        
-        // Boost robot score for robot entities
-        if (word.includes('robot') || word.includes('room') || word.includes('gripper')) {
-          detectedEntities.robot += 2
-        }
-        
-        // Boost elevator score for elevator entities
-        if (word.includes('elevator') || word.includes('floor') || word.includes('passenger')) {
-          detectedEntities.elevator += 2
-        }
-      })
-            
-      // FIXED: Return domain with highest score
-      const sortedDomains = Object.entries(detectedEntities)
-        .sort(([,a], [,b]) => b - a)
-      
-      const detectedDomain = sortedDomains[0][0]
-      // const confidence = sortedDomains[0][1]      
-      return detectedDomain
-    }
-
-    // Computed
+    // SAFE COMPUTED PROPERTIES WITH ERROR HANDLING
     const canStart = computed(() => fileName.value && selectedDomain.value && selectedPDDLType.value)
     
+    // BULLETPROOF: Safe total duration calculation
     const totalDuration = computed(() => {
-      if (parsedActions.value.length === 0) return 0
-      return calculateTotalDuration(parsedActions.value, selectedPDDLType.value)
+      try {
+        if (!parsedActions.value || !Array.isArray(parsedActions.value) || parsedActions.value.length === 0) {
+          return 0
+        }
+        
+        const result = calculateTotalDuration(parsedActions.value, selectedPDDLType.value)
+        
+        // Ensure result is always a safe number
+        if (typeof result === 'number' && !isNaN(result) && isFinite(result)) {
+          return result
+        } else {
+          console.warn('Invalid totalDuration result:', result, 'using fallback')
+          return parsedActions.value.length * 1.5 // Safe fallback
+        }
+      } catch (error) {
+        console.error('Error calculating total duration:', error)
+        console.error('parsedActions:', parsedActions.value)
+        console.error('selectedPDDLType:', selectedPDDLType.value)
+        
+        // Safe fallback based on action count
+        const actionCount = parsedActions.value?.length || 0
+        return actionCount * 1.5
+      }
     })
 
+    // BULLETPROOF: Stats items that CANNOT FAIL
     const statsItems = computed(() => {
-      const total = getTotalEntities()
-      const metrics = planMetrics.value
+      console.log('📊 Computing statsItems...')
       
-      const baseStats = [
-        { 
-          icon: '🏢', 
-          label: 'Domain', 
-          value: getDomainName(selectedDomain.value),
-          percentage: 100
-        },
-        { 
-          icon: '📋', 
-          label: 'PDDL Type', 
-          value: getPDDLTypeName(selectedPDDLType.value),
-          percentage: 100
-        },
-        { 
-          icon: '⚙️', 
-          label: 'Actions', 
-          value: parsedActions.value.length,
-          percentage: Math.min((parsedActions.value.length / 50) * 100, 100)
-        },
-        { 
-          icon: '⏱️', 
-          label: 'Duration', 
-          value: totalDuration.value.toFixed(1) + (selectedPDDLType.value === 'classical' ? ' steps' : 's'),
-          percentage: Math.min((totalDuration.value / 300) * 100, 100)
-        },
-        { 
-          icon: '📦', 
-          label: 'Entities', 
-          value: total,
-          percentage: Math.min((total / 20) * 100, 100)
+      // STEP 1: Safe helper function for .toFixed()
+      const safeToFixed = (value, digits = 1) => {
+        try {
+          if (value === null || value === undefined) return '0.0'
+          if (typeof value === 'string') {
+            const parsed = parseFloat(value)
+            if (isNaN(parsed)) return '0.0'
+            return parsed.toFixed(digits)
+          }
+          if (typeof value === 'number' && !isNaN(value) && isFinite(value)) {
+            return value.toFixed(digits)
+          }
+          return '0.0'
+        } catch (error) {
+          console.error('Error in safeToFixed:', error, 'value:', value)
+          return '0.0'
         }
+      }
+
+      // STEP 2: Emergency fallback stats
+      const emergencyStats = [
+        { icon: '🔧', label: 'Status', value: 'Loading...', percentage: 0 },
+        { icon: '📋', label: 'Type', value: selectedPDDLType.value || 'Unknown', percentage: 0 },
+        { icon: '🏢', label: 'Domain', value: selectedDomain.value || 'Unknown', percentage: 0 }
       ]
 
-      // FIXED: Add type-specific metrics using domain-specific configs
-      const typeConfig = domainPDDLTypeConfigs[selectedDomain.value]?.(selectedPDDLType.value);
-      
-      if (typeConfig?.supportsParallel) {
-        baseStats.push({
-          icon: '🔄',
-          label: 'Parallel Actions',
-          value: metrics.parallelActions || 0,
-          percentage: Math.min(((metrics.parallelActions || 0) / 5) * 100, 100)
-        })
-      }
+      try {
+        // STEP 3: Safe entity count
+        let total = 0
+        try {
+          total = getTotalEntities()
+          if (typeof total !== 'number' || isNaN(total) || total < 0) total = 0
+        } catch (entityError) {
+          console.error('Error getting total entities:', entityError)
+          total = 0
+        }
 
-      if (typeConfig?.supportsCost) {
-        baseStats.push({
-          icon: '💰',
-          label: 'Total Cost',
-          value: (metrics.totalCost || 0).toFixed(1),
-          percentage: Math.min(((metrics.totalCost || 0) / 100) * 100, 100)
-        })
-      }
+        // STEP 4: Safe metrics access
+        let metrics = {}
+        try {
+          metrics = planMetrics.value || {}
+          if (typeof metrics !== 'object') metrics = {}
+        } catch (metricsError) {
+          console.error('Error accessing planMetrics:', metricsError)
+          metrics = {}
+        }
 
-      return baseStats
+        // STEP 5: Ultra-safe duration calculation
+        let safeDuration = 0
+        let durationString = '0.0 steps'
+        
+        try {
+          // Try to get totalDuration
+          let rawDuration = null
+          try {
+            rawDuration = totalDuration.value
+          } catch (durationAccessError) {
+            console.error('Error accessing totalDuration.value:', durationAccessError)
+            rawDuration = null
+          }
+
+          // Process the duration
+          if (typeof rawDuration === 'number' && !isNaN(rawDuration) && isFinite(rawDuration) && rawDuration >= 0) {
+            safeDuration = rawDuration
+          } else if (typeof rawDuration === 'string' && rawDuration.trim() !== '') {
+            const parsed = parseFloat(rawDuration)
+            if (!isNaN(parsed) && isFinite(parsed) && parsed >= 0) {
+              safeDuration = parsed
+            }
+          } else {
+            // Fallback: calculate from actions
+            try {
+              if (parsedActions.value && Array.isArray(parsedActions.value) && parsedActions.value.length > 0) {
+                safeDuration = parsedActions.value.length * 1.5
+              }
+            } catch (actionsError) {
+              console.error('Error accessing parsedActions for duration fallback:', actionsError)
+              safeDuration = 0
+            }
+          }
+
+          // Create safe duration string
+          const durationValue = safeToFixed(safeDuration, 1)
+          const suffix = (selectedPDDLType.value === 'classical') ? ' steps' : 's'
+          durationString = durationValue + suffix
+
+        } catch (durationError) {
+          console.error('Critical error in duration calculation:', durationError)
+          safeDuration = 0
+          durationString = '0.0 steps'
+        }
+
+        // STEP 6: Safe action count
+        let actionCount = 0
+        try {
+          if (parsedActions.value && Array.isArray(parsedActions.value)) {
+            actionCount = parsedActions.value.length
+          }
+          if (typeof actionCount !== 'number' || isNaN(actionCount) || actionCount < 0) {
+            actionCount = 0
+          }
+        } catch (actionError) {
+          console.error('Error getting action count:', actionError)
+          actionCount = 0
+        }
+
+        // STEP 7: Safe percentage calculation
+        const safePercentageCalc = (value, max) => {
+          try {
+            if (typeof value !== 'number' || typeof max !== 'number' || isNaN(value) || isNaN(max) || max <= 0) {
+              return 0
+            }
+            return Math.max(0, Math.min(100, (value / max) * 100))
+          } catch (error) {
+            return 0
+          }
+        }
+
+        // STEP 8: Create base stats with maximum safety
+        const baseStats = []
+
+        try {
+          baseStats.push({
+            icon: '🏢',
+            label: 'Domain',
+            value: getDomainName(selectedDomain.value) || 'Unknown',
+            percentage: 100
+          })
+        } catch (error) {
+          baseStats.push({ icon: '🏢', label: 'Domain', value: 'Error', percentage: 0 })
+        }
+
+        try {
+          baseStats.push({
+            icon: '📋',
+            label: 'PDDL Type',
+            value: getPDDLTypeName(selectedPDDLType.value) || 'Unknown',
+            percentage: 100
+          })
+        } catch (error) {
+          baseStats.push({ icon: '📋', label: 'PDDL Type', value: 'Error', percentage: 0 })
+        }
+
+        try {
+          baseStats.push({
+            icon: '⚙️',
+            label: 'Actions',
+            value: actionCount,
+            percentage: safePercentageCalc(actionCount, 50)
+          })
+        } catch (error) {
+          baseStats.push({ icon: '⚙️', label: 'Actions', value: 0, percentage: 0 })
+        }
+
+        try {
+          baseStats.push({
+            icon: '⏱️',
+            label: 'Duration',
+            value: durationString, // Already safe string
+            percentage: safePercentageCalc(safeDuration, 300)
+          })
+        } catch (error) {
+          baseStats.push({ icon: '⏱️', label: 'Duration', value: '0.0 steps', percentage: 0 })
+        }
+
+        try {
+          baseStats.push({
+            icon: '📦',
+            label: 'Entities',
+            value: total,
+            percentage: safePercentageCalc(total, 20)
+          })
+        } catch (error) {
+          baseStats.push({ icon: '📦', label: 'Entities', value: 0, percentage: 0 })
+        }
+
+        // STEP 9: Add type-specific metrics with ultra-safe handling
+        try {
+          if (selectedPDDLType.value === 'temporal' || selectedPDDLType.value === 'pddl_plus') {
+            let parallelActions = 0
+            try {
+              parallelActions = metrics.parallelActions
+              if (typeof parallelActions !== 'number' || isNaN(parallelActions) || parallelActions < 0) {
+                parallelActions = 0
+              }
+            } catch (parallelError) {
+              parallelActions = 0
+            }
+
+            baseStats.push({
+              icon: '🔄',
+              label: 'Parallel Actions',
+              value: parallelActions,
+              percentage: safePercentageCalc(parallelActions, 5)
+            })
+          }
+
+          if (selectedPDDLType.value === 'numerical') {
+            let totalCost = 0
+            let costString = '0.0'
+
+            try {
+              totalCost = metrics.totalCost
+              if (typeof totalCost === 'number' && !isNaN(totalCost) && isFinite(totalCost) && totalCost >= 0) {
+                costString = safeToFixed(totalCost, 1)
+              } else {
+                totalCost = 0
+                costString = '0.0'
+              }
+            } catch (costError) {
+              totalCost = 0
+              costString = '0.0'
+            }
+
+            baseStats.push({
+              icon: '💰',
+              label: 'Total Cost',
+              value: costString, // Safe pre-formatted string
+              percentage: safePercentageCalc(totalCost, 100)
+            })
+          }
+
+          if (selectedPDDLType.value === 'pddl_plus') {
+            try {
+              const actionBreakdown = metrics.actionBreakdown
+              if (actionBreakdown && typeof actionBreakdown === 'object') {
+                let processCount = 0
+                let eventCount = 0
+
+                try {
+                  processCount = actionBreakdown.processes
+                  if (typeof processCount !== 'number' || isNaN(processCount) || processCount < 0) {
+                    processCount = 0
+                  }
+                } catch (processError) {
+                  processCount = 0
+                }
+
+                try {
+                  eventCount = actionBreakdown.events
+                  if (typeof eventCount !== 'number' || isNaN(eventCount) || eventCount < 0) {
+                    eventCount = 0
+                  }
+                } catch (eventError) {
+                  eventCount = 0
+                }
+
+                if (processCount > 0 || eventCount > 0) {
+                  const totalPE = processCount + eventCount
+                  const safeActionCount = Math.max(1, actionCount)
+
+                  baseStats.push({
+                    icon: '⚡',
+                    label: 'Processes/Events',
+                    value: `${processCount}/${eventCount}`,
+                    percentage: safePercentageCalc(totalPE, safeActionCount)
+                  })
+                }
+              }
+            } catch (pddlPlusError) {
+              console.error('Error in PDDL+ metrics:', pddlPlusError)
+              // Continue without PDDL+ specific metrics
+            }
+          }
+        } catch (typeSpecificError) {
+          console.error('Error adding type-specific metrics:', typeSpecificError)
+          // Continue with base stats only
+        }
+
+        // STEP 10: Final validation of all items
+        const validatedStats = baseStats.map((item, index) => {
+          try {
+            return {
+              icon: (item.icon && typeof item.icon === 'string') ? item.icon : '❓',
+              label: (item.label && typeof item.label === 'string') ? item.label : 'Unknown',
+              value: (item.value !== undefined && item.value !== null) ? item.value : 'N/A',
+              percentage: (typeof item.percentage === 'number' && !isNaN(item.percentage) && isFinite(item.percentage))
+                ? Math.max(0, Math.min(100, item.percentage))
+                : 0
+            }
+          } catch (itemError) {
+            console.error(`Error validating stats item ${index}:`, itemError)
+            return {
+              icon: '❓',
+              label: 'Error',
+              value: 'Invalid',
+              percentage: 0
+            }
+          }
+        })
+
+        console.log('✅ Stats computed successfully:', validatedStats.length, 'items')
+        return validatedStats
+
+      } catch (criticalError) {
+        console.error('CRITICAL ERROR in statsItems computation:', criticalError)
+        console.error('Stack trace:', criticalError.stack)
+        
+        // Return emergency stats that cannot fail
+        return emergencyStats
+      }
     })
+
+    // Safe percentage helper for template
+    const safePercentage = (value) => {
+      try {
+        if (typeof value === 'number' && !isNaN(value) && isFinite(value)) {
+          return Math.max(0, Math.min(100, value))
+        }
+        return 0
+      } catch (error) {
+        console.error('Error in safePercentage:', error)
+        return 0
+      }
+    }
 
     // Particle system
     const generateParticles = (type, count = 15) => {
@@ -547,23 +804,13 @@ export default {
 
     // Helper functions
     const getPDDLTypeName = (type) => {
-      const types = {
-        classical: 'Classical PDDL',
-        temporal: 'Temporal PDDL', 
-        numerical: 'Numerical PDDL',
-        pddl_plus: 'PDDL+'
-      }
-      return types[type] || 'Unknown'
+      const typeObj = pddlTypes.find(t => t.id === type)
+      return typeObj ? typeObj.name : 'Unknown'
     }
 
     const getPDDLTypeDescription = (type) => {
-      const descriptions = {
-        classical: 'Step-based planning with discrete actions',
-        temporal: 'Time-based planning with durative actions',
-        numerical: 'Planning with numeric fluents and constraints',
-        pddl_plus: 'Hybrid discrete/continuous planning'
-      }
-      return descriptions[type] || 'Unknown PDDL type'
+      const typeObj = pddlTypes.find(t => t.id === type)
+      return typeObj ? typeObj.description : 'Unknown PDDL type'
     }
 
     const getDomainIcon = (domain) => {
@@ -595,10 +842,21 @@ export default {
     }
 
     const getTotalEntities = () => {
-      const entities = parsedEntities.value
-      return Object.values(entities).reduce((total, entityArray) => {
-        return total + (Array.isArray(entityArray) ? entityArray.length : 0)
-      }, 0)
+      try {
+        const entities = parsedEntities.value || {}
+        return (entities.rooms?.length || 0) + 
+               (entities.objects?.length || 0) + 
+               (entities.robots?.length || 0) +
+               (entities.vehicles?.length || 0) +
+               (entities.elevators?.length || 0) +
+               (entities.passengers?.length || 0) +
+               (entities.packages?.length || 0) +
+               (entities.floors?.length || 0) +
+               (entities.locations?.length || 0)
+      } catch (error) {
+        console.error('Error calculating total entities:', error)
+        return 0
+      }
     }
 
     // File handling
@@ -610,12 +868,46 @@ export default {
       return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
     }
 
+    // Navigation methods
+    const navigateToRobot = () => {
+      console.log('🤖 Navigating to Robot domain at localhost:5000')
+      generateParticles('navigation', 25)
+      successMessage.value = 'Redirecting to Robot visualizer...'
+      setTimeout(() => {
+        window.open('http://localhost:5000', '_blank')
+        successMessage.value = ''
+      }, 1000)
+    }
+
+    const navigateToLogistics = () => {
+      console.log('🚚 Navigating to Logistics domain at localhost:8081')
+      generateParticles('navigation', 25)
+      successMessage.value = 'Redirecting to Logistics visualizer...'
+      setTimeout(() => {
+        window.open('http://localhost:8081', '_blank')
+        successMessage.value = ''
+      }, 1000)
+    }
+
     // Methods
     const selectDomain = (domain) => {
       selectedDomain.value = domain
       simulationActive.value = false
       generateParticles('domain-change', 20)
-      console.log('🎯 FIXED Selected domain:', domain)
+      console.log('Selected domain:', domain)
+    }
+
+    const handleDomainCardClick = (domainId) => {
+      const domain = domains.find(d => d.id === domainId)
+      if (domain && domain.link) {
+        if (domainId === 'robot') {
+          navigateToRobot()
+        } else if (domainId === 'logistics') {
+          navigateToLogistics()
+        }
+      } else {
+        selectDomain(domainId)
+      }
     }
 
     const onDragOver = (e) => {
@@ -641,7 +933,6 @@ export default {
       }
     }
 
-    // FIXED: Enhanced processFile with dynamic auto-detection
     const processFile = (file) => {
       isUploading.value = true
       generateParticles('upload', 25)
@@ -653,21 +944,17 @@ export default {
       reader.onload = (e) => {
         setTimeout(() => {
           fileContent.value = e.target.result
-          
-          // FIXED: DYNAMIC AUTO-DETECT DOMAIN
-          const detectedDomain = detectDomainFromContent(fileContent.value);
-          selectedDomain.value = detectedDomain;
-          
           isUploading.value = false
-          successMessage.value = `File "${file.name}" loaded successfully! Auto-detected: ${getDomainName(detectedDomain)}`
-          generateParticles('success', 30)          
+          successMessage.value = `File "${file.name}" loaded successfully!`
+          generateParticles('success', 30)
+          console.log('File loaded:', file.name)
+          
           setTimeout(() => { successMessage.value = '' }, 3000)
         }, 1000)
       }
       reader.readAsText(file)
     }
 
-    // FIXED: Enhanced startVisualization with dynamic parsing and debug logging
     const startVisualization = () => {
       try {
         error.value = ''
@@ -692,56 +979,155 @@ export default {
             isProcessing.value = false
             return
           }
-          // FIXED: Check if content contains logistics keywords dynamically
-          const detectedKeywords = []
-          const words = fileContent.value.toLowerCase().split(/\s+/)
-          words.forEach(word => {
-            const entityType = detectEntityTypeDynamic(word)
-            const vehicleType = detectVehicleTypeDynamic(word)
-            if (entityType !== 'unknown' || vehicleType !== 'vehicle') {
-              detectedKeywords.push(`${word}(${entityType}/${vehicleType})`)
+
+          console.log('=== STARTING VISUALIZATION ===')
+          console.log('Domain:', selectedDomain.value)
+          console.log('PDDL Type:', selectedPDDLType.value)
+          console.log('File content length:', fileContent.value.length)
+
+          // For robot domain, pass raw content to let robot simulator handle parsing
+          if (selectedDomain.value === 'robot') {
+            console.log('🤖 Passing raw content to robot simulator')
+            
+            parsedActions.value = fileContent.value
+            parsedEntities.value = {
+              pddlType: selectedPDDLType.value,
+              domain: selectedDomain.value
             }
-          })
-          // FIXED: Route to domain-specific parser
-          const parser = domainParsers[selectedDomain.value]
-          if (!parser) {
-            error.value = `No parser found for domain: ${selectedDomain.value}`
+            
+            simulationActive.value = true
             isProcessing.value = false
-            return
-          }
-          
-          // FIXED: Parse and log results
-          const parseResult = parser(fileContent.value, selectedPDDLType.value)
-          
-          if (parseResult.error) {
-            error.value = parseResult.error
-            isProcessing.value = false
-            return
-          }
-          
-          if (parseResult.actions.length === 0) {
-            error.value = `No valid ${getPDDLTypeName(selectedPDDLType.value)} actions found in plan file. Check console for details.`
-            isProcessing.value = false
+            
+            const typeDisplay = getPDDLTypeName(selectedPDDLType.value)
+            const domainDisplay = getDomainName(selectedDomain.value)
+            successMessage.value = `${typeDisplay} ${domainDisplay} visualization started!`
+            generateParticles('visualization-start', 40)
+            
+            setTimeout(() => { successMessage.value = '' }, 3000)
             return
           }
 
-          // Set parsed data
-          parsedActions.value = parseResult.actions
-          parsedEntities.value = parseResult.entities || {}
-          planMetrics.value = parseResult.metrics || {}
+          // For elevator domain, pass raw content
+          if (selectedDomain.value === 'elevator') {
+            console.log('🛗 Setting up elevator simulator')
+            
+            parsedActions.value = fileContent.value
+            parsedEntities.value = {
+              domain: selectedDomain.value,
+              pddlType: selectedPDDLType.value
+            }
+            
+            simulationActive.value = true
+            isProcessing.value = false
+            
+            const typeDisplay = getPDDLTypeName(selectedPDDLType.value)
+            const domainDisplay = getDomainName(selectedDomain.value)
+            successMessage.value = `${typeDisplay} ${domainDisplay} visualization started!`
+            generateParticles('visualization-start', 40)
+            
+            setTimeout(() => { successMessage.value = '' }, 3000)
+            return
+          }
+
+          // ENHANCED: Handle plans with metadata for logistics domain
+          try {
+            // Clean the content first - extract just the plan actions
+            let cleanContent = fileContent.value
+            
+            // Extract plan section if metadata is present
+            if (fileContent.value.includes('found plan:') || fileContent.value.includes('problem solved')) {
+              const lines = fileContent.value.split('\n')
+              let planStart = -1
+              let planEnd = lines.length
+              
+              // Find plan start
+              for (let i = 0; i < lines.length; i++) {
+                if (lines[i].includes('found plan:') || /^\d+(?:\.\d+)?\s*:\s*\(/.test(lines[i].trim())) {
+                  planStart = lines[i].includes('found plan:') ? i + 1 : i
+                  break
+                }
+              }
+              
+              // Find plan end
+              if (planStart !== -1) {
+                for (let i = planStart; i < lines.length; i++) {
+                  if (lines[i].includes('plan-length') || lines[i].includes('metric') || lines[i].includes('planning time')) {
+                    planEnd = i
+                    break
+                  }
+                }
+                
+                const planLines = lines.slice(planStart, planEnd).filter(line => {
+                  const trimmed = line.trim()
+                  return trimmed.length > 0 && 
+                         !trimmed.startsWith(';') && 
+                         /^\d+(?:\.\d+)?\s*:\s*\(/.test(trimmed)
+                })
+                
+                cleanContent = planLines.join('\n')
+                console.log('✅ Extracted clean plan content:', cleanContent.split('\n').length, 'actions')
+              }
+            }
+            
+            const parseResult = parsePlanFile(cleanContent, selectedPDDLType.value)
+            
+            if (parseResult.error) {
+              error.value = parseResult.error
+              isProcessing.value = false
+              return
+            }
+            
+            if (parseResult.actions.length === 0) {
+              error.value = `No valid ${getPDDLTypeName(selectedPDDLType.value)} actions found in plan file. Check console for details.`
+              isProcessing.value = false
+              return
+            }
+
+            // Set parsed data for logistics
+            parsedActions.value = parseResult.actions
+            planMetrics.value = parseResult.metrics || {}
+            
+            parsedEntities.value = {
+              rooms: parseResult.rooms || [],
+              objects: parseResult.objects || [],
+              robots: parseResult.robots || [],
+              vehicles: parseResult.vehicles || [],
+              elevators: parseResult.elevators || [],
+              passengers: parseResult.passengers || [],
+              packages: parseResult.packages || [],
+              floors: parseResult.floors || [],
+              locations: parseResult.locations || [],
+              totalDuration: parseResult.totalDuration || 0,
+              pddlType: parseResult.pddlType || selectedPDDLType.value,
+              domain: selectedDomain.value
+            }
+            
+            simulationActive.value = true
+            isProcessing.value = false
+            
+            const typeDisplay = getPDDLTypeName(parseResult.pddlType || selectedPDDLType.value)
+            const domainDisplay = getDomainName(selectedDomain.value)
+            successMessage.value = `${typeDisplay} ${domainDisplay} visualization started with ${parseResult.actions.length} actions!`
+            generateParticles('visualization-start', 40)
+            
+            console.log('=== VISUALIZATION STARTED ===')
+            console.log('Actions:', parseResult.actions.length)
+            console.log('PDDL Type:', parseResult.pddlType)
+            console.log('Total duration:', parseResult.totalDuration)
+            console.log('Sample actions:', parseResult.actions.slice(0, 3))
+            
+            setTimeout(() => { successMessage.value = '' }, 3000)
+            
+          } catch (parseError) {
+            console.error('Parse error:', parseError)
+            error.value = `Parse error: ${parseError.message}. Check console for details.`
+            isProcessing.value = false
+          }
           
-          simulationActive.value = true
-          isProcessing.value = false
-          
-          const typeDisplay = getPDDLTypeName(selectedPDDLType.value)
-          const domainDisplay = getDomainName(selectedDomain.value)
-          successMessage.value = `${typeDisplay} ${domainDisplay} visualization started with ${parseResult.actions.length} actions!`
-          generateParticles('visualization-start', 40)
-          
-          setTimeout(() => { successMessage.value = '' }, 3000)
         }, 1500)
         
       } catch (err) {
+        console.error('Error starting visualization:', err)
         error.value = `Error: ${err.message}`
         isProcessing.value = false
       }
@@ -751,14 +1137,12 @@ export default {
     onMounted(() => {
       particleTimer.value = setInterval(updateParticles, 50)
       generateParticles('ambient', 10)
-      console.log('🎬 FIXED PDDL Visualizer mounted with dynamic detection and organized structure')
     })
 
     onUnmounted(() => {
       if (particleTimer.value) {
         clearInterval(particleTimer.value)
       }
-      console.log('🛑 FIXED PDDL Visualizer unmounted')
     })
 
     return {
@@ -779,6 +1163,7 @@ export default {
       
       // Static data
       domains,
+      pddlTypes,
       features,
       steps,
       
@@ -790,6 +1175,9 @@ export default {
       // Methods
       getParticleStyle,
       selectDomain,
+      handleDomainCardClick,
+      navigateToRobot,
+      navigateToLogistics,
       handleFileUpload,
       onDragOver,
       onDragLeave,
@@ -799,12 +1187,86 @@ export default {
       getDomainName,
       getDomainSubtitle,
       getDomainDescription,
-      startVisualization
+      startVisualization,
+      safePercentage
     }
   }
 }
 </script>
 
 <style scoped>
-@import './home.css'
+@import './home.css';
+
+/* Additional styles for navigation links */
+.card-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+}
+
+.link-icon {
+  font-size: 0.875rem;
+}
+
+.link-text {
+  font-weight: 500;
+}
+
+.domain-card:hover .card-link {
+  background: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 1);
+}
+
+/* Navigation button enhancements */
+.nav-btn {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.nav-btn .btn-glow {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.6s;
+}
+
+.nav-btn:hover .btn-glow {
+  transform: translateX(100%);
+}
+
+/* Success message for navigation */
+.success-toast {
+  animation: navigation-pulse 0.6s ease-in-out;
+}
+
+@keyframes navigation-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+/* Particle types for navigation */
+.particle.navigation {
+  background: linear-gradient(45deg, #60a5fa, #34d399);
+  border-radius: 50%;
+  animation: navigation-float 2s ease-in-out infinite;
+}
+
+@keyframes navigation-float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(180deg); }
+}
 </style>

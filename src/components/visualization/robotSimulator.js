@@ -1,11 +1,11 @@
 /* eslint-disable no-unused-vars */
-// Enhanced Robot Simulator with Dynamic Capabilities Detection
+// Enhanced Robot Simulator with Smooth Movement Between Rooms
 // File Path: src/components/visualization/robotSimulator.js
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
-import { parseRobotPlanFile, extractEntitiesFromActions } from '@/utils/robot/enhancedRobotParser.js'
+import { parseRobotPlanFile, extractEntitiesFromActions } from '@/utils/enhancedRobotParser.js'
 
 export function createRobotSimulator(props) {
-  console.log('🤖 Creating dynamic robot simulator:', props)
+  console.log('🤖 Creating robot simulator with smooth movement:', props)
   
   // State variables
   const isPlaying = ref(false)
@@ -20,33 +20,28 @@ export function createRobotSimulator(props) {
   
   // Smooth movement state
   const movingRobots = ref(new Set())
-  const robotMovementProgress = ref({})
-  const robotTargetRooms = ref({})
-  const robotStartRooms = ref({})
-  const robotMovementStartTime = ref({})
+  const robotMovementProgress = ref({}) // Track movement progress per robot (0-1)
+  const robotTargetRooms = ref({}) // Where robots are moving to
+  const robotStartRooms = ref({}) // Where robots started moving from
+  const robotMovementStartTime = ref({}) // When movement started
   
-  // Dynamic capabilities state
-  const robotCapabilities = ref({})
-  const robotEnergy = ref({})
-  const robotMaxEnergy = ref({})
-  const robotCarryingCapacity = ref({})
-  const robotMaxCapacity = ref({})
-  const robotIsCharging = ref({})
-  const robotMovementSpeeds = ref({})
-  const currentTime = ref(0)
+  // PDDL Type specific state
+  const currentFuel = ref(100)
+  const maxFuel = ref(100)
+  const currentEnergy = ref(100)
+  const maxEnergy = ref(100)
   const totalCost = ref(0)
   const activeActions = ref([])
-  const completedActions = ref(new Set())
-  
-  // Universal constraints
-  const energyConsumptionRates = ref({})
-  const chargingRates = ref({})
-  const fuelLevels = ref({}) // For logistics domain
-  const passengerCapacity = ref({}) // For elevator domain
+  const robotFuel = ref({})
+  const robotEnergy = ref({})
+
+  // Action progress tracking
+  const actionStartTime = ref(0)
+  const actionProgress = ref(0)
 
   // Parse raw content into actions
   const parsedActions = computed(() => {
-    console.log('🔍 Parsing actions with dynamic capability detection:', typeof props.actions, props.actions)
+    console.log('🔍 Parsing actions from props:', typeof props.actions, props.actions)
     
     if (!props.actions) return []
     
@@ -56,17 +51,17 @@ export function createRobotSimulator(props) {
     }
     
     if (typeof props.actions === 'string') {
-      console.log('📝 Parsing raw content with dynamic analysis')
-      return parseUniversalPlanContent(props.actions, props.pddlType || 'classical')
+      console.log('📝 Parsing raw string content')
+      return parseRobotPlanContent(props.actions, props.pddlType || 'classical')
     }
     
     console.log('⚠️ Unknown actions format, returning empty array')
     return []
   })
 
-  // Universal plan parser that handles all PDDL types and domains
-  function parseUniversalPlanContent(content, pddlType = 'classical') {
-    console.log('🌐 Parsing universal plan content with dynamic analysis')
+  // Parse robot plan content with enhanced timing
+  function parseRobotPlanContent(content, pddlType = 'classical') {
+    console.log('🤖 Parsing robot plan content with smooth timing')
     
     if (!content || content.trim().length === 0) {
       console.log('❌ Empty content')
@@ -75,60 +70,55 @@ export function createRobotSimulator(props) {
 
     const lines = content.split('\n')
       .map(line => line.trim())
-      .filter(line => isValidActionLine(line))
+      .filter(line => {
+        return line.length > 0 && 
+               !line.startsWith(';') &&
+               !line.startsWith('//') &&
+               !line.includes('domain parsed') &&
+               !line.includes('problem parsed') &&
+               !line.includes('grounding') &&
+               !line.includes('planning time') &&
+               !line.includes('plan-length') &&
+               !line.includes('metric') &&
+               !line.includes('expanded nodes') &&
+               !line.includes('found plan:') &&
+               !line.includes('problem solved') &&
+               !line.includes('g(n)=') &&
+               !line.includes('h(n)=') &&
+               (line.includes(':') && (line.includes('pick') || line.includes('drop') || line.includes('move')))
+      })
 
-    console.log('📋 Filtered universal plan lines:', lines.length)
+    console.log('📋 Filtered plan lines:', lines)
 
     const actions = []
     
     lines.forEach((line, index) => {
-      const action = parseUniversalActionLine(line, index, pddlType)
+      const action = parseActionLineWithTiming(line, index, pddlType)
       if (action) {
         actions.push(action)
-        console.log(`✅ Parsed universal action ${index}:`, action)
+        console.log(`✅ Parsed action ${index}:`, action)
       }
     })
 
-    // Analyze capabilities from parsed actions
-    analyzeUniversalCapabilities(actions)
-
-    console.log('🎉 Total parsed universal actions:', actions.length)
+    console.log('🎉 Total parsed actions:', actions.length)
     return actions
   }
 
-  function isValidActionLine(line) {
-    return line.length > 0 && 
-           !line.startsWith(';') &&
-           !line.startsWith('//') &&
-           !line.includes('domain parsed') &&
-           !line.includes('problem parsed') &&
-           !line.includes('grounding') &&
-           !line.includes('planning time') &&
-           !line.includes('plan-length') &&
-           !line.includes('metric') &&
-           !line.includes('expanded nodes') &&
-           !line.includes('found plan:') &&
-           !line.includes('problem solved') &&
-           !line.includes('g(n)=') &&
-           !line.includes('h(n)=') &&
-           (line.includes(':') || line.includes('waiting'))
-  }
-
-  // Universal action parser for all PDDL types and domains
-  function parseUniversalActionLine(line, index, pddlType) {
+  // Enhanced action parsing with proper PDDL timing
+  function parseActionLineWithTiming(line, index, pddlType) {
     let match
     let timeOrStep = 0
     let actionContent = ''
-    let duration = null
+    let duration = 1.0
     let isWaiting = false
     let cost = 1
     let isEvent = false
     let isProcess = false
     
-    console.log(`🔧 Parsing universal line for ${pddlType}:`, line)
+    console.log(`🔧 Parsing line for ${pddlType}:`, line)
     
-    // Handle PDDL+ waiting actions
-    if (line.includes('-----waiting----')) {
+    // Handle PDDL+ waiting actions first
+    if (pddlType === 'pddl+' && line.includes('-----waiting----')) {
       match = line.match(/(\d+(?:\.\d+)?):\s*-----waiting----\s*\[(\d+(?:\.\d+)?)\]/)
       if (match) {
         return {
@@ -148,12 +138,12 @@ export function createRobotSimulator(props) {
     }
     
     // Parse temporal PDDL format: "0.0: (action ...) [duration]"
-    if (pddlType === 'temporal' || pddlType === 'pddl+') {
-      match = line.match(/^(\d+(?:\.\d+)?)\s*:\s*\(([^)]+)\)(?:\s*\[(\d+(?:\.\d+)?)\])?/)
+    if (pddlType === 'temporal') {
+      match = line.match(/^(\d+(?:\.\d+)?)\s*:\s*\(([^)]+)\)\s*\[(\d+(?:\.\d+)?)\]/)
       if (match) {
         timeOrStep = parseFloat(match[1])
         actionContent = match[2].trim()
-        duration = match[3] ? parseFloat(match[3]) : null
+        duration = parseFloat(match[3])
       }
     }
     
@@ -186,20 +176,11 @@ export function createRobotSimulator(props) {
     const actionName = parts[0].toLowerCase()
     const parameters = parts.slice(1)
     
-    // Determine if this is a process or event for PDDL+
-    if (pddlType === 'pddl+') {
-      if (actionName.includes('start') || actionName.includes('reprise')) {
-        isProcess = true
-      } else if (actionName.includes('stop')) {
-        isEvent = true
-      }
+    // Use parsed duration for temporal, calculate for others
+    if (pddlType !== 'temporal') {
+      duration = calculateSmoothDuration(actionName, pddlType)
     }
-    
-    // Calculate dynamic duration based on action analysis
-    if (duration === null) {
-      duration = calculateDynamicDuration(actionName, pddlType, parameters)
-    }
-    cost = calculateDynamicCost(actionName, pddlType, parameters)
+    cost = calculateActionCost(actionName, pddlType)
     
     const action = {
       id: `action-${index}`,
@@ -217,125 +198,34 @@ export function createRobotSimulator(props) {
       isEvent: isEvent
     }
     
-    // Extract entities and action type universally
-    extractUniversalActionEntities(action, actionName, parameters)
-    
-    return action
-  }
-
-  // Dynamic duration calculation based on action analysis
-  function calculateDynamicDuration(actionName, pddlType, parameters) {
-    // For PDDL+, analyze waiting patterns to determine realistic durations
-    if (pddlType === 'pddl+') {
-      return calculatePDDLPlusDuration(actionName, parameters)
-    }
-    
-    // For temporal, use realistic durations
-    if (pddlType === 'temporal') {
-      return calculateTemporalDuration(actionName, parameters)
-    }
-    
-    // For classical/numerical, use unit durations
-    return 1.0
-  }
-
-  function calculatePDDLPlusDuration(actionName, parameters) {
-    const baseDurations = {
-      'pick': 0.1,              // Instant in PDDL+
-      'drop': 0.1,              // Instant in PDDL+
-      'startmove': 0.1,         // Process initiation
-      'reprisemovement': 0.1,   // Process completion
-      'startcharge': 0.1,       // Charging initiation
-      'stopcharge': 0.1,        // Charging completion
-      'load': 0.1,              // Logistics loading
-      'unload': 0.1,            // Logistics unloading
-      'board': 0.1,             // Elevator boarding
-      'depart': 0.1,            // Elevator departing
-      'default': 0.1
-    }
-    
-    return baseDurations[actionName] || baseDurations.default
-  }
-
-  function calculateTemporalDuration(actionName, parameters) {
-    const baseDurations = {
-      'move': 3.0,
-      'pick': 1.0,
-      'drop': 1.0,
-      'drive-truck': 5.0,
-      'fly-airplane': 8.0,
-      'load-truck': 2.0,
-      'unload-truck': 2.0,
-      'move-up': 3.0,
-      'move-down': 3.0,
-      'board': 1.5,
-      'depart': 1.5,
-      'default': 2.0
-    }
-    
-    return baseDurations[actionName] || baseDurations.default
-  }
-
-  function calculateDynamicCost(actionName, pddlType, parameters) {
-    if (pddlType === 'numerical') {
-      // Higher costs for resource-intensive actions
-      const costs = {
-        'move': 5,
-        'drive-truck': 8,
-        'fly-airplane': 15,
-        'startmove': 10,
-        'pick': 2,
-        'drop': 2,
-        'startcharge': 1,
-        'default': 3
-      }
-      return costs[actionName] || costs.default
-    }
-    
-    // Standard cost for other types
-    const costs = {
-      'move': 2,
-      'drive-truck': 3,
-      'fly-airplane': 5,
-      'startmove': 3,
-      'pick': 1,
-      'drop': 1,
-      'startcharge': 0,
-      'default': 1
-    }
-    return costs[actionName] || costs.default
-  }
-
-  // Universal entity extraction for all domains
-  function extractUniversalActionEntities(action, actionName, parameters) {
-    // Robot domain actions
+    // Extract specific entities based on action type with correct parameter order
     if (actionName === 'pick' && parameters.length >= 3) {
       action.actionType = 'pick'
-      action.object = parameters[0]
-      action.room = parameters[1]
-      action.robot = parameters[2]
+      action.object = parameters[0]   // ball1
+      action.room = parameters[1]     // rooma  
+      action.robot = parameters[2]    // wally
     } else if (actionName === 'drop' && parameters.length >= 3) {
       action.actionType = 'drop'
-      action.object = parameters[0]
-      action.room = parameters[1]
-      action.robot = parameters[2]
+      action.object = parameters[0]   // ball1
+      action.room = parameters[1]     // roomb
+      action.robot = parameters[2]    // wally
     } else if (actionName === 'move' && parameters.length >= 3) {
       action.actionType = 'move'
-      action.robot = parameters[0]
-      action.fromRoom = parameters[1]
-      action.toRoom = parameters[2]
+      action.robot = parameters[0]    // wally
+      action.fromRoom = parameters[1] // rooma
+      action.toRoom = parameters[2]   // roomb
     } else if (actionName === 'startmove' && parameters.length >= 3) {
       action.actionType = 'move'
-      action.robot = parameters[0]
-      action.fromRoom = parameters[1]
-      action.toRoom = parameters[2]
+      action.robot = parameters[0]    // wally
+      action.fromRoom = parameters[1] // gardena
+      action.toRoom = parameters[2]   // gardenb
       action.isProcess = true
     } else if (actionName === 'reprisemovement' && parameters.length >= 3) {
-      action.actionType = 'move_complete'
-      action.robot = parameters[0]
-      action.fromRoom = parameters[1]
-      action.toRoom = parameters[2]
-      action.isEvent = true
+      action.actionType = 'move'
+      action.robot = parameters[0]    // wally
+      action.fromRoom = parameters[1] // gardenb
+      action.toRoom = parameters[2]   // gardena
+      action.isProcess = true
     } else if (actionName === 'startcharge' && parameters.length >= 1) {
       action.actionType = 'charge'
       action.robot = parameters[0]
@@ -346,218 +236,85 @@ export function createRobotSimulator(props) {
       action.isEvent = true
     }
     
-    // Logistics domain actions
-    else if (actionName === 'drive-truck' && parameters.length >= 3) {
-      action.actionType = 'move'
-      action.robot = parameters[0] // Truck acts as robot
-      action.vehicle = parameters[0]
-      action.fromRoom = parameters[1]
-      action.toRoom = parameters[2]
-    } else if (actionName === 'fly-airplane' && parameters.length >= 3) {
-      action.actionType = 'move'
-      action.robot = parameters[0] // Airplane acts as robot
-      action.vehicle = parameters[0]
-      action.fromRoom = parameters[1]
-      action.toRoom = parameters[2]
-    } else if ((actionName === 'load-truck' || actionName === 'load-vehicle') && parameters.length >= 3) {
-      action.actionType = 'pick'
-      action.object = parameters[0]
-      action.robot = parameters[1] // Vehicle acts as robot
-      action.room = parameters[2]
-    } else if ((actionName === 'unload-truck' || actionName === 'unload-vehicle') && parameters.length >= 3) {
-      action.actionType = 'drop'
-      action.object = parameters[0]
-      action.robot = parameters[1] // Vehicle acts as robot
-      action.room = parameters[2]
+    console.log(`✅ Parsed ${pddlType} action:`, {
+      step: action.step,
+      name: action.name,
+      type: action.actionType,
+      duration: action.duration,
+      robot: action.robot,
+      object: action.object,
+      from: action.fromRoom,
+      to: action.toRoom,
+      room: action.room,
+      raw: action.raw
+    })
+    return action
+  }
+
+  // Calculate smooth durations for better visualization
+  function calculateSmoothDuration(actionName, pddlType) {
+    const baseDurations = {
+      'move': 4.0,        // 4 seconds for smooth room-to-room movement
+      'pick': 1.5,        // 1.5 seconds to pick up and show in hands
+      'drop': 1.5,        // 1.5 seconds to drop from hands
+      'load-truck': 2.0,  // 2 seconds to load
+      'unload-truck': 2.0, // 2 seconds to unload
+      'drive-truck': 5.0,  // 5 seconds for truck movement
+      'default': 2.0
     }
     
-    // Elevator domain actions
-    else if (actionName === 'move-up' && parameters.length >= 1) {
-      action.actionType = 'move'
-      action.robot = parameters[0] // Elevator acts as robot
-      action.direction = 'up'
-    } else if (actionName === 'move-down' && parameters.length >= 1) {
-      action.actionType = 'move'
-      action.robot = parameters[0] // Elevator acts as robot
-      action.direction = 'down'
-    } else if (actionName === 'board' && parameters.length >= 2) {
-      action.actionType = 'pick'
-      action.object = parameters[0] // Passenger
-      action.robot = parameters[1] // Elevator
-    } else if (actionName === 'depart' && parameters.length >= 2) {
-      action.actionType = 'drop'
-      action.object = parameters[0] // Passenger
-      action.robot = parameters[1] // Elevator
-    }
+    let duration = baseDurations[actionName] || baseDurations.default
     
-    // Unknown action - try to guess entities
-    else {
-      action.actionType = 'unknown'
-      
-      // Try to identify robot/vehicle/elevator
-      for (const param of parameters) {
-        if (param.toLowerCase().includes('robot') || param === 'wally' || param === 'eve' ||
-            param.toLowerCase().includes('truck') || param.toLowerCase().includes('plane') ||
-            param.toLowerCase().includes('elevator') || param.toLowerCase().includes('agent')) {
-          action.robot = param
-          break
-        }
-      }
+    // Adjust based on PDDL type
+    if (pddlType === 'temporal') {
+      return duration
+    } else if (pddlType === 'numerical') {
+      const cost = calculateActionCost(actionName, pddlType)
+      return duration * (cost / 2)
+    } else if (pddlType === 'pddl+') {
+      return duration * 1.5
+    } else {
+      return duration
     }
   }
 
-  // Analyze capabilities from all parsed actions
-  function analyzeUniversalCapabilities(actions) {
-    console.log('🔍 Analyzing universal capabilities from actions:', actions.length)
-    
-    const capabilities = {}
-    const robots = new Set()
-    
-    // Extract all robots/vehicles/elevators
-    actions.forEach(action => {
-      if (action.robot) robots.add(action.robot)
-    })
-    
-    // Analyze each robot's capabilities
-    robots.forEach(robot => {
-      capabilities[robot] = analyzeRobotCapabilities(robot, actions)
-    })
-    
-    robotCapabilities.value = capabilities
-    
-    // Initialize dynamic state for each robot
-    robots.forEach(robot => {
-      const caps = capabilities[robot]
-      
-      // Energy system
-      if (caps.hasEnergySystem) {
-        robotEnergy.value[robot] = caps.maxEnergy
-        robotMaxEnergy.value[robot] = caps.maxEnergy
-        robotIsCharging.value[robot] = false
-        energyConsumptionRates.value[robot] = caps.energyConsumptionRate
-        chargingRates.value[robot] = caps.chargingRate
-      }
-      
-      // Carrying capacity
-      robotCarryingCapacity.value[robot] = 0
-      robotMaxCapacity.value[robot] = caps.maxCarryingCapacity
-      
-      // Movement speeds
-      robotMovementSpeeds.value[robot] = caps.movementSpeed
-      
-      // Fuel system (logistics)
-      if (caps.hasFuelSystem) {
-        fuelLevels.value[robot] = caps.maxFuel
-      }
-      
-      // Passenger capacity (elevator)
-      if (caps.hasPassengerCapacity) {
-        passengerCapacity.value[robot] = caps.maxPassengerCapacity
-      }
-    })
-    
-    console.log('✅ Universal capabilities analyzed:', capabilities)
-  }
-
-  function analyzeRobotCapabilities(robot, actions) {
-    const robotActions = actions.filter(a => a.robot === robot)
-    
-    const capabilities = {
-      // Energy system analysis
-      hasEnergySystem: robotActions.some(a => a.name === 'startcharge' || a.name === 'stopcharge'),
-      maxEnergy: 100, // Default
-      energyConsumptionRate: 1.0,
-      chargingRate: 2.0,
-      
-      // Movement analysis
-      movementSpeed: analyzeMovementSpeed(robotActions),
-      canMoveParallel: robotActions.some(a => a.type === 'temporal' || a.type === 'pddl+'),
-      
-      // Carrying capacity analysis
-      maxCarryingCapacity: analyzeCarryingCapacity(robotActions),
-      
-      // Fuel system (logistics)
-      hasFuelSystem: robot.includes('truck') || robot.includes('plane'),
-      maxFuel: robot.includes('plane') ? 1000 : 500,
-      
-      // Passenger capacity (elevator)
-      hasPassengerCapacity: robot.includes('elevator'),
-      maxPassengerCapacity: 8,
-      
-      // Action types supported
-      supportedActions: [...new Set(robotActions.map(a => a.actionType))],
-      
-      // PDDL+ specific
-      supportsProcesses: robotActions.some(a => a.isProcess),
-      supportsEvents: robotActions.some(a => a.isEvent)
-    }
-    
-    // Analyze energy system from charging patterns
-    if (capabilities.hasEnergySystem) {
-      const chargingActions = robotActions.filter(a => a.name === 'startcharge')
-      const waitingActions = actions.filter(a => a.isWaiting)
-      
-      if (chargingActions.length > 0 && waitingActions.length > 0) {
-        // Find waiting periods that correspond to charging
-        const chargingDurations = []
-        chargingActions.forEach(chargeAction => {
-          const nextWaiting = waitingActions.find(w => w.start >= chargeAction.start && w.start <= chargeAction.start + 1)
-          if (nextWaiting) {
-            chargingDurations.push(nextWaiting.duration)
-          }
-        })
-        
-        if (chargingDurations.length > 0) {
-          const avgChargingTime = chargingDurations.reduce((a, b) => a + b, 0) / chargingDurations.length
-          capabilities.maxEnergy = Math.max(100, avgChargingTime * 2) // Estimate based on charging time
-          capabilities.chargingRate = capabilities.maxEnergy / avgChargingTime
-        }
+  // Calculate action costs
+  function calculateActionCost(actionName, pddlType = 'classical') {
+    if (pddlType === 'numerical') {
+      switch (actionName) {
+        case 'move':
+        case 'drive-truck':
+          return 5
+        case 'pick':
+        case 'drop':
+        case 'load-truck':
+        case 'unload-truck':
+          return 2
+        default:
+          return 3
       }
     }
     
-    return capabilities
-  }
-
-  function analyzeMovementSpeed(robotActions) {
-    const moveActions = robotActions.filter(a => a.actionType === 'move')
-    if (moveActions.length === 0) return 1.0
-    
-    const durations = moveActions.map(a => a.duration).filter(d => d > 0)
-    if (durations.length === 0) return 1.0
-    
-    // Return average movement duration
-    return durations.reduce((a, b) => a + b, 0) / durations.length
-  }
-
-  function analyzeCarryingCapacity(robotActions) {
-    // Look for simultaneous carrying actions
-    const pickActions = robotActions.filter(a => a.actionType === 'pick')
-    const dropActions = robotActions.filter(a => a.actionType === 'drop')
-    
-    let maxSimultaneous = 1
-    let currentCarrying = []
-    
-    // Simulate the actions to find max simultaneous carrying
-    const allActions = [...pickActions, ...dropActions].sort((a, b) => a.start - b.start)
-    
-    allActions.forEach(action => {
-      if (action.actionType === 'pick') {
-        currentCarrying.push(action.object)
-      } else if (action.actionType === 'drop') {
-        currentCarrying = currentCarrying.filter(obj => obj !== action.object)
-      }
-      maxSimultaneous = Math.max(maxSimultaneous, currentCarrying.length)
-    })
-    
-    return maxSimultaneous
+    switch (actionName) {
+      case 'move': 
+      case 'drive-truck':
+        return 2
+      case 'pick': 
+      case 'drop':
+      case 'load-truck':
+      case 'unload-truck':
+        return 1
+      default: 
+        return 1
+    }
   }
 
   // Extract entities from parsed actions using enhanced parser
   const planRobots = computed(() => {
-    if (!parsedActions.value?.length) return []
+    if (!parsedActions.value?.length) return ['robot1']
     
     const entities = extractEntitiesFromActions(parsedActions.value)
-    return entities.robots.length > 0 ? entities.robots : []
+    return entities.robots.length > 0 ? entities.robots : ['robot1']
   })
 
   const planObjects = computed(() => {
@@ -568,21 +325,16 @@ export function createRobotSimulator(props) {
   })
 
   const planRooms = computed(() => {
-    if (!parsedActions.value?.length) return []
+    if (!parsedActions.value?.length) return ['roomA', 'roomB', 'roomC']
     
     const entities = extractEntitiesFromActions(parsedActions.value)
-    return entities.rooms.length > 0 ? entities.rooms : []
+    return entities.rooms.length > 0 ? entities.rooms : ['roomA', 'roomB', 'roomC']
   })
 
   // Computed properties
   const progressPercentage = computed(() => {
     if (!parsedActions.value?.length) return 0
-    if (props.pddlType === 'classical') {
-      return (currentStep.value / parsedActions.value.length) * 100
-    } else {
-      const totalDuration = Math.max(...parsedActions.value.map(a => a.end))
-      return totalDuration > 0 ? (currentTime.value / totalDuration) * 100 : 0
-    }
+    return (currentStep.value / parsedActions.value.length) * 100
   })
 
   const currentAction = computed(() => {
@@ -592,296 +344,8 @@ export function createRobotSimulator(props) {
 
   const totalDuration = computed(() => {
     if (!parsedActions.value?.length) return 0
-    if (props.pddlType === 'classical') {
-      return parsedActions.value.length
-    } else {
-      return Math.max(...parsedActions.value.map(a => a.end))
-    }
+    return parsedActions.value.reduce((total, action) => total + (action.duration || 1), 0)
   })
-
-  // Enhanced action execution with dynamic capabilities
-  function executeAction(action) {
-    console.log(`⚡ Executing dynamic action:`, action)
-    
-    if (!action) return
-    
-    const robot = action.robot
-    const capabilities = robotCapabilities.value[robot] || {}
-    
-    // Apply universal constraints
-    if (!checkUniversalConstraints(action, capabilities)) {
-      console.warn(`⚠️ Action blocked by constraints:`, action.name)
-      return
-    }
-    
-    // Handle waiting actions for PDDL+
-    if (action.isWaiting) {
-      console.log(`⏳ Waiting for ${action.duration}s`)
-      return
-    }
-    
-    switch (action.actionType) {
-      case 'move':
-        executeEnhancedMovement(action, capabilities)
-        break
-        
-      case 'pick':
-        executeEnhancedPickAction(action, capabilities)
-        break
-        
-      case 'drop':
-        executeEnhancedDropAction(action, capabilities)
-        break
-        
-      case 'charge':
-        executeEnhancedChargeAction(action, capabilities)
-        break
-        
-      case 'charge_stop':
-        executeEnhancedStopChargeAction(action, capabilities)
-        break
-        
-      case 'move_complete':
-        executeMovementComplete(action, capabilities)
-        break
-    }
-
-    // Handle resource consumption
-    consumeResources(action, capabilities)
-  }
-
-  function checkUniversalConstraints(action, capabilities) {
-    const robot = action.robot
-    
-    // Energy constraints
-    if (capabilities.hasEnergySystem) {
-      const energyRequired = calculateEnergyRequired(action, capabilities)
-      if (robotEnergy.value[robot] < energyRequired) {
-        console.warn(`❌ Insufficient energy for ${robot}: ${robotEnergy.value[robot]} < ${energyRequired}`)
-        return false
-      }
-    }
-    
-    // Carrying capacity constraints
-    if (action.actionType === 'pick') {
-      const currentCapacity = robotCarryingCapacity.value[robot] || 0
-      const maxCapacity = capabilities.maxCarryingCapacity || 1
-      if (currentCapacity >= maxCapacity) {
-        console.warn(`❌ Carrying capacity exceeded for ${robot}: ${currentCapacity}/${maxCapacity}`)
-        return false
-      }
-    }
-    
-    // Fuel constraints (logistics)
-    if (capabilities.hasFuelSystem) {
-      const fuelRequired = calculateFuelRequired(action, capabilities)
-      if (fuelLevels.value[robot] < fuelRequired) {
-        console.warn(`❌ Insufficient fuel for ${robot}`)
-        return false
-      }
-    }
-    
-    return true
-  }
-
-  function calculateEnergyRequired(action, capabilities) {
-    const baseConsumption = {
-      'move': capabilities.energyConsumptionRate * 3,
-      'pick': capabilities.energyConsumptionRate * 1,
-      'drop': capabilities.energyConsumptionRate * 1,
-      'default': capabilities.energyConsumptionRate || 1
-    }
-    
-    return baseConsumption[action.actionType] || baseConsumption.default
-  }
-
-  function calculateFuelRequired(action, capabilities) {
-    if (action.actionType === 'move') {
-      return action.duration * 2 // Fuel per time unit
-    }
-    return 0
-  }
-
-  function consumeResources(action, capabilities) {
-    const robot = action.robot
-    
-    // Consume energy
-    if (capabilities.hasEnergySystem && !robotIsCharging.value[robot]) {
-      const energyRequired = calculateEnergyRequired(action, capabilities)
-      robotEnergy.value[robot] = Math.max(0, robotEnergy.value[robot] - energyRequired)
-    }
-    
-    // Consume fuel
-    if (capabilities.hasFuelSystem) {
-      const fuelRequired = calculateFuelRequired(action, capabilities)
-      fuelLevels.value[robot] = Math.max(0, fuelLevels.value[robot] - fuelRequired)
-    }
-    
-    // Update costs
-    totalCost.value += action.cost || 1
-  }
-
-  // Enhanced movement with dynamic capabilities
-  function executeEnhancedMovement(action, capabilities) {
-    if (!action.robot || !action.fromRoom || !action.toRoom) return
-    
-    const robot = action.robot
-    const speed = capabilities.movementSpeed || robotMovementSpeeds.value[robot] || 3.0
-    
-    console.log(`🚶‍♂️ ${robot} enhanced movement: ${action.fromRoom} → ${action.toRoom} (speed: ${speed}s)`)
-    
-    // Verify robot location
-    const currentLocation = robotLocations.value[robot]
-    if (currentLocation !== action.fromRoom) {
-      console.warn(`⚠️ Robot ${robot} location corrected: ${currentLocation} → ${action.fromRoom}`)
-      robotLocations.value[robot] = action.fromRoom
-    }
-    
-    // Set up movement with dynamic speed
-    robotStartRooms.value[robot] = action.fromRoom
-    robotTargetRooms.value[robot] = action.toRoom
-    robotMovementProgress.value[robot] = 0
-    robotMovementStartTime.value[robot] = Date.now()
-    
-    movingRobots.value.add(robot)
-    activeRobots.value.add(robot)
-    
-    // Start animation if not already running
-    if (!animationFrame) {
-      startSmoothMovementAnimation()
-    }
-    
-    createActionParticles()
-  }
-
-  // Enhanced pick action with capacity checking
-  function executeEnhancedPickAction(action, capabilities) {
-    if (!action.object || !action.robot || !action.room) return
-    
-    const robot = action.robot
-    const maxCapacity = capabilities.maxCarryingCapacity || 1
-    
-    console.log(`🤏 ${robot} enhanced pick: ${action.object} from ${action.room} (capacity: ${robotCarryingCapacity.value[robot]}/${maxCapacity})`)
-    
-    // Verify locations
-    if (robotLocations.value[robot] !== action.room) {
-      robotLocations.value[robot] = action.room
-    }
-    if (objectLocations.value[action.object] !== action.room) {
-      objectLocations.value[action.object] = action.room
-    }
-    
-    activeRobots.value.add(robot)
-    createActionParticles()
-    
-    // Execute pick with capacity management
-    setTimeout(() => {
-      if (!robotCarrying.value[robot]) {
-        robotCarrying.value[robot] = []
-      }
-      
-      // Check capacity before picking
-      if (robotCarrying.value[robot].length < maxCapacity) {
-        robotCarrying.value[robot].push(action.object)
-        robotCarryingCapacity.value[robot] = robotCarrying.value[robot].length
-        delete objectLocations.value[action.object]
-        
-        console.log(`✅ Pick complete: ${robot} now carrying ${action.object}`)
-        console.log(`🎒 Robot ${robot} carrying:`, robotCarrying.value[robot])
-      } else {
-        console.warn(`❌ Cannot pick ${action.object}: ${robot} at capacity (${maxCapacity})`)
-      }
-      
-      activeRobots.value.delete(robot)
-    }, action.duration * 1000)
-  }
-
-  // Enhanced drop action with capacity management
-  function executeEnhancedDropAction(action, capabilities) {
-    if (!action.object || !action.room || !action.robot) return
-    
-    const robot = action.robot
-    
-    console.log(`📥 ${robot} enhanced drop: ${action.object} in ${action.room}`)
-    
-    // Verify robot location
-    if (robotLocations.value[robot] !== action.room) {
-      robotLocations.value[robot] = action.room
-    }
-    
-    // Verify robot is carrying the object
-    if (!robotCarrying.value[robot]?.includes(action.object)) {
-      console.warn(`⚠️ Robot ${robot} should be carrying ${action.object}`)
-      if (!robotCarrying.value[robot]) {
-        robotCarrying.value[robot] = []
-      }
-      robotCarrying.value[robot].push(action.object)
-    }
-    
-    activeRobots.value.add(robot)
-    createActionParticles()
-    
-    // Execute drop with capacity management
-    setTimeout(() => {
-      if (robotCarrying.value[robot]) {
-        robotCarrying.value[robot] = robotCarrying.value[robot].filter(obj => obj !== action.object)
-        robotCarryingCapacity.value[robot] = robotCarrying.value[robot].length
-      }
-      objectLocations.value[action.object] = action.room
-      
-      console.log(`✅ Drop complete: ${action.object} now in ${action.room}`)
-      console.log(`🎒 Robot ${robot} now carrying:`, robotCarrying.value[robot])
-      activeRobots.value.delete(robot)
-    }, action.duration * 1000)
-  }
-
-  // Enhanced charging actions with dynamic energy management
-  function executeEnhancedChargeAction(action, capabilities) {
-    const robot = action.robot
-    const chargingRate = capabilities.chargingRate || 2.0
-    
-    console.log(`🔋 ${robot} starting enhanced charging (rate: ${chargingRate}/s)`)
-    
-    robotIsCharging.value[robot] = true
-    activeRobots.value.add(robot)
-    createActionParticles()
-    
-    // Start charging process
-    const chargingInterval = setInterval(() => {
-      if (robotIsCharging.value[robot]) {
-        const currentEnergy = robotEnergy.value[robot] || 0
-        const maxEnergy = robotMaxEnergy.value[robot] || 100
-        
-        robotEnergy.value[robot] = Math.min(maxEnergy, currentEnergy + chargingRate)
-        
-        // Stop charging when full
-        if (robotEnergy.value[robot] >= maxEnergy) {
-          clearInterval(chargingInterval)
-          console.log(`🔋 ${robot} charging complete: ${robotEnergy.value[robot]}/${maxEnergy}`)
-        }
-      } else {
-        clearInterval(chargingInterval)
-      }
-    }, 1000)
-  }
-
-  function executeEnhancedStopChargeAction(action, capabilities) {
-    const robot = action.robot
-    console.log(`🔋 ${robot} stopped enhanced charging`)
-    
-    robotIsCharging.value[robot] = false
-    activeRobots.value.delete(robot)
-  }
-
-  function executeMovementComplete(action, capabilities) {
-    const robot = action.robot
-    console.log(`✅ ${robot} movement complete: arrived at ${action.toRoom}`)
-    
-    // Complete any pending movement
-    if (movingRobots.value.has(robot)) {
-      completeRobotMovement(robot)
-    }
-  }
 
   // Smooth movement animation
   let animationFrame = null
@@ -893,12 +357,14 @@ export function createRobotSimulator(props) {
       // Update movement progress for all moving robots
       for (const robot of movingRobots.value) {
         const startTime = robotMovementStartTime.value[robot]
-        const capabilities = robotCapabilities.value[robot] || {}
-        const speed = capabilities.movementSpeed || 3.0
+        const action = getCurrentMovementAction(robot)
         
-        if (startTime) {
+        if (startTime && action) {
           const elapsed = (now - startTime) / 1000 // Convert to seconds
-          const progress = Math.min(1, elapsed / speed)
+          const duration = action.duration
+          const progress = Math.min(1, elapsed / duration)
+          
+          robotMovementProgress.value[robot] = progress
           
           // Apply easing for smoother movement
           const easedProgress = easeInOutCubic(progress)
@@ -909,6 +375,12 @@ export function createRobotSimulator(props) {
             completeRobotMovement(robot)
           }
         }
+      }
+      
+      // Update action progress
+      if (currentAction.value && actionStartTime.value) {
+        const elapsed = (now - actionStartTime.value) / 1000
+        actionProgress.value = Math.min(100, (elapsed / currentAction.value.duration) * 100)
       }
       
       // Continue animation if there are moving robots or playing
@@ -925,11 +397,17 @@ export function createRobotSimulator(props) {
     return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
   }
 
+  function getCurrentMovementAction(robot) {
+    return parsedActions.value.find(actionItem => 
+      actionItem.robot === robot && actionItem.actionType === 'move'
+    )
+  }
+
   function completeRobotMovement(robot) {
     const targetRoom = robotTargetRooms.value[robot]
     if (targetRoom) {
       robotLocations.value[robot] = targetRoom
-      console.log(`✅ ${robot} completed enhanced movement to ${targetRoom}`)
+      console.log(`✅ ${robot} completed smooth movement to ${targetRoom}`)
     }
     
     // Clean up movement state
@@ -942,10 +420,180 @@ export function createRobotSimulator(props) {
     activeRobots.value.delete(robot)
   }
 
+  // Enhanced action execution with correct robot positioning
+  function executeAction(action) {
+    console.log(`⚡ Executing action:`, action)
+    
+    if (!action) return
+    
+    // Handle waiting actions for PDDL+
+    if (action.isWaiting) {
+      console.log(`⏳ Waiting for ${action.duration}s`)
+      return
+    }
+    
+    switch (action.actionType) {
+      case 'move':
+        executeCorrectMovement(action)
+        break
+        
+      case 'pick':
+        executeCorrectPickAction(action)
+        break
+        
+      case 'drop':
+        executeCorrectDropAction(action)
+        break
+        
+      case 'charge':
+        executeChargeAction(action)
+        break
+        
+      case 'charge_stop':
+        executeStopChargeAction(action)
+        break
+    }
+
+    // Handle resources for numerical PDDL
+    if (action.type === 'numerical') {
+      totalCost.value += action.cost || 1
+      currentFuel.value = Math.max(0, currentFuel.value - (action.cost || 1))
+      currentEnergy.value = Math.max(0, currentEnergy.value - (action.cost || 1))
+    }
+  }
+
+  // Correct movement execution with proper start/end positions
+  function executeCorrectMovement(action) {
+    if (!action.robot || !action.fromRoom || !action.toRoom) return
+    
+    const robot = action.robot
+    
+    console.log(`🚶‍♂️ ${robot} moving from ${action.fromRoom} to ${action.toRoom} (${action.duration}s)`)
+    
+    // Verify robot is actually in the fromRoom
+    const currentLocation = robotLocations.value[robot]
+    if (currentLocation !== action.fromRoom) {
+      console.warn(`⚠️ Robot ${robot} is in ${currentLocation} but trying to move from ${action.fromRoom}`)
+      // Force correct the location
+      robotLocations.value[robot] = action.fromRoom
+    }
+    
+    // Set up movement state
+    robotStartRooms.value[robot] = action.fromRoom
+    robotTargetRooms.value[robot] = action.toRoom
+    robotMovementProgress.value[robot] = 0
+    robotMovementStartTime.value[robot] = Date.now()
+    
+    // Add to moving robots
+    movingRobots.value.add(robot)
+    activeRobots.value.add(robot)
+    
+    // Start animation if not already running
+    if (!animationFrame) {
+      startSmoothMovementAnimation()
+    }
+    
+    createActionParticles()
+  }
+
+  // FIXED: Correct pick action execution with proper location checking
+  function executeCorrectPickAction(action) {
+    if (!action.object || !action.robot || !action.room) return
+    
+    const robot = action.robot
+    
+    console.log(`🤏 STARTING pick: ${robot} picking up ${action.object} from ${action.room}`)
+    console.log(`📍 Robot current location: ${robotLocations.value[robot]}`)
+    console.log(`📦 Object current location: ${objectLocations.value[action.object]}`)
+    
+    // Verify and correct robot location
+    if (robotLocations.value[robot] !== action.room) {
+      console.warn(`⚠️ CORRECTING: Robot ${robot} was in ${robotLocations.value[robot]}, should be in ${action.room}`)
+      robotLocations.value[robot] = action.room
+    }
+    
+    // Verify and correct object location
+    if (objectLocations.value[action.object] !== action.room) {
+      console.warn(`⚠️ CORRECTING: Object ${action.object} was in ${objectLocations.value[action.object]}, should be in ${action.room}`)
+      objectLocations.value[action.object] = action.room
+    }
+    
+    activeRobots.value.add(robot)
+    createActionParticles()
+    
+    // Execute pick action
+    setTimeout(() => {
+      if (!robotCarrying.value[robot]) {
+        robotCarrying.value[robot] = []
+      }
+      robotCarrying.value[robot].push(action.object)
+      delete objectLocations.value[action.object]
+      
+      console.log(`✅ Pick complete: ${robot} now carrying ${action.object}`)
+      console.log(`🎒 Robot ${robot} carrying:`, robotCarrying.value[robot])
+      activeRobots.value.delete(robot)
+    }, action.duration * 1000)
+  }
+
+  // FIXED: Correct drop action execution with proper location checking
+  function executeCorrectDropAction(action) {
+    if (!action.object || !action.room || !action.robot) return
+    
+    const robot = action.robot
+    
+    console.log(`📥 STARTING drop: ${robot} dropping ${action.object} in ${action.room}`)
+    console.log(`📍 Robot current location: ${robotLocations.value[robot]}`)
+    console.log(`🎒 Robot currently carrying:`, robotCarrying.value[robot])
+    
+    // Verify and correct robot location
+    if (robotLocations.value[robot] !== action.room) {
+      console.warn(`⚠️ CORRECTING: Robot ${robot} was in ${robotLocations.value[robot]}, should be in ${action.room}`)
+      robotLocations.value[robot] = action.room
+    }
+    
+    // Verify robot is carrying the object
+    if (!robotCarrying.value[robot]?.includes(action.object)) {
+      console.warn(`⚠️ CORRECTING: Robot ${robot} should be carrying ${action.object}`)
+      if (!robotCarrying.value[robot]) {
+        robotCarrying.value[robot] = []
+      }
+      robotCarrying.value[robot].push(action.object)
+    }
+    
+    activeRobots.value.add(robot)
+    createActionParticles()
+    
+    // Execute drop action
+    setTimeout(() => {
+      if (robotCarrying.value[robot]) {
+        robotCarrying.value[robot] = robotCarrying.value[robot].filter(obj => obj !== action.object)
+      }
+      objectLocations.value[action.object] = action.room
+      
+      console.log(`✅ Drop complete: ${action.object} now in ${action.room}`)
+      console.log(`🎒 Robot ${robot} now carrying:`, robotCarrying.value[robot])
+      activeRobots.value.delete(robot)
+    }, action.duration * 1000)
+  }
+
+  // Handle charging actions for PDDL+
+  function executeChargeAction(action) {
+    const robot = action.robot
+    console.log(`🔋 ${robot} starting to charge`)
+    activeRobots.value.add(robot)
+    createActionParticles()
+  }
+
+  function executeStopChargeAction(action) {
+    const robot = action.robot
+    console.log(`🔋 ${robot} stopped charging`)
+    activeRobots.value.delete(robot)
+  }
+
   // Playback control functions
   function togglePlayback() {
     isPlaying.value = !isPlaying.value
-    console.log('▶️ Enhanced playback toggled:', isPlaying.value)
+    console.log('▶️ Playback toggled:', isPlaying.value)
     
     if (isPlaying.value && !animationFrame) {
       startSmoothMovementAnimation()
@@ -956,16 +604,20 @@ export function createRobotSimulator(props) {
     if (currentStep.value < parsedActions.value.length) {
       const action = parsedActions.value[currentStep.value]
       
-      console.log(`🎯 Executing enhanced step ${currentStep.value + 1}: ${action.name}`)
+      console.log(`🎯 Executing step ${currentStep.value + 1}: ${action.name}`)
+      
+      // Start action timing
+      actionStartTime.value = Date.now()
+      actionProgress.value = 0
       
       executeAction(action)
       currentStep.value++
       
-      console.log(`📊 Enhanced progress: ${currentStep.value}/${parsedActions.value.length}`)
+      console.log(`📊 Progress: ${currentStep.value}/${parsedActions.value.length}`)
       
       if (currentStep.value >= parsedActions.value.length) {
         showSuccess.value = true
-        console.log('🎉 All enhanced actions completed!')
+        console.log('🎉 All actions completed!')
         setTimeout(() => {
           showSuccess.value = false
         }, 3000)
@@ -974,10 +626,9 @@ export function createRobotSimulator(props) {
   }
 
   function resetSimulation() {
-    console.log('🔄 Resetting enhanced simulation')
+    console.log('🔄 Resetting simulation')
     isPlaying.value = false
     currentStep.value = 0
-    currentTime.value = 0
     
     // Stop animation
     if (animationFrame) {
@@ -995,35 +646,13 @@ export function createRobotSimulator(props) {
     
     particles.value = []
     activeActions.value = []
-    completedActions.value.clear()
+    currentFuel.value = maxFuel.value
+    currentEnergy.value = maxEnergy.value
     totalCost.value = 0
-    
-    // Reset dynamic capabilities state
-    resetDynamicState()
-    
     initializeLocations()
   }
 
-  function resetDynamicState() {
-    // Reset energy for all robots
-    Object.keys(robotCapabilities.value).forEach(robot => {
-      const capabilities = robotCapabilities.value[robot]
-      
-      if (capabilities.hasEnergySystem) {
-        robotEnergy.value[robot] = capabilities.maxEnergy
-        robotIsCharging.value[robot] = false
-      }
-      
-      if (capabilities.hasFuelSystem) {
-        fuelLevels.value[robot] = capabilities.maxFuel
-      }
-      
-      robotCarryingCapacity.value[robot] = 0
-      robotCarrying.value[robot] = []
-    })
-  }
-
-  // Auto-play functionality with enhanced timing
+  // Auto-play functionality with smooth timing
   let playInterval = null
 
   watch([isPlaying, playbackSpeed], ([playing, speed]) => {
@@ -1033,13 +662,12 @@ export function createRobotSimulator(props) {
     }
 
     if (playing && currentStep.value < parsedActions.value.length) {
-      // Calculate interval based on current action duration and robot capabilities
+      // Calculate interval based on current action duration
       const getCurrentInterval = () => {
         const action = parsedActions.value[currentStep.value]
-        if (action && action.robot) {
-          const capabilities = robotCapabilities.value[action.robot] || {}
-          const dynamicDuration = capabilities.movementSpeed || action.duration || 2.0
-          return (dynamicDuration * 1000) / speed
+        if (action) {
+          // Use action duration scaled by playback speed
+          return (action.duration * 1000) / speed // Convert to milliseconds
         }
         return 2000 / speed // Default 2 seconds
       }
@@ -1048,6 +676,7 @@ export function createRobotSimulator(props) {
         stepForward()
         
         if (currentStep.value < parsedActions.value.length && isPlaying.value) {
+          // Schedule next step based on current action duration
           setTimeout(executeNextStep, getCurrentInterval())
         } else {
           isPlaying.value = false
@@ -1124,10 +753,11 @@ export function createRobotSimulator(props) {
     }
   }
 
-  // Enhanced helper functions with dynamic capabilities
+  // Helper functions for PDDL-specific features
   const getCurrentActionForRobot = (robot) => {
     return parsedActions.value.find(action => 
       action.robot === robot && 
+      (action.actionType === 'move' || action.actionType === 'pick' || action.actionType === 'drop') &&
       action.step === currentStep.value
     ) || parsedActions.value.find(action => action.robot === robot && action.step === currentStep.value)
   }
@@ -1139,35 +769,17 @@ export function createRobotSimulator(props) {
 
   const getElapsedTime = () => {
     if (!parsedActions.value?.length) return 0
-    if (props.pddlType === 'classical') {
-      return currentStep.value
-    } else {
-      return currentTime.value
-    }
+    const startTime = Math.min(...parsedActions.value.map(action => action.start))
+    const currentTime = parsedActions.value[currentStep.value]?.start || 0
+    return currentTime - startTime
+  }
+
+  const getRobotFuel = (robot) => {
+    return robotFuel.value[robot] || 100
   }
 
   const getRobotEnergy = (robot) => {
     return robotEnergy.value[robot] || 100
-  }
-
-  const getRobotMaxEnergy = (robot) => {
-    return robotMaxEnergy.value[robot] || 100
-  }
-
-  const getRobotFuel = (robot) => {
-    return fuelLevels.value[robot] || 100
-  }
-
-  const getRobotCapacity = (robot) => {
-    return robotCarryingCapacity.value[robot] || 0
-  }
-
-  const getRobotMaxCapacity = (robot) => {
-    return robotMaxCapacity.value[robot] || 1
-  }
-
-  const isRobotCharging = (robot) => {
-    return robotIsCharging.value[robot] || false
   }
 
   const getEfficiencyScore = () => {
@@ -1176,35 +788,53 @@ export function createRobotSimulator(props) {
     return Math.max(0, Math.round(100 - (avgCost - 1) * 10))
   }
 
-  const getRobotCapabilities = (robot) => {
-    return robotCapabilities.value[robot] || {}
-  }
-
   function initializeLocations() {
-    console.log('🏁 Initializing enhanced locations with dynamic analysis...')
+    console.log('🏁 Initializing locations with correct robot positions...')
 
     if (planRooms.value.length === 0) {
       console.log('⚠️ No rooms found, using defaults')
       return
     }
 
-    // Initialize robot locations based on their first action
+    console.log('📋 All parsed actions:', parsedActions.value.map(a => ({
+      step: a.step,
+      name: a.name,
+      robot: a.robot,
+      object: a.object,
+      room: a.room,
+      fromRoom: a.fromRoom,
+      toRoom: a.toRoom
+    })))
+
+    // Initialize robot locations based on their VERY FIRST action
     planRobots.value.forEach(robot => {
       let startRoom = planRooms.value[0] // Default fallback
       
-      // Find the very first action for this robot
+      // Find the very first action (lowest step/start time) for this robot
       const robotActions = parsedActions.value
         .filter(action => action.robot === robot)
-        .sort((a, b) => a.start - b.start)
+        .sort((a, b) => a.start - b.start) // Sort by start time
+      
+      console.log(`🤖 Actions for ${robot}:`, robotActions.map(a => ({
+        step: a.step,
+        start: a.start,
+        name: a.name,
+        room: a.room,
+        fromRoom: a.fromRoom,
+        toRoom: a.toRoom
+      })))
       
       if (robotActions.length > 0) {
         const firstAction = robotActions[0]
         
         if (firstAction.actionType === 'pick' && firstAction.room) {
+          // Robot's first action is pick, so it starts in that room
           startRoom = firstAction.room
         } else if (firstAction.actionType === 'move' && firstAction.fromRoom) {
+          // Robot's first action is move, so it starts in the fromRoom
           startRoom = firstAction.fromRoom
         } else if (firstAction.room) {
+          // Fallback to any room mentioned in first action
           startRoom = firstAction.room
         }
       }
@@ -1219,33 +849,33 @@ export function createRobotSimulator(props) {
     planObjects.value.forEach((obj) => {
       const firstPickAction = parsedActions.value
         .filter(action => action.actionType === 'pick' && action.object === obj)
-        .sort((a, b) => a.start - b.start)[0]
+        .sort((a, b) => a.start - b.start)[0] // Get earliest pick action
       
       if (firstPickAction && firstPickAction.room) {
         objectLocations.value[obj] = firstPickAction.room
         console.log(`📦 Object ${obj} starts in ${firstPickAction.room}`)
       } else {
+        // Default to first room if no pick action found
         const defaultRoom = planRooms.value[0]
         objectLocations.value[obj] = defaultRoom
         console.log(`📦 Object ${obj} defaults to ${defaultRoom}`)
       }
     })
 
-    console.log('🏁 Enhanced initial state:')
+    console.log('🏁 Initial state:')
     console.log('🤖 Robot locations:', JSON.stringify(robotLocations.value))
     console.log('📦 Object locations:', JSON.stringify(objectLocations.value))
-    console.log('⚙️ Robot capabilities:', Object.keys(robotCapabilities.value))
   }
 
   // Watch for props changes
   watch(() => props.actions, (newActions) => {
-    console.log('👀 Enhanced actions prop changed:', typeof newActions, newActions)
+    console.log('👀 Actions prop changed:', typeof newActions, newActions)
     resetSimulation()
   }, { immediate: true })
 
   // Initialize when component mounts
   onMounted(() => {
-    console.log('🏗️ Enhanced robot simulator mounted')
+    console.log('🏗️ Smooth robot simulator mounted')
     initializeLocations()
   })
 
@@ -1266,20 +896,16 @@ export function createRobotSimulator(props) {
     playbackSpeed,
     showSuccess,
     particles,
+    currentFuel,
+    maxFuel,
+    currentEnergy,
+    maxEnergy,
     totalCost,
     activeActions,
     movingRobots,
-    currentTime,
-    
-    // Dynamic capabilities state
-    robotCapabilities,
+    robotFuel,
     robotEnergy,
-    robotMaxEnergy,
-    robotCarryingCapacity,
-    robotMaxCapacity,
-    robotIsCharging,
-    robotMovementSpeeds,
-    fuelLevels,
+    actionProgress,
     
     // Movement state
     robotMovementProgress,
@@ -1306,18 +932,13 @@ export function createRobotSimulator(props) {
     getRobotMovementProgress,
     getObjectIcon,
     
-    // Enhanced helper functions
+    // PDDL-specific helper functions
     getCurrentActionForRobot,
     getTotalMakespan,
     getElapsedTime,
-    getRobotEnergy,
-    getRobotMaxEnergy,
     getRobotFuel,
-    getRobotCapacity,
-    getRobotMaxCapacity,
-    isRobotCharging,
+    getRobotEnergy,
     getEfficiencyScore,
-    getRobotCapabilities,
     
     // Additional state needed by template
     robotLocations,
