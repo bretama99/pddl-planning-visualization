@@ -1,0 +1,102 @@
+
+NUMERIC_THREATS_MODE: 0
+
+; Command line: ./lpg-td -o dom.pddl -f prog.pddl -n 4
+
+
+Parsing domain file:  domain 'LOGISTICS' defined ... done.
+Parsing problem file:  problem 'LOGISTICS-TEMPORAL-AIR' defined ... done.
+
+
+
+Modality: Incremental Planner
+
+Number of actions             :     525
+Number of conditional actions :       0
+Number of facts               :      89
+
+
+Analyzing Planning Problem:
+        Temporal Planning Problem: YES
+        Numeric Planning Problem: YES
+        Problem with Timed Initial Literals: NO
+        Problem with Derived Predicates: NO
+
+Evaluation function weights:
+     Action duration 1.00; Action cost 0.00
+
+
+Computing mutex... done
+
+Preprocessing total time: 0.01 seconds
+
+Searching ('.' = every 50 search steps):
+ solution found:
+ Recompute start times
+
+ first_solution_cpu_time: 0.02
+Solution number: 1
+Total time:      0.02
+Search time:     0.01
+Actions:         18
+Duration:        28.000
+Plan quality:    28.000
+Total Num Flips: 18
+     Plan file:       plan_prog.pddl_1.SOL Restart using stored plan
+ solution found:
+ Recompute start times
+
+Solution number: 2
+Total time:      0.02
+Search time:     0.01
+Actions:         20
+Duration:        14.000
+Plan quality:    14.000
+Total Num Flips: 32
+     Plan file:       plan_prog.pddl_2.SOL Restart using stored plan
+. solution found:
+ Recompute start times
+
+Solution number: 3
+Total time:      0.03
+Search time:     0.02
+Actions:         17
+Duration:        9.000
+Plan quality:    9.000
+Total Num Flips: 102
+     Plan file:       plan_prog.pddl_3.SOL Restart using null plan
+ Restart using stored plan
+ Restart using stored plan
+. Restart using null plan
+..... solution found:
+ Recompute start times
+
+
+Plan computed:
+   Time: (ACTION) [action Duration; action Cost]
+ 0.0000: (LOAD-AIRPLANE PACCO2 AEREO2 FIUMICINO) [D:0.00; C:0.10]
+ 0.0000: (FLY-AIRPLANE AEREO2 FIUMICINO MALPENSA ROMA MILANO) [D:5.00; C:0.10]
+ 0.0000: (DRIVE-TRUCK TRUCK1 CENTROMILANO LINGOTTO MILANO TORINO) [D:2.00; C:0.10]
+ 0.0000: (DRIVE-TRUCK TRUCK3 PIAZZACASTELLO CASELLE TORINO TORINO) [D:0.00; C:0.10]
+ 0.0000: (LOAD-TRUCK PACCO4 TRUCK3 CASELLE) [D:0.00; C:0.10]
+ 0.0000: (DRIVE-TRUCK TRUCK3 CASELLE FIUMICINO TORINO ROMA) [D:7.00; C:0.10]
+ 2.0000: (LOAD-TRUCK PACCO3 TRUCK1 LINGOTTO) [D:0.00; C:0.10]
+ 2.0000: (DRIVE-TRUCK TRUCK1 LINGOTTO CENTROMILANO TORINO MILANO) [D:2.00; C:0.10]
+ 4.0000: (UNLOAD-TRUCK PACCO3 TRUCK1 CENTROMILANO) [D:0.00; C:0.10]
+ 5.0000: (UNLOAD-AIRPLANE PACCO2 AEREO2 MALPENSA) [D:0.00; C:0.10]
+ 5.0000: (LOAD-AIRPLANE PACCO1 AEREO2 MALPENSA) [D:0.00; C:0.10]
+ 5.0000: (FLY-AIRPLANE AEREO2 MALPENSA CASELLE MILANO TORINO) [D:2.00; C:0.10]
+ 7.0000: (UNLOAD-AIRPLANE PACCO1 AEREO2 CASELLE) [D:0.00; C:0.10]
+ 7.0000: (UNLOAD-TRUCK PACCO4 TRUCK3 FIUMICINO) [D:0.00; C:0.10]
+
+
+
+METRIC_VALUE = 7.00
+Solution number: 4
+Total time:      0.05
+Search time:     0.04
+Actions:         14
+Duration:        7.000
+Plan quality:    7.000
+Total Num Flips: 513
+     Plan file:       plan_prog.pddl_4.SOL

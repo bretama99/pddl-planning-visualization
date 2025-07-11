@@ -1,0 +1,1 @@
+ ./lpg-td -o dom.pddl -f prog.pddl -n 3

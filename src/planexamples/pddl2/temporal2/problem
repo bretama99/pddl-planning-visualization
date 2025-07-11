@@ -1,0 +1,59 @@
+(define (problem logistics-temporal-air)
+  (:domain logistics)
+  
+  (:objects
+    milano roma torino - city
+    malpensa fiumicino caselle - airport
+    centromilano stazionemilano - location
+    centroroma terminiroma - location
+    piazzacastello lingotto - location
+    pacco1 pacco2 pacco3 pacco4 - package
+    truck1 truck2 truck3 - truck
+    aereo1 aereo2 - airplane
+  )
+  
+  (:init
+    (in-city malpensa milano)
+    (in-city centromilano milano)
+    (in-city stazionemilano milano)
+    (in-city fiumicino roma)
+    (in-city centroroma roma)
+    (in-city terminiroma roma)
+    (in-city caselle torino)
+    (in-city piazzacastello torino)
+    (in-city lingotto torino)
+    
+    (at truck1 centromilano)
+    (at truck2 centroroma)
+    (at truck3 piazzacastello)
+    (at aereo1 malpensa)
+    (at aereo2 fiumicino)
+    
+    (at pacco1 malpensa)
+    (at pacco2 fiumicino)
+    (at pacco3 lingotto)
+    (at pacco4 caselle)
+    
+    (= (distance milano milano) 0)
+    (= (distance milano roma) 5)
+    (= (distance milano torino) 2)
+    
+    (= (distance roma milano) 5)
+    (= (distance roma roma) 0)
+    (= (distance roma torino) 7)
+    
+    (= (distance torino milano) 2)
+    (= (distance torino roma) 7)
+    (= (distance torino torino) 0)
+  )
+  
+  (:goal
+    (and
+      (at pacco1 caselle)
+      (at pacco2 malpensa)
+      (at pacco3 centromilano)
+      (at pacco4 fiumicino)
+    )
+  )
+  (:metric minimize total-time)
+)

@@ -1,0 +1,68 @@
+(define (problem logistics-five-cities)
+  (:domain logistics)
+  
+  (:objects
+    milano roma napoli torino bologna - city
+    malpensa fiumicino capodichino caselle marconi - airport
+    centromilano stazionemilano navigli - location
+    centroroma terminiroma trastevere - location
+    centronapoli portonapoli quartierispagnoli - location
+    centrotorino portanuova lingotto - location
+    centrobologna stazionebologna universitabologna - location
+    pacco1 pacco2 pacco3 pacco4 pacco5 pacco6 pacco7 pacco8 - package
+    truckmilano truckroma trucknapoli trucktorino truckbologna - truck
+    aereo1 aereo2 aereo3 - airplane
+  )
+  
+  (:init
+    (in-city malpensa milano)
+    (in-city fiumicino roma)
+    (in-city capodichino napoli)
+    (in-city caselle torino)
+    (in-city marconi bologna)
+    (in-city centromilano milano)
+    (in-city stazionemilano milano)
+    (in-city navigli milano)
+    (in-city centroroma roma)
+    (in-city terminiroma roma)
+    (in-city trastevere roma)
+    (in-city centronapoli napoli)
+    (in-city portonapoli napoli)
+    (in-city quartierispagnoli napoli)
+    (in-city centrotorino torino)
+    (in-city portanuova torino)
+    (in-city lingotto torino)
+    (in-city centrobologna bologna)
+    (in-city stazionebologna bologna)
+    (in-city universitabologna bologna)
+    (at truckmilano centromilano)
+    (at truckroma centroroma)
+    (at trucknapoli centronapoli)
+    (at trucktorino centrotorino)
+    (at truckbologna centrobologna)
+    (at aereo1 malpensa)
+    (at aereo2 fiumicino)
+    (at aereo3 caselle)
+    (at pacco1 stazionemilano)
+    (at pacco2 navigli)
+    (at pacco3 terminiroma)
+    (at pacco4 trastevere)
+    (at pacco5 portonapoli)
+    (at pacco6 quartierispagnoli)
+    (at pacco7 portanuova)
+    (at pacco8 universitabologna)
+  )
+  
+  (:goal
+    (and
+      (at pacco1 centroroma)
+      (at pacco2 portonapoli)
+      (at pacco3 navigli)
+      (at pacco4 centronapoli)
+      (at pacco5 lingotto)
+      (at pacco6 stazionebologna)
+      (at pacco7 trastevere)
+      (at pacco8 stazionemilano)
+    )
+  )
+)

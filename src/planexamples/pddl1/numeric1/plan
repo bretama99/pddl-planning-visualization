@@ -1,0 +1,119 @@
+domain parsed
+problem parsed
+grounding..
+grounding time: 47
+aibr preprocessing
+|f|:85
+|x|:5
+|a|:195
+|p|:0
+|e|:0
+h1 setup time (msec): 15
+ g(n)= 1.0 h(n)=48.0
+ g(n)= 2.0 h(n)=46.0
+ g(n)= 3.0 h(n)=45.0
+ g(n)= 4.0 h(n)=43.0
+ g(n)= 5.0 h(n)=42.0
+ g(n)= 6.0 h(n)=41.0
+ g(n)= 7.0 h(n)=40.0
+ g(n)= 8.0 h(n)=39.0
+ g(n)= 9.0 h(n)=38.0
+ g(n)= 11.0 h(n)=37.0
+ g(n)= 12.0 h(n)=36.0
+ g(n)= 13.0 h(n)=35.0
+ g(n)= 14.0 h(n)=34.0
+ g(n)= 15.0 h(n)=33.0
+ g(n)= 16.0 h(n)=32.0
+ g(n)= 17.0 h(n)=31.0
+ g(n)= 19.0 h(n)=30.0
+ g(n)= 20.0 h(n)=29.0
+ g(n)= 23.0 h(n)=27.0
+ g(n)= 24.0 h(n)=26.0
+ g(n)= 26.0 h(n)=25.0
+ g(n)= 27.0 h(n)=24.0
+ g(n)= 28.0 h(n)=23.0
+ g(n)= 29.0 h(n)=22.0
+ g(n)= 31.0 h(n)=21.0
+ g(n)= 32.0 h(n)=20.0
+ g(n)= 33.0 h(n)=19.0
+ g(n)= 34.0 h(n)=18.0
+ g(n)= 35.0 h(n)=16.0
+ g(n)= 36.0 h(n)=15.0
+ g(n)= 37.0 h(n)=14.0
+ g(n)= 38.0 h(n)=13.0
+ g(n)= 39.0 h(n)=12.0
+ g(n)= 40.0 h(n)=11.0
+ g(n)= 41.0 h(n)=10.0
+ g(n)= 42.0 h(n)=9.0
+ g(n)= 43.0 h(n)=8.0
+ g(n)= 44.0 h(n)=7.0
+ g(n)= 45.0 h(n)=6.0
+ g(n)= 46.0 h(n)=5.0
+ g(n)= 47.0 h(n)=4.0
+ g(n)= 48.0 h(n)=3.0
+ g(n)= 49.0 h(n)=2.0
+ g(n)= 50.0 h(n)=1.0
+problem solved
+
+found plan:
+0.0: (drive-truck trucknapoli portonapoli capodichino napoli)
+1.0: (drive-truck truckroma centroroma fiumicino roma)
+2.0: (load-truck pacco2 truckmilano centromilano)
+3.0: (drive-truck truckmilano centromilano malpensa milano)
+4.0: (unload-truck pacco2 truckmilano malpensa)
+5.0: (load-airplane pacco2 aereo1 malpensa)
+6.0: (fly-airplane aereo1 malpensa capodichino)
+7.0: (unload-airplane pacco2 aereo1 capodichino)
+8.0: (load-truck pacco2 trucknapoli capodichino)
+9.0: (drive-truck trucknapoli capodichino centronapoli napoli)
+10.0: (load-truck pacco5 trucknapoli centronapoli)
+11.0: (drive-truck trucknapoli centronapoli capodichino napoli)
+12.0: (unload-truck pacco5 trucknapoli capodichino)
+13.0: (load-airplane pacco5 aereo1 capodichino)
+14.0: (fly-airplane aereo1 capodichino fiumicino)
+15.0: (unload-airplane pacco5 aereo1 fiumicino)
+16.0: (load-truck pacco5 truckroma fiumicino)
+17.0: (drive-truck trucknapoli capodichino portonapoli napoli)
+18.0: (unload-truck pacco2 trucknapoli portonapoli)
+19.0: (drive-truck trucknapoli portonapoli capodichino napoli)
+20.0: (drive-truck truckmilano malpensa stazionemilano milano)
+21.0: (load-truck pacco1 truckmilano stazionemilano)
+22.0: (drive-truck truckmilano stazionemilano malpensa milano)
+23.0: (unload-truck pacco1 truckmilano malpensa)
+24.0: (fly-airplane aereo2 fiumicino malpensa)
+25.0: (load-airplane pacco1 aereo2 malpensa)
+26.0: (fly-airplane aereo2 malpensa fiumicino)
+27.0: (unload-airplane pacco1 aereo2 fiumicino)
+28.0: (load-truck pacco1 truckroma fiumicino)
+29.0: (drive-truck truckroma fiumicino centroroma roma)
+30.0: (load-truck pacco4 truckroma centroroma)
+31.0: (drive-truck truckroma centroroma terminiroma roma)
+32.0: (unload-truck pacco5 truckroma terminiroma)
+33.0: (load-truck pacco3 truckroma terminiroma)
+34.0: (drive-truck truckroma terminiroma fiumicino roma)
+35.0: (unload-truck pacco4 truckroma fiumicino)
+36.0: (load-airplane pacco4 aereo1 fiumicino)
+37.0: (fly-airplane aereo1 fiumicino capodichino)
+38.0: (unload-truck pacco3 truckroma fiumicino)
+39.0: (drive-truck truckroma fiumicino centroroma roma)
+40.0: (load-airplane pacco3 aereo2 fiumicino)
+41.0: (fly-airplane aereo2 fiumicino malpensa)
+42.0: (unload-airplane pacco4 aereo1 capodichino)
+43.0: (unload-airplane pacco3 aereo2 malpensa)
+44.0: (load-truck pacco4 trucknapoli capodichino)
+45.0: (drive-truck trucknapoli capodichino centronapoli napoli)
+46.0: (load-truck pacco3 truckmilano malpensa)
+47.0: (drive-truck truckmilano malpensa centromilano milano)
+48.0: (unload-truck pacco4 trucknapoli centronapoli)
+49.0: (unload-truck pacco3 truckmilano centromilano)
+50.0: (unload-truck pacco1 truckroma centroroma)
+
+plan-length:51
+metric (search):51.0
+planning time (msec): 175
+heuristic time (msec): 141
+search time (msec): 171
+expanded nodes:88
+states evaluated:839
+number of dead-ends detected:185
+number of duplicates detected:442

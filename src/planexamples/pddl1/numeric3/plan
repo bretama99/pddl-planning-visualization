@@ -1,0 +1,197 @@
+domain parsed
+problem parsed
+grounding..
+grounding time: 86
+aibr preprocessing
+|f|:259
+|x|:8
+|a|:715
+|p|:0
+|e|:0
+h1 setup time (msec): 26
+ g(n)= 1.0 h(n)=83.0
+ g(n)= 2.0 h(n)=80.0
+ g(n)= 3.0 h(n)=77.0
+ g(n)= 4.0 h(n)=75.0
+ g(n)= 5.0 h(n)=73.0
+ g(n)= 6.0 h(n)=72.0
+ g(n)= 11.0 h(n)=70.0
+ g(n)= 12.0 h(n)=69.0
+ g(n)= 13.0 h(n)=68.0
+ g(n)= 14.0 h(n)=67.0
+ g(n)= 15.0 h(n)=66.0
+ g(n)= 16.0 h(n)=65.0
+ g(n)= 22.0 h(n)=63.0
+ g(n)= 23.0 h(n)=62.0
+ g(n)= 24.0 h(n)=61.0
+ g(n)= 25.0 h(n)=60.0
+ g(n)= 26.0 h(n)=59.0
+ g(n)= 27.0 h(n)=58.0
+ g(n)= 29.0 h(n)=57.0
+ g(n)= 30.0 h(n)=56.0
+ g(n)= 31.0 h(n)=55.0
+ g(n)= 33.0 h(n)=54.0
+ g(n)= 34.0 h(n)=53.0
+ g(n)= 36.0 h(n)=52.0
+ g(n)= 37.0 h(n)=51.0
+ g(n)= 38.0 h(n)=50.0
+ g(n)= 39.0 h(n)=49.0
+ g(n)= 45.0 h(n)=47.0
+ g(n)= 46.0 h(n)=46.0
+ g(n)= 48.0 h(n)=45.0
+ g(n)= 49.0 h(n)=44.0
+ g(n)= 50.0 h(n)=43.0
+ g(n)= 51.0 h(n)=42.0
+ g(n)= 53.0 h(n)=41.0
+ g(n)= 54.0 h(n)=40.0
+ g(n)= 55.0 h(n)=39.0
+ g(n)= 56.0 h(n)=38.0
+ g(n)= 57.0 h(n)=37.0
+ g(n)= 58.0 h(n)=36.0
+ g(n)= 59.0 h(n)=35.0
+ g(n)= 61.0 h(n)=34.0
+ g(n)= 62.0 h(n)=33.0
+ g(n)= 63.0 h(n)=32.0
+ g(n)= 64.0 h(n)=31.0
+ g(n)= 65.0 h(n)=30.0
+ g(n)= 66.0 h(n)=29.0
+ g(n)= 67.0 h(n)=28.0
+ g(n)= 68.0 h(n)=27.0
+ g(n)= 69.0 h(n)=26.0
+ g(n)= 71.0 h(n)=25.0
+ g(n)= 72.0 h(n)=24.0
+ g(n)= 73.0 h(n)=23.0
+ g(n)= 74.0 h(n)=22.0
+ g(n)= 75.0 h(n)=21.0
+ g(n)= 76.0 h(n)=20.0
+ g(n)= 77.0 h(n)=19.0
+ g(n)= 78.0 h(n)=18.0
+ g(n)= 79.0 h(n)=17.0
+ g(n)= 80.0 h(n)=16.0
+ g(n)= 82.0 h(n)=15.0
+ g(n)= 83.0 h(n)=14.0
+ g(n)= 84.0 h(n)=13.0
+ g(n)= 85.0 h(n)=12.0
+ g(n)= 86.0 h(n)=11.0
+ g(n)= 87.0 h(n)=10.0
+ g(n)= 88.0 h(n)=9.0
+ g(n)= 89.0 h(n)=8.0
+ g(n)= 90.0 h(n)=7.0
+ g(n)= 91.0 h(n)=6.0
+ g(n)= 93.0 h(n)=5.0
+ g(n)= 94.0 h(n)=4.0
+ g(n)= 95.0 h(n)=3.0
+ g(n)= 97.0 h(n)=2.0
+ g(n)= 98.0 h(n)=1.0
+problem solved
+
+found plan:
+0.0: (drive-truck truckmilano centromilano malpensa milano)
+1.0: (drive-truck trucknapoli centronapoli capodichino napoli)
+2.0: (drive-truck truckroma centroroma fiumicino roma)
+3.0: (drive-truck truckbologna centrobologna marconi bologna)
+4.0: (drive-truck trucktorino centrotorino caselle torino)
+5.0: (fly-airplane aereo2 fiumicino capodichino)
+6.0: (fly-airplane aereo3 caselle fiumicino)
+7.0: (fly-airplane aereo1 malpensa marconi)
+8.0: (drive-truck truckbologna marconi universitabologna bologna)
+9.0: (load-truck pacco8 truckbologna universitabologna)
+10.0: (drive-truck truckbologna universitabologna marconi bologna)
+11.0: (unload-truck pacco8 truckbologna marconi)
+12.0: (load-airplane pacco8 aereo1 marconi)
+13.0: (fly-airplane aereo1 marconi malpensa)
+14.0: (unload-airplane pacco8 aereo1 malpensa)
+15.0: (load-truck pacco8 truckmilano malpensa)
+16.0: (fly-airplane aereo1 malpensa fiumicino)
+17.0: (fly-airplane aereo3 fiumicino malpensa)
+18.0: (drive-truck truckbologna marconi stazionebologna bologna)
+19.0: (drive-truck truckmilano malpensa navigli milano)
+20.0: (load-truck pacco2 truckmilano navigli)
+21.0: (drive-truck truckmilano navigli malpensa milano)
+22.0: (unload-truck pacco2 truckmilano malpensa)
+23.0: (load-airplane pacco2 aereo3 malpensa)
+24.0: (fly-airplane aereo3 malpensa capodichino)
+25.0: (unload-airplane pacco2 aereo3 capodichino)
+26.0: (load-truck pacco2 trucknapoli capodichino)
+27.0: (drive-truck truckmilano malpensa stazionemilano milano)
+28.0: (load-truck pacco1 truckmilano stazionemilano)
+29.0: (drive-truck truckmilano stazionemilano malpensa milano)
+30.0: (unload-truck pacco1 truckmilano malpensa)
+31.0: (drive-truck truckmilano malpensa stazionemilano milano)
+32.0: (unload-truck pacco8 truckmilano stazionemilano)
+33.0: (drive-truck truckmilano stazionemilano malpensa milano)
+34.0: (fly-airplane aereo2 capodichino malpensa)
+35.0: (load-airplane pacco1 aereo2 malpensa)
+36.0: (fly-airplane aereo2 malpensa fiumicino)
+37.0: (unload-airplane pacco1 aereo2 fiumicino)
+38.0: (load-truck pacco1 truckroma fiumicino)
+39.0: (fly-airplane aereo1 fiumicino capodichino)
+40.0: (drive-truck truckmilano malpensa navigli milano)
+41.0: (fly-airplane aereo3 capodichino fiumicino)
+42.0: (drive-truck trucktorino caselle portanuova torino)
+43.0: (load-truck pacco7 trucktorino portanuova)
+44.0: (drive-truck trucktorino portanuova caselle torino)
+45.0: (unload-truck pacco7 trucktorino caselle)
+46.0: (fly-airplane aereo2 fiumicino caselle)
+47.0: (load-airplane pacco7 aereo2 caselle)
+48.0: (fly-airplane aereo2 caselle fiumicino)
+49.0: (unload-airplane pacco7 aereo2 fiumicino)
+50.0: (load-truck pacco7 truckroma fiumicino)
+51.0: (drive-truck truckroma fiumicino trastevere roma)
+52.0: (load-truck pacco4 truckroma trastevere)
+53.0: (drive-truck truckroma trastevere fiumicino roma)
+54.0: (unload-truck pacco4 truckroma fiumicino)
+55.0: (load-airplane pacco4 aereo3 fiumicino)
+56.0: (fly-airplane aereo3 fiumicino capodichino)
+57.0: (unload-airplane pacco4 aereo3 capodichino)
+58.0: (load-truck pacco4 trucknapoli capodichino)
+59.0: (drive-truck trucknapoli capodichino portonapoli napoli)
+60.0: (load-truck pacco5 trucknapoli portonapoli)
+61.0: (drive-truck trucknapoli portonapoli capodichino napoli)
+62.0: (unload-truck pacco5 trucknapoli capodichino)
+63.0: (load-airplane pacco5 aereo1 capodichino)
+64.0: (fly-airplane aereo1 capodichino caselle)
+65.0: (unload-airplane pacco5 aereo1 caselle)
+66.0: (load-truck pacco5 trucktorino caselle)
+67.0: (drive-truck trucktorino caselle lingotto torino)
+68.0: (unload-truck pacco5 trucktorino lingotto)
+69.0: (drive-truck trucknapoli capodichino quartierispagnoli napoli)
+70.0: (load-truck pacco6 trucknapoli quartierispagnoli)
+71.0: (drive-truck trucknapoli quartierispagnoli centronapoli napoli)
+72.0: (unload-truck pacco4 trucknapoli centronapoli)
+73.0: (drive-truck trucknapoli centronapoli capodichino napoli)
+74.0: (unload-truck pacco6 trucknapoli capodichino)
+75.0: (drive-truck trucknapoli capodichino portonapoli napoli)
+76.0: (load-airplane pacco6 aereo3 capodichino)
+77.0: (fly-airplane aereo3 capodichino marconi)
+78.0: (unload-airplane pacco6 aereo3 marconi)
+79.0: (unload-truck pacco2 trucknapoli portonapoli)
+80.0: (drive-truck truckroma fiumicino trastevere roma)
+81.0: (unload-truck pacco7 truckroma trastevere)
+82.0: (drive-truck truckroma trastevere centroroma roma)
+83.0: (unload-truck pacco1 truckroma centroroma)
+84.0: (drive-truck truckroma centroroma terminiroma roma)
+85.0: (load-truck pacco3 truckroma terminiroma)
+86.0: (drive-truck truckroma terminiroma fiumicino roma)
+87.0: (unload-truck pacco3 truckroma fiumicino)
+88.0: (load-airplane pacco3 aereo2 fiumicino)
+89.0: (fly-airplane aereo2 fiumicino malpensa)
+90.0: (unload-airplane pacco3 aereo2 malpensa)
+91.0: (drive-truck truckmilano navigli malpensa milano)
+92.0: (load-truck pacco3 truckmilano malpensa)
+93.0: (drive-truck truckmilano malpensa navigli milano)
+94.0: (unload-truck pacco3 truckmilano navigli)
+95.0: (drive-truck truckbologna stazionebologna marconi bologna)
+96.0: (load-truck pacco6 truckbologna marconi)
+97.0: (drive-truck truckbologna marconi stazionebologna bologna)
+98.0: (unload-truck pacco6 truckbologna stazionebologna)
+
+plan-length:99
+metric (search):99.0
+planning time (msec): 3808
+heuristic time (msec): 3689
+search time (msec): 3804
+expanded nodes:465
+states evaluated:9684
+number of dead-ends detected:1851
+number of duplicates detected:5536
