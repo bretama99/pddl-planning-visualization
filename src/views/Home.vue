@@ -1,3 +1,4 @@
+```vue
 <template>
   <div class="pddl-visualizer">
     <!-- Floating Background Elements -->
@@ -40,45 +41,46 @@
       </div>
     </transition>
 
-    <!-- Header with Navigation -->
+    <!-- Header with Title on Left and Buttons on Right -->
     <div class="header">
       <div class="header-content">
-        <h1 class="main-title">
-          <span class="title-icon">🤖</span>
-          <span class="title-text">PDDL Visualizer</span>
-          <div class="title-glow"></div>
-        </h1>
-        <nav class="navigation">
-          <button 
-            @click="navigateToRobot" 
-            :class="{ active: selectedDomain === 'robot' }"
-            class="nav-btn robot-btn"
-          >
-            <span class="btn-icon">🤖</span>
-            <span>Robot</span>
-            <div class="btn-glow"></div>
-          </button>
-          <button 
-            @click="selectDomain('elevator')" 
-            :class="{ active: selectedDomain === 'elevator' }"
-            class="nav-btn elevator-btn"
-          >
-            <span class="btn-icon">🛗</span>
-            <span>Elevator</span>
-            <div class="btn-glow"></div>
-          </button>
-          <router-link 
-  to="/logistics" 
-  class="nav-btn logistics-btn"
-  :class="{ active: selectedDomain === 'logistics' }"
-  @click="selectDomain('logistics')"
->
-  <span class="btn-icon">🚚</span>
-  <span>Logistics</span>
-  <div class="btn-glow"></div>
-</router-link>
-
-        </nav>
+        <div class="header-container">
+          <h1 class="main-title">
+            <span class="title-icon">🤖</span>
+            <span class="title-text">PDDL Visualizer</span>
+            <div class="title-glow"></div>
+          </h1>
+          <nav class="navigation">
+            <button 
+              @click="navigateToRobot" 
+              :class="{ active: selectedDomain === 'robot' }"
+              class="nav-btn robot-btn"
+            >
+              <span class="btn-icon">🤖</span>
+              <span>Robot</span>
+              <div class="btn-glow"></div>
+            </button>
+            <button 
+              @click="selectDomain('elevator')" 
+              :class="{ active: selectedDomain === 'elevator' }"
+              class="nav-btn elevator-btn"
+            >
+              <span class="btn-icon">🛗</span>
+              <span>Elevator</span>
+              <div class="btn-glow"></div>
+            </button>
+            <router-link 
+              to="/logistics" 
+              class="nav-btn logistics-btn"
+              :class="{ active: selectedDomain === 'logistics' }"
+              @click="selectDomain('logistics')"
+            >
+              <span class="btn-icon">🚚</span>
+              <span>Logistics</span>
+              <div class="btn-glow"></div>
+            </router-link>
+          </nav>
+        </div>
       </div>
     </div>
 
@@ -279,20 +281,20 @@
             />
             
             <!-- Elevator Domain -->
-   <ElevatorSimulator 
-    v-else-if="selectedDomain === 'elevator' && selectedPDDLType !== 'pddl_plus'&& selectedPDDLType !== 'numerical'"
-    :actions="parsedActions" 
-    :entities="parsedEntities"
-    :pddl-type="selectedPDDLType"
-  />
+            <ElevatorSimulator 
+              v-else-if="selectedDomain === 'elevator' && selectedPDDLType !== 'pddl_plus' && selectedPDDLType !== 'numerical'"
+              :actions="parsedActions" 
+              :entities="parsedEntities"
+              :pddl-type="selectedPDDLType"
+            />
 
-  <!-- Elevator Domain - PDDL+ Type -->
-  <ElevatorSimulatorPDDL 
-    v-else-if="selectedDomain === 'elevator' && selectedPDDLType === 'pddl_plus' || selectedPDDLType === 'pddl+'|| selectedPDDLType === 'numerical'"
-    :actions="parsedActions" 
-    :entities="parsedEntities"
-    :pddl-type="selectedPDDLType"
-  />
+            <!-- Elevator Domain - PDDL+ Type -->
+            <ElevatorSimulatorPDDL 
+              v-else-if="selectedDomain === 'elevator' && (selectedPDDLType === 'pddl_plus' || selectedPDDLType === 'pddl+' || selectedPDDLType === 'numerical')"
+              :actions="parsedActions" 
+              :entities="parsedEntities"
+              :pddl-type="selectedPDDLType"
+            />
             
             <!-- Logistics Domain -->
             <LogisticsSimulator 
@@ -325,6 +327,8 @@ export default {
     ElevatorSimulatorPDDL
   },
   setup() {
+    // Initializes reactive state, computed properties, and methods for the PDDL Visualizer component,
+    // handling domain selection, file uploads, PDDL type management, and visualization logic
     // State
     const selectedDomain = ref('robot')
     const selectedPDDLType = ref('')
@@ -1195,12 +1199,194 @@ export default {
   }
 }
 </script>
-
 <style scoped>
 @import './home.css';
 
-/* Additional styles for navigation links */
-.card-link {
+/* HEADER */
+.pddl-visualizer .header {
+  background: linear-gradient(to right, #a18cd1, #fbc2eb);
+  backdrop-filter: blur(10px);
+  padding: 1rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.pddl-visualizer .header-content {
+  width: 100%;
+  margin: 0;
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+}
+
+/* HEADER CONTAINER */
+.pddl-visualizer .header-container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start; /* Changed from space-between */
+  gap: 2rem; /* Added spacing between title and nav */
+  width: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 0.75rem;
+  padding: 0.75rem 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* TITLE */
+.pddl-visualizer .main-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #ffffff;
+  position: relative;
+  margin: 0;
+  flex-grow: 1; /* Allows title to push buttons toward center */
+}
+
+.pddl-visualizer .title-glow {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.6s;
+}
+
+.pddl-visualizer .main-title:hover .title-glow {
+  transform: translateX(100%);
+}
+
+/* ✅ WHITE BACKGROUND FOR BUTTON CONTAINER */
+.pddl-visualizer .nav-wrapper {
+  background: #ffffff;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+/* BUTTON ROW */
+.pddl-visualizer .navigation {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 1rem;
+  align-items: center;
+  justify-content: flex-end;
+  white-space: nowrap;
+  overflow-x: auto;
+}
+
+/* ✅ LARGER BUTTONS & TEXT */
+.pddl-visualizer .nav-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  min-width: auto;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  background: linear-gradient(135deg, #5115de, #0e0108);
+  color: #ffffff;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  border: none;
+
+  overflow: hidden;
+}
+
+.pddl-visualizer .nav-btn:hover {
+  transform: translateY(-2px);
+ 
+}
+
+.pddl-visualizer .nav-btn.active {
+ 
+  color: #fff;
+}
+
+.pddl-visualizer .nav-btn .btn-glow {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.6s;
+}
+
+.pddl-visualizer .nav-btn:hover .btn-glow {
+  transform: translateX(100%);
+}
+
+.pddl-visualizer .btn-icon {
+  font-size: 1.25rem;
+}
+
+/* RESPONSIVE DESIGN */
+@media (max-width: 768px) {
+  .pddl-visualizer .header-container {
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+  }
+
+  .pddl-visualizer .main-title {
+    font-size: 1.25rem;
+  }
+
+  .pddl-visualizer .nav-btn {
+    padding: 0.6rem 1.2rem;
+    min-width: 120px;
+    font-size: 0.95rem;
+  }
+
+  .pddl-visualizer .btn-icon {
+    font-size: 1rem;
+  }
+
+  .pddl-visualizer .navigation {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .pddl-visualizer .header-container {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .pddl-visualizer .nav-wrapper {
+    width: 100%;
+    justify-content: flex-start;
+    overflow-x: auto;
+  }
+
+  .pddl-visualizer .navigation {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .pddl-visualizer .nav-btn {
+    padding: 0.6rem 0.9rem;
+    font-size: 0.9rem;
+    min-width: 110px;
+  }
+}
+
+/* CARD LINK */
+.pddl-visualizer .card-link {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -1209,49 +1395,25 @@ export default {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 0.375rem;
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.8);
+  color: #ffffff;
   backdrop-filter: blur(10px);
 }
 
-.link-icon {
+.pddl-visualizer .link-icon {
   font-size: 0.875rem;
 }
 
-.link-text {
+.pddl-visualizer .link-text {
   font-weight: 500;
 }
 
-.domain-card:hover .card-link {
+.pddl-visualizer .domain-card:hover .card-link {
   background: rgba(255, 255, 255, 0.2);
-  color: rgba(255, 255, 255, 1);
+  color: #ffffff;
 }
 
-/* Navigation button enhancements */
-.nav-btn {
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.nav-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-}
-
-.nav-btn .btn-glow {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-  transform: translateX(-100%);
-  transition: transform 0.6s;
-}
-
-.nav-btn:hover .btn-glow {
-  transform: translateX(100%);
-}
-
-/* Success message for navigation */
-.success-toast {
+/* SUCCESS TOAST */
+.pddl-visualizer .success-toast {
   animation: navigation-pulse 0.6s ease-in-out;
 }
 
@@ -1260,9 +1422,9 @@ export default {
   50% { transform: scale(1.05); }
 }
 
-/* Particle types for navigation */
-.particle.navigation {
-  background: linear-gradient(45deg, #60a5fa, #34d399);
+/* PARTICLES */
+.pddl-visualizer .particle.navigation {
+  background: linear-gradient(45deg, #ffffff, #fbc2eb);
   border-radius: 50%;
   animation: navigation-float 2s ease-in-out infinite;
 }
