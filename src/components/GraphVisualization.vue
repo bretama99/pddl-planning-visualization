@@ -1671,38 +1671,40 @@ export default {
           : constants.GASOLINE_BAR.FILL_COLOR;
 
       // Background della barra
-      truckGroup
-        .append("rect")
-        .attr("class", "gasoline-bar-bg")
-        .attr("x", x - constants.GASOLINE_BAR.WIDTH / 2)
-        .attr("y", y + constants.GASOLINE_BAR.OFFSET_Y)
-        .attr("width", constants.GASOLINE_BAR.WIDTH)
-        .attr("height", constants.GASOLINE_BAR.HEIGHT)
-        .attr("fill", constants.GASOLINE_BAR.BACKGROUND_COLOR)
-        .attr("rx", constants.GASOLINE_BAR.BORDER_RADIUS);
+      // Background della barra
+truckGroup
+  .append("rect")
+  .attr("class", "gasoline-bar-bg")
+  .attr("x", x - constants.GASOLINE_BAR.WIDTH / 2 + 15)  // +10 a destra
+  .attr("y", y + constants.GASOLINE_BAR.OFFSET_Y + 5)    // +5 più in basso
+  .attr("width", constants.GASOLINE_BAR.WIDTH)
+  .attr("height", constants.GASOLINE_BAR.HEIGHT)
+  .attr("fill", constants.GASOLINE_BAR.BACKGROUND_COLOR)
+  .attr("rx", constants.GASOLINE_BAR.BORDER_RADIUS);
 
-      // Barra di riempimento
-      truckGroup
-        .append("rect")
-        .attr("class", "gasoline-bar-fill")
-        .attr("x", x - constants.GASOLINE_BAR.WIDTH / 2)
-        .attr("y", y + constants.GASOLINE_BAR.OFFSET_Y)
-        .attr("width", fillWidth)
-        .attr("height", constants.GASOLINE_BAR.HEIGHT)
-        .attr("fill", fillColor)
-        .attr("rx", constants.GASOLINE_BAR.BORDER_RADIUS);
+// Barra di riempimento
+truckGroup
+  .append("rect")
+  .attr("class", "gasoline-bar-fill")
+  .attr("x", x - constants.GASOLINE_BAR.WIDTH / 2 + 15)  // +10 a destra
+  .attr("y", y + constants.GASOLINE_BAR.OFFSET_Y + 5)    // +5 più in basso
+  .attr("width", fillWidth)
+  .attr("height", constants.GASOLINE_BAR.HEIGHT)
+  .attr("fill", fillColor)
+  .attr("rx", constants.GASOLINE_BAR.BORDER_RADIUS);
 
-      // Testo percentuale
-      truckGroup
-        .append("text")
-        .attr("class", "gasoline-text")
-        .attr("x", x)
-        .attr("y", y + constants.GASOLINE_BAR.OFFSET_Y - 2)
-        .attr("text-anchor", "middle")
-        .attr("font-size", "8px")
-        .attr("font-family", "monospace")
-        .attr("fill", "#666")
-        .text(`${Math.round(gasolinePercentage)}%`);
+// Testo percentuale
+truckGroup
+  .append("text")
+  .attr("class", "gasoline-text")
+  .attr("x", x + 15)                                      // +10 a destra
+  .attr("y", y + constants.GASOLINE_BAR.OFFSET_Y + 3)     // +5 più in basso rispetto a -2
+  .attr("text-anchor", "middle")
+  .attr("font-size", "8px")
+  .attr("font-family", "monospace")
+  .attr("fill", "#666")
+  .text(`${Math.round(gasolinePercentage)}%`);
+
     },
     clearDistanceMap() {
       if (this.distanceMap) {
