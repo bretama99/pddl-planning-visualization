@@ -2,12 +2,12 @@
   <div class="app">
     <h1 class="main-title">LOGISTICS PLANNING VISUALIZER</h1>
     <div class="dropdown-row">
-      <label class="dropdown-label">Tipo di planner:
+      <label class="dropdown-label">PDDL version:
         <select v-model="selectedPlanner" @change="onPlannerChange" class="dropdown-select">
           <option v-for="(label, key) in plannerOptions" :key="key" :value="key">{{ label }}</option>
         </select>
       </label>
-      <label class="dropdown-label">Istanza:
+      <label class="dropdown-label">Problem instance:
         <select v-model="selectedInstanceKey" @change="onInstanceChange" class="dropdown-select">
           <option v-for="instance in filteredInstances" :key="instance.key" :value="instance.key">{{ instance.name }}</option>
         </select>
