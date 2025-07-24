@@ -2,45 +2,45 @@ export const prob1_classic = `(define (problem logistics-multi-city)
   (:domain logistics)
   
   (:objects
-    milano roma napoli - city
+    milan rome naples - city
     malpensa fiumicino capodichino - airport
-    centromilano stazionemilano - location
-    centroroma terminiroma - location
-    centronapoli portonapoli - location
-    pacco1 pacco2 pacco3 pacco4 pacco5 - package
-    truckmilano truckroma trucknapoli - truck
-    aereo1 aereo2 - airplane
+    milancenter milanstation - location
+    romecenter termini - location
+    naplescenter naplesport - location
+    pack1 pack2 pack3 pack4 pack5 - package
+    truckmilan truckrome trucknaples - truck
+    plane1 plane2 - airplane
   )
   
   (:init
-    (in-city malpensa milano)
-    (in-city centromilano milano)
-    (in-city stazionemilano milano)
-    (in-city fiumicino roma)
-    (in-city centroroma roma)
-    (in-city terminiroma roma)
-    (in-city capodichino napoli)
-    (in-city centronapoli napoli)
-    (in-city portonapoli napoli)
-    (at truckmilano centromilano)
-    (at truckroma centroroma)
-    (at trucknapoli portonapoli)
-    (at aereo1 malpensa)
-    (at aereo2 fiumicino)
-    (at pacco1 stazionemilano)
-    (at pacco2 centromilano)
-    (at pacco3 terminiroma)
-    (at pacco4 centroroma)
-    (at pacco5 centronapoli)
+    (in-city malpensa milan)
+    (in-city milancenter milan)
+    (in-city milanstation milan)
+    (in-city fiumicino rome)
+    (in-city romecenter rome)
+    (in-city termini rome)
+    (in-city capodichino naples)
+    (in-city naplescenter naples)
+    (in-city naplesport naples)
+    (at truckmilan milancenter)
+    (at truckrome romecenter)
+    (at trucknaples naplesport)
+    (at plane1 malpensa)
+    (at plane2 fiumicino)
+    (at pack1 milanstation)
+    (at pack2 milancenter)
+    (at pack3 termini)
+    (at pack4 romecenter)
+    (at pack5 naplescenter)
   )
   
   (:goal
     (and
-      (at pacco1 centroroma)
-      (at pacco2 portonapoli)
-      (at pacco3 centromilano)
-      (at pacco4 centronapoli)
-      (at pacco5 terminiroma)
+      (at pack1 romecenter)
+      (at pack2 naplesport)
+      (at pack3 milancenter)
+      (at pack4 naplescenter)
+      (at pack5 termini)
     )
   )
 )`;
@@ -103,61 +103,61 @@ h1 setup time (msec): 14
 problem solved
 
 found plan:
-0.0: (drive-truck trucknapoli portonapoli capodichino napoli)
-1.0: (drive-truck truckroma centroroma fiumicino roma)
-2.0: (load-truck pacco2 truckmilano centromilano)
-3.0: (drive-truck truckmilano centromilano malpensa milano)
-4.0: (unload-truck pacco2 truckmilano malpensa)
-5.0: (load-airplane pacco2 aereo1 malpensa)
-6.0: (fly-airplane aereo1 malpensa capodichino)
-7.0: (unload-airplane pacco2 aereo1 capodichino)
-8.0: (load-truck pacco2 trucknapoli capodichino)
-9.0: (drive-truck trucknapoli capodichino centronapoli napoli)
-10.0: (load-truck pacco5 trucknapoli centronapoli)
-11.0: (drive-truck trucknapoli centronapoli capodichino napoli)
-12.0: (unload-truck pacco5 trucknapoli capodichino)
-13.0: (load-airplane pacco5 aereo1 capodichino)
-14.0: (fly-airplane aereo1 capodichino fiumicino)
-15.0: (unload-airplane pacco5 aereo1 fiumicino)
-16.0: (load-truck pacco5 truckroma fiumicino)
-17.0: (drive-truck trucknapoli capodichino portonapoli napoli)
-18.0: (unload-truck pacco2 trucknapoli portonapoli)
-19.0: (drive-truck trucknapoli portonapoli capodichino napoli)
-20.0: (fly-airplane aereo2 fiumicino malpensa)
-21.0: (drive-truck truckroma fiumicino centroroma roma)
-22.0: (load-truck pacco4 truckroma centroroma)
-23.0: (drive-truck truckroma centroroma fiumicino roma)
-24.0: (unload-truck pacco4 truckroma fiumicino)
-25.0: (load-airplane pacco4 aereo1 fiumicino)
-26.0: (fly-airplane aereo1 fiumicino capodichino)
-27.0: (unload-airplane pacco4 aereo1 capodichino)
-28.0: (load-truck pacco4 trucknapoli capodichino)
-29.0: (drive-truck trucknapoli capodichino centronapoli napoli)
-30.0: (unload-truck pacco4 trucknapoli centronapoli)
-31.0: (drive-truck truckroma fiumicino terminiroma roma)
-32.0: (load-truck pacco3 truckroma terminiroma)
-33.0: (drive-truck truckroma terminiroma fiumicino roma)
-34.0: (unload-truck pacco3 truckroma fiumicino)
-35.0: (drive-truck truckroma fiumicino terminiroma roma)
-36.0: (unload-truck pacco5 truckroma terminiroma)
-37.0: (drive-truck truckroma terminiroma fiumicino roma)
-38.0: (fly-airplane aereo2 malpensa fiumicino)
-39.0: (load-airplane pacco3 aereo2 fiumicino)
-40.0: (fly-airplane aereo2 fiumicino malpensa)
-41.0: (unload-airplane pacco3 aereo2 malpensa)
-42.0: (load-truck pacco3 truckmilano malpensa)
-43.0: (drive-truck truckmilano malpensa stazionemilano milano)
-44.0: (load-truck pacco1 truckmilano stazionemilano)
-45.0: (drive-truck truckmilano stazionemilano malpensa milano)
-46.0: (unload-truck pacco1 truckmilano malpensa)
-47.0: (drive-truck truckmilano malpensa centromilano milano)
-48.0: (load-airplane pacco1 aereo2 malpensa)
-49.0: (fly-airplane aereo2 malpensa fiumicino)
-50.0: (unload-airplane pacco1 aereo2 fiumicino)
-51.0: (load-truck pacco1 truckroma fiumicino)
-52.0: (drive-truck truckroma fiumicino centroroma roma)
-53.0: (unload-truck pacco3 truckmilano centromilano)
-54.0: (unload-truck pacco1 truckroma centroroma)
+0.0: (drive-truck trucknaples naplesport capodichino naples)
+1.0: (drive-truck truckrome romecenter fiumicino rome)
+2.0: (load-truck pack2 truckmilan milancenter)
+3.0: (drive-truck truckmilan milancenter malpensa milan)
+4.0: (unload-truck pack2 truckmilan malpensa)
+5.0: (load-airplane pack2 plane1 malpensa)
+6.0: (fly-airplane plane1 malpensa capodichino)
+7.0: (unload-airplane pack2 plane1 capodichino)
+8.0: (load-truck pack2 trucknaples capodichino)
+9.0: (drive-truck trucknaples capodichino naplescenter naples)
+10.0: (load-truck pack5 trucknaples naplescenter)
+11.0: (drive-truck trucknaples naplescenter capodichino naples)
+12.0: (unload-truck pack5 trucknaples capodichino)
+13.0: (load-airplane pack5 plane1 capodichino)
+14.0: (fly-airplane plane1 capodichino fiumicino)
+15.0: (unload-airplane pack5 plane1 fiumicino)
+16.0: (load-truck pack5 truckrome fiumicino)
+17.0: (drive-truck trucknaples capodichino naplesport naples)
+18.0: (unload-truck pack2 trucknaples naplesport)
+19.0: (drive-truck trucknaples naplesport capodichino naples)
+20.0: (fly-airplane plane2 fiumicino malpensa)
+21.0: (drive-truck truckrome fiumicino romecenter rome)
+22.0: (load-truck pack4 truckrome romecenter)
+23.0: (drive-truck truckrome romecenter fiumicino rome)
+24.0: (unload-truck pack4 truckrome fiumicino)
+25.0: (load-airplane pack4 plane1 fiumicino)
+26.0: (fly-airplane plane1 fiumicino capodichino)
+27.0: (unload-airplane pack4 plane1 capodichino)
+28.0: (load-truck pack4 trucknaples capodichino)
+29.0: (drive-truck trucknaples capodichino naplescenter naples)
+30.0: (unload-truck pack4 trucknaples naplescenter)
+31.0: (drive-truck truckrome fiumicino termini rome)
+32.0: (load-truck pack3 truckrome termini)
+33.0: (drive-truck truckrome termini fiumicino rome)
+34.0: (unload-truck pack3 truckrome fiumicino)
+35.0: (drive-truck truckrome fiumicino termini rome)
+36.0: (unload-truck pack5 truckrome termini)
+37.0: (drive-truck truckrome termini fiumicino rome)
+38.0: (fly-airplane plane2 malpensa fiumicino)
+39.0: (load-airplane pack3 plane2 fiumicino)
+40.0: (fly-airplane plane2 fiumicino malpensa)
+41.0: (unload-airplane pack3 plane2 malpensa)
+42.0: (load-truck pack3 truckmilan malpensa)
+43.0: (drive-truck truckmilan malpensa milanstation milan)
+44.0: (load-truck pack1 truckmilan milanstation)
+45.0: (drive-truck truckmilan milanstation malpensa milan)
+46.0: (unload-truck pack1 truckmilan malpensa)
+47.0: (drive-truck truckmilan malpensa milancenter milan)
+48.0: (load-airplane pack1 plane2 malpensa)
+49.0: (fly-airplane plane2 malpensa fiumicino)
+50.0: (unload-airplane pack1 plane2 fiumicino)
+51.0: (load-truck pack1 truckrome fiumicino)
+52.0: (drive-truck truckrome fiumicino romecenter rome)
+53.0: (unload-truck pack3 truckmilan milancenter)
+54.0: (unload-truck pack1 truckrome romecenter)
 
 plan-length:55
 metric (search):55.0
@@ -172,58 +172,58 @@ export const prob1_numeric = `(define (problem logistics-multi-city)
   (:domain logistics)
   
   (:objects
-    milano roma napoli - city
+    milan rome naples - city
     malpensa fiumicino capodichino - airport
-    centromilano stazionemilano - location
-    centroroma terminiroma - location
-    centronapoli portonapoli - location
-    pacco1 pacco2 pacco3 pacco4 pacco5 - package
-    truckmilano truckroma trucknapoli - truck
-    aereo1 aereo2 - airplane
+    milancenter milanstation - location
+    romecenter termini - location
+    naplescenter naplesport - location
+    pack1 pack2 pack3 pack4 pack5 - package
+    truckmilan truckrome trucknaples - truck
+    plane1 plane2 - airplane
   )
   
   (:init
-    (in-city malpensa milano)
-    (in-city centromilano milano)
-    (in-city stazionemilano milano)
-    (in-city fiumicino roma)
-    (in-city centroroma roma)
-    (in-city terminiroma roma)
-    (in-city capodichino napoli)
-    (in-city centronapoli napoli)
-    (in-city portonapoli napoli)
-    (at truckmilano centromilano)
-    (at truckroma centroroma)
-    (at trucknapoli portonapoli)
-    (at aereo1 malpensa)
-    (at aereo2 fiumicino)
-    (at pacco1 stazionemilano)
-    (at pacco2 centromilano)
-    (at pacco3 terminiroma)
-    (at pacco4 centroroma)
-    (at pacco5 centronapoli)
+    (in-city malpensa milan)
+    (in-city milancenter milan)
+    (in-city milanstation milan)
+    (in-city fiumicino rome)
+    (in-city romecenter rome)
+    (in-city termini rome)
+    (in-city capodichino naples)
+    (in-city naplescenter naples)
+    (in-city naplesport naples)
+    (at truckmilan milancenter)
+    (at truckrome romecenter)
+    (at trucknaples naplesport)
+    (at plane1 malpensa)
+    (at plane2 fiumicino)
+    (at pack1 milanstation)
+    (at pack2 milancenter)
+    (at pack3 termini)
+    (at pack4 romecenter)
+    (at pack5 naplescenter)
 
 
-    (= (capacity truckmilano) 4)
-    (= (capacity truckroma) 3)
-    (= (capacity trucknapoli) 3)
-    (= (capacity aereo1) 8)
-    (= (capacity aereo2) 9)
+    (= (capacity truckmilan) 4)
+    (= (capacity truckrome) 3)
+    (= (capacity trucknaples) 3)
+    (= (capacity plane1) 8)
+    (= (capacity plane2) 9)
     
-    (= (current-load truckmilano) 0)
-    (= (current-load truckroma) 0)
-    (= (current-load trucknapoli) 0)
-    (= (current-load aereo1) 0)
-    (= (current-load aereo2) 0)
+    (= (current-load truckmilan) 0)
+    (= (current-load truckrome) 0)
+    (= (current-load trucknaples) 0)
+    (= (current-load plane1) 0)
+    (= (current-load plane2) 0)
   )
   
   (:goal
     (and
-      (at pacco1 centroroma)
-      (at pacco2 portonapoli)
-      (at pacco3 centromilano)
-      (at pacco4 centronapoli)
-      (at pacco5 terminiroma)
+      (at pack1 romecenter)
+      (at pack2 naplesport)
+      (at pack3 milancenter)
+      (at pack4 naplescenter)
+      (at pack5 termini)
     )
   )
 )`
@@ -285,57 +285,57 @@ h1 setup time (msec): 15
 problem solved
 
 found plan:
-0.0: (drive-truck trucknapoli portonapoli capodichino napoli)
-1.0: (drive-truck truckroma centroroma fiumicino roma)
-2.0: (load-truck pacco2 truckmilano centromilano)
-3.0: (drive-truck truckmilano centromilano malpensa milano)
-4.0: (unload-truck pacco2 truckmilano malpensa)
-5.0: (load-airplane pacco2 aereo1 malpensa)
-6.0: (fly-airplane aereo1 malpensa capodichino)
-7.0: (unload-airplane pacco2 aereo1 capodichino)
-8.0: (load-truck pacco2 trucknapoli capodichino)
-9.0: (drive-truck trucknapoli capodichino centronapoli napoli)
-10.0: (load-truck pacco5 trucknapoli centronapoli)
-11.0: (drive-truck trucknapoli centronapoli capodichino napoli)
-12.0: (unload-truck pacco5 trucknapoli capodichino)
-13.0: (load-airplane pacco5 aereo1 capodichino)
-14.0: (fly-airplane aereo1 capodichino fiumicino)
-15.0: (unload-airplane pacco5 aereo1 fiumicino)
-16.0: (load-truck pacco5 truckroma fiumicino)
-17.0: (drive-truck trucknapoli capodichino portonapoli napoli)
-18.0: (unload-truck pacco2 trucknapoli portonapoli)
-19.0: (drive-truck trucknapoli portonapoli capodichino napoli)
-20.0: (drive-truck truckmilano malpensa stazionemilano milano)
-21.0: (load-truck pacco1 truckmilano stazionemilano)
-22.0: (drive-truck truckmilano stazionemilano malpensa milano)
-23.0: (unload-truck pacco1 truckmilano malpensa)
-24.0: (fly-airplane aereo2 fiumicino malpensa)
-25.0: (load-airplane pacco1 aereo2 malpensa)
-26.0: (fly-airplane aereo2 malpensa fiumicino)
-27.0: (unload-airplane pacco1 aereo2 fiumicino)
-28.0: (load-truck pacco1 truckroma fiumicino)
-29.0: (drive-truck truckroma fiumicino centroroma roma)
-30.0: (load-truck pacco4 truckroma centroroma)
-31.0: (drive-truck truckroma centroroma terminiroma roma)
-32.0: (unload-truck pacco5 truckroma terminiroma)
-33.0: (load-truck pacco3 truckroma terminiroma)
-34.0: (drive-truck truckroma terminiroma fiumicino roma)
-35.0: (unload-truck pacco4 truckroma fiumicino)
-36.0: (load-airplane pacco4 aereo1 fiumicino)
-37.0: (fly-airplane aereo1 fiumicino capodichino)
-38.0: (unload-truck pacco3 truckroma fiumicino)
-39.0: (drive-truck truckroma fiumicino centroroma roma)
-40.0: (load-airplane pacco3 aereo2 fiumicino)
-41.0: (fly-airplane aereo2 fiumicino malpensa)
-42.0: (unload-airplane pacco4 aereo1 capodichino)
-43.0: (unload-airplane pacco3 aereo2 malpensa)
-44.0: (load-truck pacco4 trucknapoli capodichino)
-45.0: (drive-truck trucknapoli capodichino centronapoli napoli)
-46.0: (load-truck pacco3 truckmilano malpensa)
-47.0: (drive-truck truckmilano malpensa centromilano milano)
-48.0: (unload-truck pacco4 trucknapoli centronapoli)
-49.0: (unload-truck pacco3 truckmilano centromilano)
-50.0: (unload-truck pacco1 truckroma centroroma)
+0.0: (drive-truck trucknaples naplesport capodichino naples)
+1.0: (drive-truck truckrome romecenter fiumicino rome)
+2.0: (load-truck pack2 truckmilan milancenter)
+3.0: (drive-truck truckmilan milancenter malpensa milan)
+4.0: (unload-truck pack2 truckmilan malpensa)
+5.0: (load-airplane pack2 plane1 malpensa)
+6.0: (fly-airplane plane1 malpensa capodichino)
+7.0: (unload-airplane pack2 plane1 capodichino)
+8.0: (load-truck pack2 trucknaples capodichino)
+9.0: (drive-truck trucknaples capodichino naplescenter naples)
+10.0: (load-truck pack5 trucknaples naplescenter)
+11.0: (drive-truck trucknaples naplescenter capodichino naples)
+12.0: (unload-truck pack5 trucknaples capodichino)
+13.0: (load-airplane pack5 plane1 capodichino)
+14.0: (fly-airplane plane1 capodichino fiumicino)
+15.0: (unload-airplane pack5 plane1 fiumicino)
+16.0: (load-truck pack5 truckrome fiumicino)
+17.0: (drive-truck trucknaples capodichino naplesport naples)
+18.0: (unload-truck pack2 trucknaples naplesport)
+19.0: (drive-truck trucknaples naplesport capodichino naples)
+20.0: (drive-truck truckmilan malpensa milanstation milan)
+21.0: (load-truck pack1 truckmilan milanstation)
+22.0: (drive-truck truckmilan milanstation malpensa milan)
+23.0: (unload-truck pack1 truckmilan malpensa)
+24.0: (fly-airplane plane2 fiumicino malpensa)
+25.0: (load-airplane pack1 plane2 malpensa)
+26.0: (fly-airplane plane2 malpensa fiumicino)
+27.0: (unload-airplane pack1 plane2 fiumicino)
+28.0: (load-truck pack1 truckrome fiumicino)
+29.0: (drive-truck truckrome fiumicino romecenter rome)
+30.0: (load-truck pack4 truckrome romecenter)
+31.0: (drive-truck truckrome romecenter termini rome)
+32.0: (unload-truck pack5 truckrome termini)
+33.0: (load-truck pack3 truckrome termini)
+34.0: (drive-truck truckrome termini fiumicino rome)
+35.0: (unload-truck pack4 truckrome fiumicino)
+36.0: (load-airplane pack4 plane1 fiumicino)
+37.0: (fly-airplane plane1 fiumicino capodichino)
+38.0: (unload-truck pack3 truckrome fiumicino)
+39.0: (drive-truck truckrome fiumicino romecenter rome)
+40.0: (load-airplane pack3 plane2 fiumicino)
+41.0: (fly-airplane plane2 fiumicino malpensa)
+42.0: (unload-airplane pack4 plane1 capodichino)
+43.0: (unload-airplane pack3 plane2 malpensa)
+44.0: (load-truck pack4 trucknaples capodichino)
+45.0: (drive-truck trucknaples capodichino naplescenter naples)
+46.0: (load-truck pack3 truckmilan malpensa)
+47.0: (drive-truck truckmilan malpensa milancenter milan)
+48.0: (unload-truck pack4 trucknaples naplescenter)
+49.0: (unload-truck pack3 truckmilan milancenter)
+50.0: (unload-truck pack1 truckrome romecenter)
 
 plan-length:51
 metric (search):51.0
@@ -350,54 +350,54 @@ export const prob2_classic = `(define (problem logistics-delivery)
   (:domain logistics)
   
   (:objects
-    torino bologna firenze venezia - city
+    turin bologna florence venice - city
     caselle marconi peretola marcotessera - airport
     piazzacastello lingotto - location
-    stazionebologna mercato - location
+    bolognastation mercato - location
     duomo pontevecchio - location
     sanmarco rialto - location
-    pacco1 pacco2 pacco3 pacco4 pacco5 pacco6 - package
-    trucktorino truckbologna truckfirenze truckvenezia - truck
-    aereo1 aereo2 aereo3 - airplane
+    pack1 pack2 pack3 pack4 pack5 pack6 - package
+    truckturin truckbologna truckflorence truckvenice - truck
+    plane1 plane2 plane3 - airplane
   )
   
   (:init
-    (in-city caselle torino)
-    (in-city piazzacastello torino)
-    (in-city lingotto torino)
+    (in-city caselle turin)
+    (in-city piazzacastello turin)
+    (in-city lingotto turin)
     (in-city marconi bologna)
-    (in-city stazionebologna bologna)
+    (in-city bolognastation bologna)
     (in-city mercato bologna)
-    (in-city peretola firenze)
-    (in-city duomo firenze)
-    (in-city pontevecchio firenze)
-    (in-city marcotessera venezia)
-    (in-city sanmarco venezia)
-    (in-city rialto venezia)
-    (at trucktorino lingotto)
+    (in-city peretola florence)
+    (in-city duomo florence)
+    (in-city pontevecchio florence)
+    (in-city marcotessera venice)
+    (in-city sanmarco venice)
+    (in-city rialto venice)
+    (at truckturin lingotto)
     (at truckbologna mercato)
-    (at truckfirenze duomo)
-    (at truckvenezia sanmarco)
-    (at aereo1 caselle)
-    (at aereo2 marconi)
-    (at aereo3 marcotessera)
-    (at pacco1 piazzacastello)
-    (at pacco2 stazionebologna)
-    (at pacco3 lingotto)
-    (at pacco4 pontevecchio)
-    (at pacco5 sanmarco)
-    (at pacco6 rialto)
+    (at truckflorence duomo)
+    (at truckvenice sanmarco)
+    (at plane1 caselle)
+    (at plane2 marconi)
+    (at plane3 marcotessera)
+    (at pack1 piazzacastello)
+    (at pack2 bolognastation)
+    (at pack3 lingotto)
+    (at pack4 pontevecchio)
+    (at pack5 sanmarco)
+    (at pack6 rialto)
     
   )
   
   (:goal
     (and
-      (at pacco1 mercato)
-      (at pacco2 duomo)
-      (at pacco3 stazionebologna)
-      (at pacco4 piazzacastello)
-      (at pacco5 lingotto)
-      (at pacco6 pontevecchio)
+      (at pack1 mercato)
+      (at pack2 duomo)
+      (at pack3 bolognastation)
+      (at pack4 piazzacastello)
+      (at pack5 lingotto)
+      (at pack6 pontevecchio)
     )
   )
 )`;
@@ -471,71 +471,71 @@ h1 setup time (msec): 19
 problem solved
 
 found plan:
-0.0: (drive-truck trucktorino lingotto caselle torino)
+0.0: (drive-truck truckturin lingotto caselle turin)
 1.0: (drive-truck truckbologna mercato marconi bologna)
-2.0: (drive-truck truckfirenze duomo peretola firenze)
-3.0: (load-truck pacco5 truckvenezia sanmarco)
-4.0: (drive-truck truckvenezia sanmarco marcotessera venezia)
-5.0: (unload-truck pacco5 truckvenezia marcotessera)
-6.0: (load-airplane pacco5 aereo3 marcotessera)
-7.0: (fly-airplane aereo2 marconi peretola)
-8.0: (fly-airplane aereo3 marcotessera caselle)
-9.0: (unload-airplane pacco5 aereo3 caselle)
-10.0: (load-truck pacco5 trucktorino caselle)
-11.0: (fly-airplane aereo1 caselle peretola)
-12.0: (drive-truck truckvenezia marcotessera rialto venezia)
-13.0: (load-truck pacco6 truckvenezia rialto)
-14.0: (drive-truck truckvenezia rialto marcotessera venezia)
-15.0: (unload-truck pacco6 truckvenezia marcotessera)
-16.0: (fly-airplane aereo2 peretola marcotessera)
-17.0: (load-airplane pacco6 aereo2 marcotessera)
-18.0: (fly-airplane aereo2 marcotessera peretola)
-19.0: (unload-airplane pacco6 aereo2 peretola)
-20.0: (load-truck pacco6 truckfirenze peretola)
-21.0: (fly-airplane aereo2 peretola caselle)
-22.0: (drive-truck truckfirenze peretola pontevecchio firenze)
-23.0: (load-truck pacco4 truckfirenze pontevecchio)
-24.0: (drive-truck truckfirenze pontevecchio peretola firenze)
-25.0: (unload-truck pacco4 truckfirenze peretola)
-26.0: (load-airplane pacco4 aereo1 peretola)
-27.0: (fly-airplane aereo2 caselle marconi)
-28.0: (fly-airplane aereo1 peretola caselle)
-29.0: (unload-airplane pacco4 aereo1 caselle)
-30.0: (load-truck pacco4 trucktorino caselle)
-31.0: (drive-truck trucktorino caselle piazzacastello torino)
-32.0: (load-truck pacco1 trucktorino piazzacastello)
-33.0: (drive-truck trucktorino piazzacastello caselle torino)
-34.0: (unload-truck pacco1 trucktorino caselle)
-35.0: (drive-truck trucktorino caselle lingotto torino)
-36.0: (load-truck pacco3 trucktorino lingotto)
-37.0: (load-airplane pacco1 aereo1 caselle)
-38.0: (fly-airplane aereo1 caselle marconi)
-39.0: (unload-airplane pacco1 aereo1 marconi)
-40.0: (load-truck pacco1 truckbologna marconi)
-41.0: (unload-truck pacco5 trucktorino lingotto)
-42.0: (drive-truck trucktorino lingotto caselle torino)
-43.0: (unload-truck pacco3 trucktorino caselle)
-44.0: (drive-truck trucktorino caselle piazzacastello torino)
-45.0: (load-airplane pacco3 aereo3 caselle)
-46.0: (fly-airplane aereo3 caselle marconi)
-47.0: (unload-airplane pacco3 aereo3 marconi)
-48.0: (load-truck pacco3 truckbologna marconi)
-49.0: (drive-truck truckbologna marconi stazionebologna bologna)
-50.0: (load-truck pacco2 truckbologna stazionebologna)
-51.0: (unload-truck pacco3 truckbologna stazionebologna)
-52.0: (drive-truck truckbologna stazionebologna marconi bologna)
-53.0: (unload-truck pacco2 truckbologna marconi)
+2.0: (drive-truck truckflorence duomo peretola florence)
+3.0: (load-truck pack5 truckvenice sanmarco)
+4.0: (drive-truck truckvenice sanmarco marcotessera venice)
+5.0: (unload-truck pack5 truckvenice marcotessera)
+6.0: (load-airplane pack5 plane3 marcotessera)
+7.0: (fly-airplane plane2 marconi peretola)
+8.0: (fly-airplane plane3 marcotessera caselle)
+9.0: (unload-airplane pack5 plane3 caselle)
+10.0: (load-truck pack5 truckturin caselle)
+11.0: (fly-airplane plane1 caselle peretola)
+12.0: (drive-truck truckvenice marcotessera rialto venice)
+13.0: (load-truck pack6 truckvenice rialto)
+14.0: (drive-truck truckvenice rialto marcotessera venice)
+15.0: (unload-truck pack6 truckvenice marcotessera)
+16.0: (fly-airplane plane2 peretola marcotessera)
+17.0: (load-airplane pack6 plane2 marcotessera)
+18.0: (fly-airplane plane2 marcotessera peretola)
+19.0: (unload-airplane pack6 plane2 peretola)
+20.0: (load-truck pack6 truckflorence peretola)
+21.0: (fly-airplane plane2 peretola caselle)
+22.0: (drive-truck truckflorence peretola pontevecchio florence)
+23.0: (load-truck pack4 truckflorence pontevecchio)
+24.0: (drive-truck truckflorence pontevecchio peretola florence)
+25.0: (unload-truck pack4 truckflorence peretola)
+26.0: (load-airplane pack4 plane1 peretola)
+27.0: (fly-airplane plane2 caselle marconi)
+28.0: (fly-airplane plane1 peretola caselle)
+29.0: (unload-airplane pack4 plane1 caselle)
+30.0: (load-truck pack4 truckturin caselle)
+31.0: (drive-truck truckturin caselle piazzacastello turin)
+32.0: (load-truck pack1 truckturin piazzacastello)
+33.0: (drive-truck truckturin piazzacastello caselle turin)
+34.0: (unload-truck pack1 truckturin caselle)
+35.0: (drive-truck truckturin caselle lingotto turin)
+36.0: (load-truck pack3 truckturin lingotto)
+37.0: (load-airplane pack1 plane1 caselle)
+38.0: (fly-airplane plane1 caselle marconi)
+39.0: (unload-airplane pack1 plane1 marconi)
+40.0: (load-truck pack1 truckbologna marconi)
+41.0: (unload-truck pack5 truckturin lingotto)
+42.0: (drive-truck truckturin lingotto caselle turin)
+43.0: (unload-truck pack3 truckturin caselle)
+44.0: (drive-truck truckturin caselle piazzacastello turin)
+45.0: (load-airplane pack3 plane3 caselle)
+46.0: (fly-airplane plane3 caselle marconi)
+47.0: (unload-airplane pack3 plane3 marconi)
+48.0: (load-truck pack3 truckbologna marconi)
+49.0: (drive-truck truckbologna marconi bolognastation bologna)
+50.0: (load-truck pack2 truckbologna bolognastation)
+51.0: (unload-truck pack3 truckbologna bolognastation)
+52.0: (drive-truck truckbologna bolognastation marconi bologna)
+53.0: (unload-truck pack2 truckbologna marconi)
 54.0: (drive-truck truckbologna marconi mercato bologna)
-55.0: (load-airplane pacco2 aereo1 marconi)
-56.0: (fly-airplane aereo1 marconi peretola)
-57.0: (unload-airplane pacco2 aereo1 peretola)
-58.0: (load-truck pacco2 truckfirenze peretola)
-59.0: (drive-truck truckfirenze peretola duomo firenze)
-60.0: (unload-truck pacco4 trucktorino piazzacastello)
-61.0: (unload-truck pacco2 truckfirenze duomo)
-62.0: (drive-truck truckfirenze duomo pontevecchio firenze)
-63.0: (unload-truck pacco6 truckfirenze pontevecchio)
-64.0: (unload-truck pacco1 truckbologna mercato)
+55.0: (load-airplane pack2 plane1 marconi)
+56.0: (fly-airplane plane1 marconi peretola)
+57.0: (unload-airplane pack2 plane1 peretola)
+58.0: (load-truck pack2 truckflorence peretola)
+59.0: (drive-truck truckflorence peretola duomo florence)
+60.0: (unload-truck pack4 truckturin piazzacastello)
+61.0: (unload-truck pack2 truckflorence duomo)
+62.0: (drive-truck truckflorence duomo pontevecchio florence)
+63.0: (unload-truck pack6 truckflorence pontevecchio)
+64.0: (unload-truck pack1 truckbologna mercato)
 
 plan-length:65
 metric (search):65.0
@@ -550,68 +550,68 @@ export const prob2_numeric =`(define (problem logistics-delivery)
   (:domain logistics)
   
   (:objects
-    torino bologna firenze venezia - city
+    turin bologna florence venice - city
     caselle marconi peretola marcotessera - airport
     piazzacastello lingotto - location
-    stazionebologna mercato - location
+    bolognastation mercato - location
     duomo pontevecchio - location
     sanmarco rialto - location
-    pacco1 pacco2 pacco3 pacco4 pacco5 pacco6 - package
-    trucktorino truckbologna truckfirenze truckvenezia - truck
-    aereo1 aereo2 aereo3 - airplane
+    pack1 pack2 pack3 pack4 pack5 pack6 - package
+    truckturin truckbologna truckflorence truckvenice - truck
+    plane1 plane2 plane3 - airplane
   )
   
   (:init
-    (in-city caselle torino)
-    (in-city piazzacastello torino)
-    (in-city lingotto torino)
+    (in-city caselle turin)
+    (in-city piazzacastello turin)
+    (in-city lingotto turin)
     (in-city marconi bologna)
-    (in-city stazionebologna bologna)
+    (in-city bolognastation bologna)
     (in-city mercato bologna)
-    (in-city peretola firenze)
-    (in-city duomo firenze)
-    (in-city pontevecchio firenze)
-    (in-city marcotessera venezia)
-    (in-city sanmarco venezia)
-    (in-city rialto venezia)
-    (at trucktorino lingotto)
+    (in-city peretola florence)
+    (in-city duomo florence)
+    (in-city pontevecchio florence)
+    (in-city marcotessera venice)
+    (in-city sanmarco venice)
+    (in-city rialto venice)
+    (at truckturin lingotto)
     (at truckbologna mercato)
-    (at truckfirenze duomo)
-    (at truckvenezia sanmarco)
-    (at aereo1 caselle)
-    (at aereo2 marconi)
-    (at aereo3 marcotessera)
-    (at pacco1 piazzacastello)
-    (at pacco2 stazionebologna)
-    (at pacco3 lingotto)
-    (at pacco4 pontevecchio)
-    (at pacco5 sanmarco)
-    (at pacco6 rialto)
-    (= (capacity trucktorino) 4)
+    (at truckflorence duomo)
+    (at truckvenice sanmarco)
+    (at plane1 caselle)
+    (at plane2 marconi)
+    (at plane3 marcotessera)
+    (at pack1 piazzacastello)
+    (at pack2 bolognastation)
+    (at pack3 lingotto)
+    (at pack4 pontevecchio)
+    (at pack5 sanmarco)
+    (at pack6 rialto)
+    (= (capacity truckturin) 4)
     (= (capacity truckbologna) 3)
-    (= (capacity truckfirenze) 3)
-    (= (capacity truckvenezia) 2)
-    (= (capacity aereo1) 8)
-    (= (capacity aereo2) 9)
-    (= (capacity aereo3) 6)
+    (= (capacity truckflorence) 3)
+    (= (capacity truckvenice) 2)
+    (= (capacity plane1) 8)
+    (= (capacity plane2) 9)
+    (= (capacity plane3) 6)
     
-    (= (current-load trucktorino) 0)
+    (= (current-load truckturin) 0)
     (= (current-load truckbologna) 0)
-    (= (current-load truckfirenze) 0)
-    (= (current-load truckvenezia) 0)
-    (= (current-load aereo1) 0)
-    (= (current-load aereo2) 0)
-    (= (current-load aereo3) 0)
+    (= (current-load truckflorence) 0)
+    (= (current-load truckvenice) 0)
+    (= (current-load plane1) 0)
+    (= (current-load plane2) 0)
+    (= (current-load plane3) 0)
   )
   
   (:goal
     (and
-      (at pacco1 mercato)
-      (at pacco2 duomo)
-      (at pacco3 stazionebologna)
-      (at pacco4 piazzacastello)
-      (at pacco5 lingotto)
-      (at pacco6 pontevecchio)
+      (at pack1 mercato)
+      (at pack2 duomo)
+      (at pack3 bolognastation)
+      (at pack4 piazzacastello)
+      (at pack5 lingotto)
+      (at pack6 pontevecchio)
     )
   )
 )`;
@@ -685,71 +685,71 @@ h1 setup time (msec): 18
 problem solved
 
 found plan:
-0.0: (drive-truck trucktorino lingotto caselle torino)
+0.0: (drive-truck truckturin lingotto caselle turin)
 1.0: (drive-truck truckbologna mercato marconi bologna)
-2.0: (drive-truck truckfirenze duomo peretola firenze)
-3.0: (load-truck pacco5 truckvenezia sanmarco)
-4.0: (drive-truck truckvenezia sanmarco marcotessera venezia)
-5.0: (unload-truck pacco5 truckvenezia marcotessera)
-6.0: (load-airplane pacco5 aereo3 marcotessera)
-7.0: (fly-airplane aereo2 marconi peretola)
-8.0: (fly-airplane aereo3 marcotessera caselle)
-9.0: (unload-airplane pacco5 aereo3 caselle)
-10.0: (load-truck pacco5 trucktorino caselle)
-11.0: (fly-airplane aereo1 caselle marconi)
-12.0: (drive-truck truckvenezia marcotessera rialto venezia)
-13.0: (load-truck pacco6 truckvenezia rialto)
-14.0: (drive-truck truckvenezia rialto marcotessera venezia)
-15.0: (unload-truck pacco6 truckvenezia marcotessera)
-16.0: (fly-airplane aereo2 peretola marcotessera)
-17.0: (load-airplane pacco6 aereo2 marcotessera)
-18.0: (fly-airplane aereo2 marcotessera peretola)
-19.0: (unload-airplane pacco6 aereo2 peretola)
-20.0: (load-truck pacco6 truckfirenze peretola)
-21.0: (fly-airplane aereo2 peretola marcotessera)
-22.0: (drive-truck truckfirenze peretola pontevecchio firenze)
-23.0: (load-truck pacco4 truckfirenze pontevecchio)
-24.0: (drive-truck truckfirenze pontevecchio peretola firenze)
-25.0: (unload-truck pacco4 truckfirenze peretola)
-26.0: (fly-airplane aereo2 marcotessera peretola)
-27.0: (load-airplane pacco4 aereo2 peretola)
-28.0: (fly-airplane aereo2 peretola caselle)
-29.0: (unload-airplane pacco4 aereo2 caselle)
-30.0: (load-truck pacco4 trucktorino caselle)
-31.0: (drive-truck trucktorino caselle piazzacastello torino)
-32.0: (load-truck pacco1 trucktorino piazzacastello)
-33.0: (drive-truck trucktorino piazzacastello caselle torino)
-34.0: (unload-truck pacco1 trucktorino caselle)
-35.0: (drive-truck trucktorino caselle lingotto torino)
-36.0: (load-truck pacco3 trucktorino lingotto)
-37.0: (load-airplane pacco1 aereo3 caselle)
-38.0: (fly-airplane aereo3 caselle marconi)
-39.0: (unload-airplane pacco1 aereo3 marconi)
-40.0: (load-truck pacco1 truckbologna marconi)
-41.0: (unload-truck pacco5 trucktorino lingotto)
-42.0: (drive-truck trucktorino lingotto caselle torino)
-43.0: (unload-truck pacco3 trucktorino caselle)
-44.0: (drive-truck trucktorino caselle piazzacastello torino)
-45.0: (load-airplane pacco3 aereo2 caselle)
-46.0: (fly-airplane aereo2 caselle marconi)
-47.0: (unload-airplane pacco3 aereo2 marconi)
-48.0: (load-truck pacco3 truckbologna marconi)
-49.0: (drive-truck truckbologna marconi stazionebologna bologna)
-50.0: (load-truck pacco2 truckbologna stazionebologna)
-51.0: (unload-truck pacco3 truckbologna stazionebologna)
-52.0: (drive-truck truckbologna stazionebologna marconi bologna)
-53.0: (unload-truck pacco2 truckbologna marconi)
+2.0: (drive-truck truckflorence duomo peretola florence)
+3.0: (load-truck pack5 truckvenice sanmarco)
+4.0: (drive-truck truckvenice sanmarco marcotessera venice)
+5.0: (unload-truck pack5 truckvenice marcotessera)
+6.0: (load-airplane pack5 plane3 marcotessera)
+7.0: (fly-airplane plane2 marconi peretola)
+8.0: (fly-airplane plane3 marcotessera caselle)
+9.0: (unload-airplane pack5 plane3 caselle)
+10.0: (load-truck pack5 truckturin caselle)
+11.0: (fly-airplane plane1 caselle marconi)
+12.0: (drive-truck truckvenice marcotessera rialto venice)
+13.0: (load-truck pack6 truckvenice rialto)
+14.0: (drive-truck truckvenice rialto marcotessera venice)
+15.0: (unload-truck pack6 truckvenice marcotessera)
+16.0: (fly-airplane plane2 peretola marcotessera)
+17.0: (load-airplane pack6 plane2 marcotessera)
+18.0: (fly-airplane plane2 marcotessera peretola)
+19.0: (unload-airplane pack6 plane2 peretola)
+20.0: (load-truck pack6 truckflorence peretola)
+21.0: (fly-airplane plane2 peretola marcotessera)
+22.0: (drive-truck truckflorence peretola pontevecchio florence)
+23.0: (load-truck pack4 truckflorence pontevecchio)
+24.0: (drive-truck truckflorence pontevecchio peretola florence)
+25.0: (unload-truck pack4 truckflorence peretola)
+26.0: (fly-airplane plane2 marcotessera peretola)
+27.0: (load-airplane pack4 plane2 peretola)
+28.0: (fly-airplane plane2 peretola caselle)
+29.0: (unload-airplane pack4 plane2 caselle)
+30.0: (load-truck pack4 truckturin caselle)
+31.0: (drive-truck truckturin caselle piazzacastello turin)
+32.0: (load-truck pack1 truckturin piazzacastello)
+33.0: (drive-truck truckturin piazzacastello caselle turin)
+34.0: (unload-truck pack1 truckturin caselle)
+35.0: (drive-truck truckturin caselle lingotto turin)
+36.0: (load-truck pack3 truckturin lingotto)
+37.0: (load-airplane pack1 plane3 caselle)
+38.0: (fly-airplane plane3 caselle marconi)
+39.0: (unload-airplane pack1 plane3 marconi)
+40.0: (load-truck pack1 truckbologna marconi)
+41.0: (unload-truck pack5 truckturin lingotto)
+42.0: (drive-truck truckturin lingotto caselle turin)
+43.0: (unload-truck pack3 truckturin caselle)
+44.0: (drive-truck truckturin caselle piazzacastello turin)
+45.0: (load-airplane pack3 plane2 caselle)
+46.0: (fly-airplane plane2 caselle marconi)
+47.0: (unload-airplane pack3 plane2 marconi)
+48.0: (load-truck pack3 truckbologna marconi)
+49.0: (drive-truck truckbologna marconi bolognastation bologna)
+50.0: (load-truck pack2 truckbologna bolognastation)
+51.0: (unload-truck pack3 truckbologna bolognastation)
+52.0: (drive-truck truckbologna bolognastation marconi bologna)
+53.0: (unload-truck pack2 truckbologna marconi)
 54.0: (drive-truck truckbologna marconi mercato bologna)
-55.0: (load-airplane pacco2 aereo1 marconi)
-56.0: (fly-airplane aereo1 marconi peretola)
-57.0: (unload-airplane pacco2 aereo1 peretola)
-58.0: (load-truck pacco2 truckfirenze peretola)
-59.0: (drive-truck truckfirenze peretola pontevecchio firenze)
-60.0: (unload-truck pacco4 trucktorino piazzacastello)
-61.0: (unload-truck pacco6 truckfirenze pontevecchio)
-62.0: (drive-truck truckfirenze pontevecchio duomo firenze)
-63.0: (unload-truck pacco2 truckfirenze duomo)
-64.0: (unload-truck pacco1 truckbologna mercato)
+55.0: (load-airplane pack2 plane1 marconi)
+56.0: (fly-airplane plane1 marconi peretola)
+57.0: (unload-airplane pack2 plane1 peretola)
+58.0: (load-truck pack2 truckflorence peretola)
+59.0: (drive-truck truckflorence peretola pontevecchio florence)
+60.0: (unload-truck pack4 truckturin piazzacastello)
+61.0: (unload-truck pack6 truckflorence pontevecchio)
+62.0: (drive-truck truckflorence pontevecchio duomo florence)
+63.0: (unload-truck pack2 truckflorence duomo)
+64.0: (unload-truck pack1 truckbologna mercato)
 
 plan-length:65
 metric (search):65.0
@@ -764,67 +764,67 @@ export const prob3_classic = `(define (problem logistics-five-cities)
   (:domain logistics)
   
   (:objects
-    milano roma napoli torino bologna - city
+    milan rome naples turin bologna - city
     malpensa fiumicino capodichino caselle marconi - airport
-    centromilano stazionemilano navigli - location
-    centroroma terminiroma trastevere - location
-    centronapoli portonapoli quartierispagnoli - location
-    centrotorino portanuova lingotto - location
-    centrobologna stazionebologna universitabologna - location
-    pacco1 pacco2 pacco3 pacco4 pacco5 pacco6 pacco7 pacco8 - package
-    truckmilano truckroma trucknapoli trucktorino truckbologna - truck
-    aereo1 aereo2 aereo3 - airplane
+    milancenter milanstation navigli - location
+    romecenter termini trastevere - location
+    naplescenter naplesport quartierispagnoli - location
+    centroturin portanuova lingotto - location
+    centrobologna bolognastation universitabologna - location
+    pack1 pack2 pack3 pack4 pack5 pack6 pack7 pack8 - package
+    truckmilan truckrome trucknaples truckturin truckbologna - truck
+    plane1 plane2 plane3 - airplane
   )
   
   (:init
-    (in-city malpensa milano)
-    (in-city fiumicino roma)
-    (in-city capodichino napoli)
-    (in-city caselle torino)
+    (in-city malpensa milan)
+    (in-city fiumicino rome)
+    (in-city capodichino naples)
+    (in-city caselle turin)
     (in-city marconi bologna)
-    (in-city centromilano milano)
-    (in-city stazionemilano milano)
-    (in-city navigli milano)
-    (in-city centroroma roma)
-    (in-city terminiroma roma)
-    (in-city trastevere roma)
-    (in-city centronapoli napoli)
-    (in-city portonapoli napoli)
-    (in-city quartierispagnoli napoli)
-    (in-city centrotorino torino)
-    (in-city portanuova torino)
-    (in-city lingotto torino)
+    (in-city milancenter milan)
+    (in-city milanstation milan)
+    (in-city navigli milan)
+    (in-city romecenter rome)
+    (in-city termini rome)
+    (in-city trastevere rome)
+    (in-city naplescenter naples)
+    (in-city naplesport naples)
+    (in-city quartierispagnoli naples)
+    (in-city centroturin turin)
+    (in-city portanuova turin)
+    (in-city lingotto turin)
     (in-city centrobologna bologna)
-    (in-city stazionebologna bologna)
+    (in-city bolognastation bologna)
     (in-city universitabologna bologna)
-    (at truckmilano centromilano)
-    (at truckroma centroroma)
-    (at trucknapoli centronapoli)
-    (at trucktorino centrotorino)
+    (at truckmilan milancenter)
+    (at truckrome romecenter)
+    (at trucknaples naplescenter)
+    (at truckturin centroturin)
     (at truckbologna centrobologna)
-    (at aereo1 malpensa)
-    (at aereo2 fiumicino)
-    (at aereo3 caselle)
-    (at pacco1 stazionemilano)
-    (at pacco2 navigli)
-    (at pacco3 terminiroma)
-    (at pacco4 trastevere)
-    (at pacco5 portonapoli)
-    (at pacco6 quartierispagnoli)
-    (at pacco7 portanuova)
-    (at pacco8 universitabologna)
+    (at plane1 malpensa)
+    (at plane2 fiumicino)
+    (at plane3 caselle)
+    (at pack1 milanstation)
+    (at pack2 navigli)
+    (at pack3 termini)
+    (at pack4 trastevere)
+    (at pack5 naplesport)
+    (at pack6 quartierispagnoli)
+    (at pack7 portanuova)
+    (at pack8 universitabologna)
   )
   
   (:goal
     (and
-      (at pacco1 centroroma)
-      (at pacco2 portonapoli)
-      (at pacco3 navigli)
-      (at pacco4 centronapoli)
-      (at pacco5 lingotto)
-      (at pacco6 stazionebologna)
-      (at pacco7 trastevere)
-      (at pacco8 stazionemilano)
+      (at pack1 romecenter)
+      (at pack2 naplesport)
+      (at pack3 navigli)
+      (at pack4 naplescenter)
+      (at pack5 lingotto)
+      (at pack6 bolognastation)
+      (at pack7 trastevere)
+      (at pack8 milanstation)
     )
   )
 )`;
@@ -916,108 +916,108 @@ h1 setup time (msec): 22
 problem solved
 
 found plan:
-0.0: (drive-truck truckmilano centromilano malpensa milano)
-1.0: (drive-truck trucknapoli centronapoli capodichino napoli)
-2.0: (drive-truck truckroma centroroma fiumicino roma)
+0.0: (drive-truck truckmilan milancenter malpensa milan)
+1.0: (drive-truck trucknaples naplescenter capodichino naples)
+2.0: (drive-truck truckrome romecenter fiumicino rome)
 3.0: (drive-truck truckbologna centrobologna marconi bologna)
-4.0: (drive-truck trucktorino centrotorino caselle torino)
-5.0: (fly-airplane aereo2 fiumicino capodichino)
-6.0: (fly-airplane aereo3 caselle fiumicino)
+4.0: (drive-truck truckturin centroturin caselle turin)
+5.0: (fly-airplane plane2 fiumicino capodichino)
+6.0: (fly-airplane plane3 caselle fiumicino)
 7.0: (drive-truck truckbologna marconi universitabologna bologna)
-8.0: (load-truck pacco8 truckbologna universitabologna)
+8.0: (load-truck pack8 truckbologna universitabologna)
 9.0: (drive-truck truckbologna universitabologna marconi bologna)
-10.0: (unload-truck pacco8 truckbologna marconi)
-11.0: (fly-airplane aereo1 malpensa marconi)
-12.0: (load-airplane pacco8 aereo1 marconi)
-13.0: (fly-airplane aereo1 marconi malpensa)
-14.0: (unload-airplane pacco8 aereo1 malpensa)
-15.0: (load-truck pacco8 truckmilano malpensa)
-16.0: (fly-airplane aereo1 malpensa capodichino)
-17.0: (drive-truck truckbologna marconi stazionebologna bologna)
-18.0: (fly-airplane aereo2 capodichino caselle)
-19.0: (drive-truck truckmilano malpensa navigli milano)
-20.0: (load-truck pacco2 truckmilano navigli)
-21.0: (drive-truck truckmilano navigli malpensa milano)
-22.0: (unload-truck pacco2 truckmilano malpensa)
-23.0: (fly-airplane aereo3 fiumicino malpensa)
-24.0: (load-airplane pacco2 aereo3 malpensa)
-25.0: (drive-truck truckmilano malpensa stazionemilano milano)
-26.0: (load-truck pacco1 truckmilano stazionemilano)
-27.0: (drive-truck truckmilano stazionemilano malpensa milano)
-28.0: (unload-truck pacco1 truckmilano malpensa)
-29.0: (load-airplane pacco1 aereo3 malpensa)
-30.0: (fly-airplane aereo3 malpensa fiumicino)
-31.0: (unload-airplane pacco1 aereo3 fiumicino)
-32.0: (load-truck pacco1 truckroma fiumicino)
-33.0: (fly-airplane aereo3 fiumicino capodichino)
-34.0: (fly-airplane aereo1 capodichino malpensa)
-35.0: (unload-airplane pacco2 aereo3 capodichino)
-36.0: (load-truck pacco2 trucknapoli capodichino)
-37.0: (drive-truck truckmilano malpensa stazionemilano milano)
-38.0: (unload-truck pacco8 truckmilano stazionemilano)
-39.0: (drive-truck truckmilano stazionemilano navigli milano)
-40.0: (fly-airplane aereo1 malpensa fiumicino)
-41.0: (fly-airplane aereo2 caselle malpensa)
-42.0: (fly-airplane aereo1 fiumicino caselle)
-43.0: (drive-truck trucknapoli capodichino portonapoli napoli)
-44.0: (load-truck pacco5 trucknapoli portonapoli)
-45.0: (drive-truck trucknapoli portonapoli capodichino napoli)
-46.0: (unload-truck pacco5 trucknapoli capodichino)
-47.0: (load-airplane pacco5 aereo3 capodichino)
-48.0: (fly-airplane aereo1 caselle fiumicino)
-49.0: (fly-airplane aereo3 capodichino caselle)
-50.0: (fly-airplane aereo1 fiumicino capodichino)
-51.0: (unload-airplane pacco5 aereo3 caselle)
-52.0: (load-truck pacco5 trucktorino caselle)
-53.0: (drive-truck trucktorino caselle lingotto torino)
-54.0: (unload-truck pacco5 trucktorino lingotto)
-55.0: (drive-truck trucktorino lingotto portanuova torino)
-56.0: (load-truck pacco7 trucktorino portanuova)
-57.0: (drive-truck trucktorino portanuova caselle torino)
-58.0: (unload-truck pacco7 trucktorino caselle)
-59.0: (load-airplane pacco7 aereo3 caselle)
-60.0: (fly-airplane aereo3 caselle fiumicino)
-61.0: (unload-airplane pacco7 aereo3 fiumicino)
-62.0: (load-truck pacco7 truckroma fiumicino)
-63.0: (drive-truck truckroma fiumicino trastevere roma)
-64.0: (load-truck pacco4 truckroma trastevere)
-65.0: (drive-truck truckroma trastevere fiumicino roma)
-66.0: (unload-truck pacco4 truckroma fiumicino)
-67.0: (load-airplane pacco4 aereo3 fiumicino)
-68.0: (fly-airplane aereo3 fiumicino capodichino)
-69.0: (unload-airplane pacco4 aereo3 capodichino)
-70.0: (load-truck pacco4 trucknapoli capodichino)
-71.0: (drive-truck trucknapoli capodichino quartierispagnoli napoli)
-72.0: (load-truck pacco6 trucknapoli quartierispagnoli)
-73.0: (drive-truck trucknapoli quartierispagnoli centronapoli napoli)
-74.0: (unload-truck pacco4 trucknapoli centronapoli)
-75.0: (drive-truck trucknapoli centronapoli capodichino napoli)
-76.0: (unload-truck pacco6 trucknapoli capodichino)
-77.0: (drive-truck trucknapoli capodichino portonapoli napoli)
-78.0: (load-airplane pacco6 aereo1 capodichino)
-79.0: (fly-airplane aereo1 capodichino marconi)
-80.0: (unload-airplane pacco6 aereo1 marconi)
-81.0: (unload-truck pacco2 trucknapoli portonapoli)
-82.0: (drive-truck truckroma fiumicino trastevere roma)
-83.0: (unload-truck pacco7 truckroma trastevere)
-84.0: (drive-truck truckroma trastevere centroroma roma)
-85.0: (unload-truck pacco1 truckroma centroroma)
-86.0: (drive-truck truckroma centroroma terminiroma roma)
-87.0: (load-truck pacco3 truckroma terminiroma)
-88.0: (drive-truck truckroma terminiroma fiumicino roma)
-89.0: (unload-truck pacco3 truckroma fiumicino)
-90.0: (fly-airplane aereo3 capodichino fiumicino)
-91.0: (load-airplane pacco3 aereo3 fiumicino)
-92.0: (fly-airplane aereo3 fiumicino malpensa)
-93.0: (unload-airplane pacco3 aereo3 malpensa)
-94.0: (drive-truck truckmilano navigli malpensa milano)
-95.0: (load-truck pacco3 truckmilano malpensa)
-96.0: (drive-truck truckmilano malpensa navigli milano)
-97.0: (unload-truck pacco3 truckmilano navigli)
-98.0: (drive-truck truckbologna stazionebologna marconi bologna)
-99.0: (load-truck pacco6 truckbologna marconi)
-100.0: (drive-truck truckbologna marconi stazionebologna bologna)
-101.0: (unload-truck pacco6 truckbologna stazionebologna)
+10.0: (unload-truck pack8 truckbologna marconi)
+11.0: (fly-airplane plane1 malpensa marconi)
+12.0: (load-airplane pack8 plane1 marconi)
+13.0: (fly-airplane plane1 marconi malpensa)
+14.0: (unload-airplane pack8 plane1 malpensa)
+15.0: (load-truck pack8 truckmilan malpensa)
+16.0: (fly-airplane plane1 malpensa capodichino)
+17.0: (drive-truck truckbologna marconi bolognastation bologna)
+18.0: (fly-airplane plane2 capodichino caselle)
+19.0: (drive-truck truckmilan malpensa navigli milan)
+20.0: (load-truck pack2 truckmilan navigli)
+21.0: (drive-truck truckmilan navigli malpensa milan)
+22.0: (unload-truck pack2 truckmilan malpensa)
+23.0: (fly-airplane plane3 fiumicino malpensa)
+24.0: (load-airplane pack2 plane3 malpensa)
+25.0: (drive-truck truckmilan malpensa milanstation milan)
+26.0: (load-truck pack1 truckmilan milanstation)
+27.0: (drive-truck truckmilan milanstation malpensa milan)
+28.0: (unload-truck pack1 truckmilan malpensa)
+29.0: (load-airplane pack1 plane3 malpensa)
+30.0: (fly-airplane plane3 malpensa fiumicino)
+31.0: (unload-airplane pack1 plane3 fiumicino)
+32.0: (load-truck pack1 truckrome fiumicino)
+33.0: (fly-airplane plane3 fiumicino capodichino)
+34.0: (fly-airplane plane1 capodichino malpensa)
+35.0: (unload-airplane pack2 plane3 capodichino)
+36.0: (load-truck pack2 trucknaples capodichino)
+37.0: (drive-truck truckmilan malpensa milanstation milan)
+38.0: (unload-truck pack8 truckmilan milanstation)
+39.0: (drive-truck truckmilan milanstation navigli milan)
+40.0: (fly-airplane plane1 malpensa fiumicino)
+41.0: (fly-airplane plane2 caselle malpensa)
+42.0: (fly-airplane plane1 fiumicino caselle)
+43.0: (drive-truck trucknaples capodichino naplesport naples)
+44.0: (load-truck pack5 trucknaples naplesport)
+45.0: (drive-truck trucknaples naplesport capodichino naples)
+46.0: (unload-truck pack5 trucknaples capodichino)
+47.0: (load-airplane pack5 plane3 capodichino)
+48.0: (fly-airplane plane1 caselle fiumicino)
+49.0: (fly-airplane plane3 capodichino caselle)
+50.0: (fly-airplane plane1 fiumicino capodichino)
+51.0: (unload-airplane pack5 plane3 caselle)
+52.0: (load-truck pack5 truckturin caselle)
+53.0: (drive-truck truckturin caselle lingotto turin)
+54.0: (unload-truck pack5 truckturin lingotto)
+55.0: (drive-truck truckturin lingotto portanuova turin)
+56.0: (load-truck pack7 truckturin portanuova)
+57.0: (drive-truck truckturin portanuova caselle turin)
+58.0: (unload-truck pack7 truckturin caselle)
+59.0: (load-airplane pack7 plane3 caselle)
+60.0: (fly-airplane plane3 caselle fiumicino)
+61.0: (unload-airplane pack7 plane3 fiumicino)
+62.0: (load-truck pack7 truckrome fiumicino)
+63.0: (drive-truck truckrome fiumicino trastevere rome)
+64.0: (load-truck pack4 truckrome trastevere)
+65.0: (drive-truck truckrome trastevere fiumicino rome)
+66.0: (unload-truck pack4 truckrome fiumicino)
+67.0: (load-airplane pack4 plane3 fiumicino)
+68.0: (fly-airplane plane3 fiumicino capodichino)
+69.0: (unload-airplane pack4 plane3 capodichino)
+70.0: (load-truck pack4 trucknaples capodichino)
+71.0: (drive-truck trucknaples capodichino quartierispagnoli naples)
+72.0: (load-truck pack6 trucknaples quartierispagnoli)
+73.0: (drive-truck trucknaples quartierispagnoli naplescenter naples)
+74.0: (unload-truck pack4 trucknaples naplescenter)
+75.0: (drive-truck trucknaples naplescenter capodichino naples)
+76.0: (unload-truck pack6 trucknaples capodichino)
+77.0: (drive-truck trucknaples capodichino naplesport naples)
+78.0: (load-airplane pack6 plane1 capodichino)
+79.0: (fly-airplane plane1 capodichino marconi)
+80.0: (unload-airplane pack6 plane1 marconi)
+81.0: (unload-truck pack2 trucknaples naplesport)
+82.0: (drive-truck truckrome fiumicino trastevere rome)
+83.0: (unload-truck pack7 truckrome trastevere)
+84.0: (drive-truck truckrome trastevere romecenter rome)
+85.0: (unload-truck pack1 truckrome romecenter)
+86.0: (drive-truck truckrome romecenter termini rome)
+87.0: (load-truck pack3 truckrome termini)
+88.0: (drive-truck truckrome termini fiumicino rome)
+89.0: (unload-truck pack3 truckrome fiumicino)
+90.0: (fly-airplane plane3 capodichino fiumicino)
+91.0: (load-airplane pack3 plane3 fiumicino)
+92.0: (fly-airplane plane3 fiumicino malpensa)
+93.0: (unload-airplane pack3 plane3 malpensa)
+94.0: (drive-truck truckmilan navigli malpensa milan)
+95.0: (load-truck pack3 truckmilan malpensa)
+96.0: (drive-truck truckmilan malpensa navigli milan)
+97.0: (unload-truck pack3 truckmilan navigli)
+98.0: (drive-truck truckbologna bolognastation marconi bologna)
+99.0: (load-truck pack6 truckbologna marconi)
+100.0: (drive-truck truckbologna marconi bolognastation bologna)
+101.0: (unload-truck pack6 truckbologna bolognastation)
 
 plan-length:102
 metric (search):102.0
@@ -1033,85 +1033,85 @@ export const prob3_numeric =`(define (problem logistics-five-cities)
   (:domain logistics)
   
   (:objects
-    milano roma napoli torino bologna - city
+    milan rome naples turin bologna - city
     malpensa fiumicino capodichino caselle marconi - airport
-    centromilano stazionemilano navigli - location
-    centroroma terminiroma trastevere - location
-    centronapoli portonapoli quartierispagnoli - location
-    centrotorino portanuova lingotto - location
-    centrobologna stazionebologna universitabologna - location
-    pacco1 pacco2 pacco3 pacco4 pacco5 pacco6 pacco7 pacco8 - package
-    truckmilano truckroma trucknapoli trucktorino truckbologna - truck
-    aereo1 aereo2 aereo3 - airplane
+    milancenter milanstation navigli - location
+    romecenter termini trastevere - location
+    naplescenter naplesport quartierispagnoli - location
+    centroturin portanuova lingotto - location
+    centrobologna bolognastation universitabologna - location
+    pack1 pack2 pack3 pack4 pack5 pack6 pack7 pack8 - package
+    truckmilan truckrome trucknaples truckturin truckbologna - truck
+    plane1 plane2 plane3 - airplane
   )
   
   (:init
-    (in-city malpensa milano)
-    (in-city fiumicino roma)
-    (in-city capodichino napoli)
-    (in-city caselle torino)
+    (in-city malpensa milan)
+    (in-city fiumicino rome)
+    (in-city capodichino naples)
+    (in-city caselle turin)
     (in-city marconi bologna)
-    (in-city centromilano milano)
-    (in-city stazionemilano milano)
-    (in-city navigli milano)
-    (in-city centroroma roma)
-    (in-city terminiroma roma)
-    (in-city trastevere roma)
-    (in-city centronapoli napoli)
-    (in-city portonapoli napoli)
-    (in-city quartierispagnoli napoli)
-    (in-city centrotorino torino)
-    (in-city portanuova torino)
-    (in-city lingotto torino)
+    (in-city milancenter milan)
+    (in-city milanstation milan)
+    (in-city navigli milan)
+    (in-city romecenter rome)
+    (in-city termini rome)
+    (in-city trastevere rome)
+    (in-city naplescenter naples)
+    (in-city naplesport naples)
+    (in-city quartierispagnoli naples)
+    (in-city centroturin turin)
+    (in-city portanuova turin)
+    (in-city lingotto turin)
     (in-city centrobologna bologna)
-    (in-city stazionebologna bologna)
+    (in-city bolognastation bologna)
     (in-city universitabologna bologna)
-    (at truckmilano centromilano)
-    (at truckroma centroroma)
-    (at trucknapoli centronapoli)
-    (at trucktorino centrotorino)
+    (at truckmilan milancenter)
+    (at truckrome romecenter)
+    (at trucknaples naplescenter)
+    (at truckturin centroturin)
     (at truckbologna centrobologna)
-    (at aereo1 malpensa)
-    (at aereo2 fiumicino)
-    (at aereo3 caselle)
-    (at pacco1 stazionemilano)
-    (at pacco2 navigli)
-    (at pacco3 terminiroma)
-    (at pacco4 trastevere)
-    (at pacco5 portonapoli)
-    (at pacco6 quartierispagnoli)
-    (at pacco7 portanuova)
-    (at pacco8 universitabologna)
+    (at plane1 malpensa)
+    (at plane2 fiumicino)
+    (at plane3 caselle)
+    (at pack1 milanstation)
+    (at pack2 navigli)
+    (at pack3 termini)
+    (at pack4 trastevere)
+    (at pack5 naplesport)
+    (at pack6 quartierispagnoli)
+    (at pack7 portanuova)
+    (at pack8 universitabologna)
     
-    (= (capacity truckmilano) 4)
-    (= (capacity truckroma) 5)
-    (= (capacity trucknapoli) 3)
-    (= (capacity trucktorino) 4)
+    (= (capacity truckmilan) 4)
+    (= (capacity truckrome) 5)
+    (= (capacity trucknaples) 3)
+    (= (capacity truckturin) 4)
     (= (capacity truckbologna) 3)
-    (= (capacity aereo1) 10)
-    (= (capacity aereo2) 8)
-    (= (capacity aereo3) 6)
+    (= (capacity plane1) 10)
+    (= (capacity plane2) 8)
+    (= (capacity plane3) 6)
     
-    (= (current-load truckmilano) 0)
-    (= (current-load truckroma) 0)
-    (= (current-load trucknapoli) 0)
-    (= (current-load trucktorino) 0)
+    (= (current-load truckmilan) 0)
+    (= (current-load truckrome) 0)
+    (= (current-load trucknaples) 0)
+    (= (current-load truckturin) 0)
     (= (current-load truckbologna) 0)
-    (= (current-load aereo1) 0)
-    (= (current-load aereo2) 0)
-    (= (current-load aereo3) 0)
+    (= (current-load plane1) 0)
+    (= (current-load plane2) 0)
+    (= (current-load plane3) 0)
   )
   
   (:goal
     (and
-      (at pacco1 centroroma)
-      (at pacco2 portonapoli)
-      (at pacco3 navigli)
-      (at pacco4 centronapoli)
-      (at pacco5 lingotto)
-      (at pacco6 stazionebologna)
-      (at pacco7 trastevere)
-      (at pacco8 stazionemilano)
+      (at pack1 romecenter)
+      (at pack2 naplesport)
+      (at pack3 navigli)
+      (at pack4 naplescenter)
+      (at pack5 lingotto)
+      (at pack6 bolognastation)
+      (at pack7 trastevere)
+      (at pack8 milanstation)
     )
   )
 )`;
@@ -1203,105 +1203,105 @@ h1 setup time (msec): 26
 problem solved
 
 found plan:
-0.0: (drive-truck truckmilano centromilano malpensa milano)
-1.0: (drive-truck trucknapoli centronapoli capodichino napoli)
-2.0: (drive-truck truckroma centroroma fiumicino roma)
+0.0: (drive-truck truckmilan milancenter malpensa milan)
+1.0: (drive-truck trucknaples naplescenter capodichino naples)
+2.0: (drive-truck truckrome romecenter fiumicino rome)
 3.0: (drive-truck truckbologna centrobologna marconi bologna)
-4.0: (drive-truck trucktorino centrotorino caselle torino)
-5.0: (fly-airplane aereo2 fiumicino capodichino)
-6.0: (fly-airplane aereo3 caselle fiumicino)
-7.0: (fly-airplane aereo1 malpensa marconi)
+4.0: (drive-truck truckturin centroturin caselle turin)
+5.0: (fly-airplane plane2 fiumicino capodichino)
+6.0: (fly-airplane plane3 caselle fiumicino)
+7.0: (fly-airplane plane1 malpensa marconi)
 8.0: (drive-truck truckbologna marconi universitabologna bologna)
-9.0: (load-truck pacco8 truckbologna universitabologna)
+9.0: (load-truck pack8 truckbologna universitabologna)
 10.0: (drive-truck truckbologna universitabologna marconi bologna)
-11.0: (unload-truck pacco8 truckbologna marconi)
-12.0: (load-airplane pacco8 aereo1 marconi)
-13.0: (fly-airplane aereo1 marconi malpensa)
-14.0: (unload-airplane pacco8 aereo1 malpensa)
-15.0: (load-truck pacco8 truckmilano malpensa)
-16.0: (fly-airplane aereo1 malpensa fiumicino)
-17.0: (fly-airplane aereo3 fiumicino malpensa)
-18.0: (drive-truck truckbologna marconi stazionebologna bologna)
-19.0: (drive-truck truckmilano malpensa navigli milano)
-20.0: (load-truck pacco2 truckmilano navigli)
-21.0: (drive-truck truckmilano navigli malpensa milano)
-22.0: (unload-truck pacco2 truckmilano malpensa)
-23.0: (load-airplane pacco2 aereo3 malpensa)
-24.0: (fly-airplane aereo3 malpensa capodichino)
-25.0: (unload-airplane pacco2 aereo3 capodichino)
-26.0: (load-truck pacco2 trucknapoli capodichino)
-27.0: (drive-truck truckmilano malpensa stazionemilano milano)
-28.0: (load-truck pacco1 truckmilano stazionemilano)
-29.0: (drive-truck truckmilano stazionemilano malpensa milano)
-30.0: (unload-truck pacco1 truckmilano malpensa)
-31.0: (drive-truck truckmilano malpensa stazionemilano milano)
-32.0: (unload-truck pacco8 truckmilano stazionemilano)
-33.0: (drive-truck truckmilano stazionemilano malpensa milano)
-34.0: (fly-airplane aereo2 capodichino malpensa)
-35.0: (load-airplane pacco1 aereo2 malpensa)
-36.0: (fly-airplane aereo2 malpensa fiumicino)
-37.0: (unload-airplane pacco1 aereo2 fiumicino)
-38.0: (load-truck pacco1 truckroma fiumicino)
-39.0: (fly-airplane aereo1 fiumicino capodichino)
-40.0: (drive-truck truckmilano malpensa navigli milano)
-41.0: (fly-airplane aereo3 capodichino fiumicino)
-42.0: (drive-truck trucktorino caselle portanuova torino)
-43.0: (load-truck pacco7 trucktorino portanuova)
-44.0: (drive-truck trucktorino portanuova caselle torino)
-45.0: (unload-truck pacco7 trucktorino caselle)
-46.0: (fly-airplane aereo2 fiumicino caselle)
-47.0: (load-airplane pacco7 aereo2 caselle)
-48.0: (fly-airplane aereo2 caselle fiumicino)
-49.0: (unload-airplane pacco7 aereo2 fiumicino)
-50.0: (load-truck pacco7 truckroma fiumicino)
-51.0: (drive-truck truckroma fiumicino trastevere roma)
-52.0: (load-truck pacco4 truckroma trastevere)
-53.0: (drive-truck truckroma trastevere fiumicino roma)
-54.0: (unload-truck pacco4 truckroma fiumicino)
-55.0: (load-airplane pacco4 aereo3 fiumicino)
-56.0: (fly-airplane aereo3 fiumicino capodichino)
-57.0: (unload-airplane pacco4 aereo3 capodichino)
-58.0: (load-truck pacco4 trucknapoli capodichino)
-59.0: (drive-truck trucknapoli capodichino portonapoli napoli)
-60.0: (load-truck pacco5 trucknapoli portonapoli)
-61.0: (drive-truck trucknapoli portonapoli capodichino napoli)
-62.0: (unload-truck pacco5 trucknapoli capodichino)
-63.0: (load-airplane pacco5 aereo1 capodichino)
-64.0: (fly-airplane aereo1 capodichino caselle)
-65.0: (unload-airplane pacco5 aereo1 caselle)
-66.0: (load-truck pacco5 trucktorino caselle)
-67.0: (drive-truck trucktorino caselle lingotto torino)
-68.0: (unload-truck pacco5 trucktorino lingotto)
-69.0: (drive-truck trucknapoli capodichino quartierispagnoli napoli)
-70.0: (load-truck pacco6 trucknapoli quartierispagnoli)
-71.0: (drive-truck trucknapoli quartierispagnoli centronapoli napoli)
-72.0: (unload-truck pacco4 trucknapoli centronapoli)
-73.0: (drive-truck trucknapoli centronapoli capodichino napoli)
-74.0: (unload-truck pacco6 trucknapoli capodichino)
-75.0: (drive-truck trucknapoli capodichino portonapoli napoli)
-76.0: (load-airplane pacco6 aereo3 capodichino)
-77.0: (fly-airplane aereo3 capodichino marconi)
-78.0: (unload-airplane pacco6 aereo3 marconi)
-79.0: (unload-truck pacco2 trucknapoli portonapoli)
-80.0: (drive-truck truckroma fiumicino trastevere roma)
-81.0: (unload-truck pacco7 truckroma trastevere)
-82.0: (drive-truck truckroma trastevere centroroma roma)
-83.0: (unload-truck pacco1 truckroma centroroma)
-84.0: (drive-truck truckroma centroroma terminiroma roma)
-85.0: (load-truck pacco3 truckroma terminiroma)
-86.0: (drive-truck truckroma terminiroma fiumicino roma)
-87.0: (unload-truck pacco3 truckroma fiumicino)
-88.0: (load-airplane pacco3 aereo2 fiumicino)
-89.0: (fly-airplane aereo2 fiumicino malpensa)
-90.0: (unload-airplane pacco3 aereo2 malpensa)
-91.0: (drive-truck truckmilano navigli malpensa milano)
-92.0: (load-truck pacco3 truckmilano malpensa)
-93.0: (drive-truck truckmilano malpensa navigli milano)
-94.0: (unload-truck pacco3 truckmilano navigli)
-95.0: (drive-truck truckbologna stazionebologna marconi bologna)
-96.0: (load-truck pacco6 truckbologna marconi)
-97.0: (drive-truck truckbologna marconi stazionebologna bologna)
-98.0: (unload-truck pacco6 truckbologna stazionebologna)
+11.0: (unload-truck pack8 truckbologna marconi)
+12.0: (load-airplane pack8 plane1 marconi)
+13.0: (fly-airplane plane1 marconi malpensa)
+14.0: (unload-airplane pack8 plane1 malpensa)
+15.0: (load-truck pack8 truckmilan malpensa)
+16.0: (fly-airplane plane1 malpensa fiumicino)
+17.0: (fly-airplane plane3 fiumicino malpensa)
+18.0: (drive-truck truckbologna marconi bolognastation bologna)
+19.0: (drive-truck truckmilan malpensa navigli milan)
+20.0: (load-truck pack2 truckmilan navigli)
+21.0: (drive-truck truckmilan navigli malpensa milan)
+22.0: (unload-truck pack2 truckmilan malpensa)
+23.0: (load-airplane pack2 plane3 malpensa)
+24.0: (fly-airplane plane3 malpensa capodichino)
+25.0: (unload-airplane pack2 plane3 capodichino)
+26.0: (load-truck pack2 trucknaples capodichino)
+27.0: (drive-truck truckmilan malpensa milanstation milan)
+28.0: (load-truck pack1 truckmilan milanstation)
+29.0: (drive-truck truckmilan milanstation malpensa milan)
+30.0: (unload-truck pack1 truckmilan malpensa)
+31.0: (drive-truck truckmilan malpensa milanstation milan)
+32.0: (unload-truck pack8 truckmilan milanstation)
+33.0: (drive-truck truckmilan milanstation malpensa milan)
+34.0: (fly-airplane plane2 capodichino malpensa)
+35.0: (load-airplane pack1 plane2 malpensa)
+36.0: (fly-airplane plane2 malpensa fiumicino)
+37.0: (unload-airplane pack1 plane2 fiumicino)
+38.0: (load-truck pack1 truckrome fiumicino)
+39.0: (fly-airplane plane1 fiumicino capodichino)
+40.0: (drive-truck truckmilan malpensa navigli milan)
+41.0: (fly-airplane plane3 capodichino fiumicino)
+42.0: (drive-truck truckturin caselle portanuova turin)
+43.0: (load-truck pack7 truckturin portanuova)
+44.0: (drive-truck truckturin portanuova caselle turin)
+45.0: (unload-truck pack7 truckturin caselle)
+46.0: (fly-airplane plane2 fiumicino caselle)
+47.0: (load-airplane pack7 plane2 caselle)
+48.0: (fly-airplane plane2 caselle fiumicino)
+49.0: (unload-airplane pack7 plane2 fiumicino)
+50.0: (load-truck pack7 truckrome fiumicino)
+51.0: (drive-truck truckrome fiumicino trastevere rome)
+52.0: (load-truck pack4 truckrome trastevere)
+53.0: (drive-truck truckrome trastevere fiumicino rome)
+54.0: (unload-truck pack4 truckrome fiumicino)
+55.0: (load-airplane pack4 plane3 fiumicino)
+56.0: (fly-airplane plane3 fiumicino capodichino)
+57.0: (unload-airplane pack4 plane3 capodichino)
+58.0: (load-truck pack4 trucknaples capodichino)
+59.0: (drive-truck trucknaples capodichino naplesport naples)
+60.0: (load-truck pack5 trucknaples naplesport)
+61.0: (drive-truck trucknaples naplesport capodichino naples)
+62.0: (unload-truck pack5 trucknaples capodichino)
+63.0: (load-airplane pack5 plane1 capodichino)
+64.0: (fly-airplane plane1 capodichino caselle)
+65.0: (unload-airplane pack5 plane1 caselle)
+66.0: (load-truck pack5 truckturin caselle)
+67.0: (drive-truck truckturin caselle lingotto turin)
+68.0: (unload-truck pack5 truckturin lingotto)
+69.0: (drive-truck trucknaples capodichino quartierispagnoli naples)
+70.0: (load-truck pack6 trucknaples quartierispagnoli)
+71.0: (drive-truck trucknaples quartierispagnoli naplescenter naples)
+72.0: (unload-truck pack4 trucknaples naplescenter)
+73.0: (drive-truck trucknaples naplescenter capodichino naples)
+74.0: (unload-truck pack6 trucknaples capodichino)
+75.0: (drive-truck trucknaples capodichino naplesport naples)
+76.0: (load-airplane pack6 plane3 capodichino)
+77.0: (fly-airplane plane3 capodichino marconi)
+78.0: (unload-airplane pack6 plane3 marconi)
+79.0: (unload-truck pack2 trucknaples naplesport)
+80.0: (drive-truck truckrome fiumicino trastevere rome)
+81.0: (unload-truck pack7 truckrome trastevere)
+82.0: (drive-truck truckrome trastevere romecenter rome)
+83.0: (unload-truck pack1 truckrome romecenter)
+84.0: (drive-truck truckrome romecenter termini rome)
+85.0: (load-truck pack3 truckrome termini)
+86.0: (drive-truck truckrome termini fiumicino rome)
+87.0: (unload-truck pack3 truckrome fiumicino)
+88.0: (load-airplane pack3 plane2 fiumicino)
+89.0: (fly-airplane plane2 fiumicino malpensa)
+90.0: (unload-airplane pack3 plane2 malpensa)
+91.0: (drive-truck truckmilan navigli malpensa milan)
+92.0: (load-truck pack3 truckmilan malpensa)
+93.0: (drive-truck truckmilan malpensa navigli milan)
+94.0: (unload-truck pack3 truckmilan navigli)
+95.0: (drive-truck truckbologna bolognastation marconi bologna)
+96.0: (load-truck pack6 truckbologna marconi)
+97.0: (drive-truck truckbologna marconi bolognastation bologna)
+98.0: (unload-truck pack6 truckbologna bolognastation)
 
 plan-length:99
 metric (search):99.0
@@ -1316,43 +1316,43 @@ export const probb = `(define (problem logistics-delivery)
   (:domain logistics)
   
   (:objects
-    torino bologna firenze - city
+    turin bologna florence - city
     caselle marconi peretola - airport
     piazzacastello lingotto - location
-    stazionebologna mercato - location
+    bolognastation mercato - location
     duomo pontevecchio - location
-    pacco1 pacco2 pacco3 pacco4 - package
-    trucktorino truckbologna truckfirenze - truck
-    aereo1 aereo2 - airplane
+    pack1 pack2 pack3 pack4 - package
+    truckturin truckbologna truckflorence - truck
+    plane1 plane2 - airplane
   )
   
   (:init
-    (in-city caselle torino)
-    (in-city piazzacastello torino)
-    (in-city lingotto torino)
+    (in-city caselle turin)
+    (in-city piazzacastello turin)
+    (in-city lingotto turin)
     (in-city marconi bologna)
-    (in-city stazionebologna bologna)
+    (in-city bolognastation bologna)
     (in-city mercato bologna)
-    (in-city peretola firenze)
-    (in-city duomo firenze)
-    (in-city pontevecchio firenze)
-    (at trucktorino lingotto)
+    (in-city peretola florence)
+    (in-city duomo florence)
+    (in-city pontevecchio florence)
+    (at truckturin lingotto)
     (at truckbologna mercato)
-    (at truckfirenze duomo)
-    (at aereo1 caselle)
-    (at aereo2 marconi)
-    (at pacco1 piazzacastello)
-    (at pacco2 stazionebologna)
-    (at pacco3 lingotto)
-    (at pacco4 pontevecchio)
+    (at truckflorence duomo)
+    (at plane1 caselle)
+    (at plane2 marconi)
+    (at pack1 piazzacastello)
+    (at pack2 bolognastation)
+    (at pack3 lingotto)
+    (at pack4 pontevecchio)
   )
   
   (:goal
     (and
-      (at pacco1 mercato)
-      (at pacco2 duomo)
-      (at pacco3 stazionebologna)
-      (at pacco4 piazzacastello)
+      (at pack1 mercato)
+      (at pack2 duomo)
+      (at pack3 bolognastation)
+      (at pack4 piazzacastello)
     )
   )
 )`;
@@ -1407,53 +1407,53 @@ h1 setup time (msec): 17
 problem solved
 
 found plan:
-0.0: (drive-truck trucktorino lingotto caselle torino)
+0.0: (drive-truck truckturin lingotto caselle turin)
 1.0: (drive-truck truckbologna mercato marconi bologna)
-2.0: (drive-truck truckfirenze duomo peretola firenze)
-3.0: (drive-truck trucktorino caselle piazzacastello torino)
-4.0: (load-truck pacco1 trucktorino piazzacastello)
-5.0: (drive-truck trucktorino piazzacastello caselle torino)
-6.0: (unload-truck pacco1 trucktorino caselle)
-7.0: (load-airplane pacco1 aereo1 caselle)
-8.0: (fly-airplane aereo2 marconi peretola)
-9.0: (fly-airplane aereo1 caselle marconi)
-10.0: (unload-airplane pacco1 aereo1 marconi)
-11.0: (load-truck pacco1 truckbologna marconi)
-12.0: (drive-truck truckbologna marconi stazionebologna bologna)
-13.0: (load-truck pacco2 truckbologna stazionebologna)
-14.0: (drive-truck truckbologna stazionebologna marconi bologna)
-15.0: (unload-truck pacco2 truckbologna marconi)
-16.0: (load-airplane pacco2 aereo1 marconi)
+2.0: (drive-truck truckflorence duomo peretola florence)
+3.0: (drive-truck truckturin caselle piazzacastello turin)
+4.0: (load-truck pack1 truckturin piazzacastello)
+5.0: (drive-truck truckturin piazzacastello caselle turin)
+6.0: (unload-truck pack1 truckturin caselle)
+7.0: (load-airplane pack1 plane1 caselle)
+8.0: (fly-airplane plane2 marconi peretola)
+9.0: (fly-airplane plane1 caselle marconi)
+10.0: (unload-airplane pack1 plane1 marconi)
+11.0: (load-truck pack1 truckbologna marconi)
+12.0: (drive-truck truckbologna marconi bolognastation bologna)
+13.0: (load-truck pack2 truckbologna bolognastation)
+14.0: (drive-truck truckbologna bolognastation marconi bologna)
+15.0: (unload-truck pack2 truckbologna marconi)
+16.0: (load-airplane pack2 plane1 marconi)
 17.0: (drive-truck truckbologna marconi mercato bologna)
-18.0: (unload-truck pacco1 truckbologna mercato)
-19.0: (drive-truck truckbologna mercato stazionebologna bologna)
-20.0: (fly-airplane aereo1 marconi peretola)
-21.0: (fly-airplane aereo2 peretola caselle)
-22.0: (unload-airplane pacco2 aereo1 peretola)
-23.0: (load-truck pacco2 truckfirenze peretola)
-24.0: (drive-truck truckfirenze peretola duomo firenze)
-25.0: (unload-truck pacco2 truckfirenze duomo)
-26.0: (drive-truck truckfirenze duomo pontevecchio firenze)
-27.0: (load-truck pacco4 truckfirenze pontevecchio)
-28.0: (drive-truck truckfirenze pontevecchio peretola firenze)
-29.0: (unload-truck pacco4 truckfirenze peretola)
-30.0: (load-airplane pacco4 aereo1 peretola)
-31.0: (fly-airplane aereo1 peretola caselle)
-32.0: (unload-airplane pacco4 aereo1 caselle)
-33.0: (load-truck pacco4 trucktorino caselle)
-34.0: (drive-truck truckbologna stazionebologna marconi bologna)
-35.0: (drive-truck trucktorino caselle lingotto torino)
-36.0: (load-truck pacco3 trucktorino lingotto)
-37.0: (drive-truck trucktorino lingotto caselle torino)
-38.0: (unload-truck pacco3 trucktorino caselle)
-39.0: (drive-truck trucktorino caselle piazzacastello torino)
-40.0: (load-airplane pacco3 aereo2 caselle)
-41.0: (fly-airplane aereo2 caselle marconi)
-42.0: (unload-airplane pacco3 aereo2 marconi)
-43.0: (load-truck pacco3 truckbologna marconi)
-44.0: (drive-truck truckbologna marconi stazionebologna bologna)
-45.0: (unload-truck pacco3 truckbologna stazionebologna)
-46.0: (unload-truck pacco4 trucktorino piazzacastello)
+18.0: (unload-truck pack1 truckbologna mercato)
+19.0: (drive-truck truckbologna mercato bolognastation bologna)
+20.0: (fly-airplane plane1 marconi peretola)
+21.0: (fly-airplane plane2 peretola caselle)
+22.0: (unload-airplane pack2 plane1 peretola)
+23.0: (load-truck pack2 truckflorence peretola)
+24.0: (drive-truck truckflorence peretola duomo florence)
+25.0: (unload-truck pack2 truckflorence duomo)
+26.0: (drive-truck truckflorence duomo pontevecchio florence)
+27.0: (load-truck pack4 truckflorence pontevecchio)
+28.0: (drive-truck truckflorence pontevecchio peretola florence)
+29.0: (unload-truck pack4 truckflorence peretola)
+30.0: (load-airplane pack4 plane1 peretola)
+31.0: (fly-airplane plane1 peretola caselle)
+32.0: (unload-airplane pack4 plane1 caselle)
+33.0: (load-truck pack4 truckturin caselle)
+34.0: (drive-truck truckbologna bolognastation marconi bologna)
+35.0: (drive-truck truckturin caselle lingotto turin)
+36.0: (load-truck pack3 truckturin lingotto)
+37.0: (drive-truck truckturin lingotto caselle turin)
+38.0: (unload-truck pack3 truckturin caselle)
+39.0: (drive-truck truckturin caselle piazzacastello turin)
+40.0: (load-airplane pack3 plane2 caselle)
+41.0: (fly-airplane plane2 caselle marconi)
+42.0: (unload-airplane pack3 plane2 marconi)
+43.0: (load-truck pack3 truckbologna marconi)
+44.0: (drive-truck truckbologna marconi bolognastation bologna)
+45.0: (unload-truck pack3 truckbologna bolognastation)
+46.0: (unload-truck pack4 truckturin piazzacastello)
 
 plan-length:47
 metric (search):47.0
@@ -1470,94 +1470,94 @@ export const prob2ex1 = `(define (problem logistics-temporal)
   (:domain logistics)
 
   (:objects
-    milano roma napoli torino bologna firenze - city
-    centromilano stazionemilano - location
-    centroroma terminiroma - location
-    centronapoli portonapoli - location
+    milan rome naples turin bologna florence - city
+    milancenter milanstation - location
+    romecenter termini - location
+    naplescenter naplesport - location
     piazzacastello lingotto - location
-    stazionebologna mercato - location
+    bolognastation mercato - location
     duomo pontevecchio - location
-    pacco1 pacco2 pacco3 pacco4 pacco5 pacco6 - package
+    pack1 pack2 pack3 pack4 pack5 pack6 - package
     truck1 truck2 truck3 truck4 - truck
   )
 
   (:init
-    (in-city centromilano milano)
-    (in-city stazionemilano milano)
-    (in-city centroroma roma)
-    (in-city terminiroma roma)
-    (in-city centronapoli napoli)
-    (in-city portonapoli napoli)
-    (in-city piazzacastello torino)
-    (in-city lingotto torino)
-    (in-city stazionebologna bologna)
+    (in-city milancenter milan)
+    (in-city milanstation milan)
+    (in-city romecenter rome)
+    (in-city termini rome)
+    (in-city naplescenter naples)
+    (in-city naplesport naples)
+    (in-city piazzacastello turin)
+    (in-city lingotto turin)
+    (in-city bolognastation bologna)
     (in-city mercato bologna)
-    (in-city duomo firenze)
-    (in-city pontevecchio firenze)
+    (in-city duomo florence)
+    (in-city pontevecchio florence)
 
-    (at truck1 centromilano)
-    (at truck2 centroroma)
+    (at truck1 milancenter)
+    (at truck2 romecenter)
     (at truck3 piazzacastello)
     (at truck4 duomo)
 
-    (at pacco1 stazionemilano)
-    (at pacco2 terminiroma)
-    (at pacco3 centronapoli)
-    (at pacco4 lingotto)
-    (at pacco5 mercato)
-    (at pacco6 pontevecchio)
+    (at pack1 milanstation)
+    (at pack2 termini)
+    (at pack3 naplescenter)
+    (at pack4 lingotto)
+    (at pack5 mercato)
+    (at pack6 pontevecchio)
 
-    (= (distance milano milano) 0)
-    (= (distance milano roma) 5)
-    (= (distance milano napoli) 8)
-    (= (distance milano torino) 2)
-    (= (distance milano bologna) 3)
-    (= (distance milano firenze) 4)
+    (= (distance milan milan) 0)
+    (= (distance milan rome) 5)
+    (= (distance milan naples) 8)
+    (= (distance milan turin) 2)
+    (= (distance milan bologna) 3)
+    (= (distance milan florence) 4)
 
-    (= (distance roma milano) 5)
-    (= (distance roma roma) 0)
-    (= (distance roma napoli) 2)
-    (= (distance roma torino) 7)
-    (= (distance roma bologna) 4)
-    (= (distance roma firenze) 3)
+    (= (distance rome milan) 5)
+    (= (distance rome rome) 0)
+    (= (distance rome naples) 2)
+    (= (distance rome turin) 7)
+    (= (distance rome bologna) 4)
+    (= (distance rome florence) 3)
 
-    (= (distance napoli milano) 8)
-    (= (distance napoli roma) 2)
-    (= (distance napoli napoli) 0)
-    (= (distance napoli torino) 10)
-    (= (distance napoli bologna) 6)
-    (= (distance napoli firenze) 5)
+    (= (distance naples milan) 8)
+    (= (distance naples rome) 2)
+    (= (distance naples naples) 0)
+    (= (distance naples turin) 10)
+    (= (distance naples bologna) 6)
+    (= (distance naples florence) 5)
 
-    (= (distance torino milano) 2)
-    (= (distance torino roma) 7)
-    (= (distance torino napoli) 10)
-    (= (distance torino torino) 0)
-    (= (distance torino bologna) 4)
-    (= (distance torino firenze) 6)
+    (= (distance turin milan) 2)
+    (= (distance turin rome) 7)
+    (= (distance turin naples) 10)
+    (= (distance turin turin) 0)
+    (= (distance turin bologna) 4)
+    (= (distance turin florence) 6)
 
-    (= (distance bologna milano) 3)
-    (= (distance bologna roma) 4)
-    (= (distance bologna napoli) 6)
-    (= (distance bologna torino) 4)
+    (= (distance bologna milan) 3)
+    (= (distance bologna rome) 4)
+    (= (distance bologna naples) 6)
+    (= (distance bologna turin) 4)
     (= (distance bologna bologna) 0)
-    (= (distance bologna firenze) 2)
+    (= (distance bologna florence) 2)
 
-    (= (distance firenze milano) 4)
-    (= (distance firenze roma) 3)
-    (= (distance firenze napoli) 5)
-    (= (distance firenze torino) 6)
-    (= (distance firenze bologna) 2)
-    (= (distance firenze firenze) 0)
+    (= (distance florence milan) 4)
+    (= (distance florence rome) 3)
+    (= (distance florence naples) 5)
+    (= (distance florence turin) 6)
+    (= (distance florence bologna) 2)
+    (= (distance florence florence) 0)
   )
 
   (:goal
     (and
-      (at pacco1 centroroma)
-      (at pacco2 portonapoli)
-      (at pacco3 piazzacastello)
-      (at pacco4 mercato)
-      (at pacco5 duomo)
-      (at pacco6 centromilano)
+      (at pack1 romecenter)
+      (at pack2 naplesport)
+      (at pack3 piazzacastello)
+      (at pack4 mercato)
+      (at pack5 duomo)
+      (at pack6 milancenter)
     )
   )
       (:metric minimize total-time)
@@ -1625,36 +1625,36 @@ Total Num Flips: 83
 
 Plan computed:
    Time: (ACTION) [action Duration; action Cost]
- 0.0000: (DRIVE-TRUCK TRUCK3 PIAZZACASTELLO STAZIONEMILANO TORINO MILANO) [D:2.00; C:0.10]
- 0.0000: (DRIVE-TRUCK TRUCK4 DUOMO TERMINIROMA FIRENZE ROMA) [D:3.00; C:0.10]
- 0.0000: (DRIVE-TRUCK TRUCK1 CENTROMILANO LINGOTTO MILANO TORINO) [D:2.00; C:0.10]
- 0.0000: (DRIVE-TRUCK TRUCK2 CENTROROMA CENTRONAPOLI ROMA NAPOLI) [D:2.00; C:0.10]
- 2.0000: (LOAD-TRUCK PACCO1 TRUCK3 STAZIONEMILANO) [D:0.00; C:0.10]
- 2.0000: (DRIVE-TRUCK TRUCK3 STAZIONEMILANO CENTROROMA MILANO ROMA) [D:5.00; C:0.10]
- 2.0000: (LOAD-TRUCK PACCO4 TRUCK1 LINGOTTO) [D:0.00; C:0.10]
- 2.0000: (DRIVE-TRUCK TRUCK1 LINGOTTO MERCATO TORINO BOLOGNA) [D:4.00; C:0.10]
- 2.0000: (LOAD-TRUCK PACCO3 TRUCK2 CENTRONAPOLI) [D:0.00; C:0.10]
- 2.0000: (DRIVE-TRUCK TRUCK2 CENTRONAPOLI MERCATO NAPOLI BOLOGNA) [D:6.00; C:0.10]
- 3.0000: (LOAD-TRUCK PACCO2 TRUCK4 TERMINIROMA) [D:0.00; C:0.10]
- 3.0000: (DRIVE-TRUCK TRUCK4 TERMINIROMA PORTONAPOLI ROMA NAPOLI) [D:2.00; C:0.10]
- 5.0000: (UNLOAD-TRUCK PACCO2 TRUCK4 PORTONAPOLI) [D:0.00; C:0.10]
- 5.0000: (DRIVE-TRUCK TRUCK4 PORTONAPOLI PONTEVECCHIO NAPOLI FIRENZE) [D:5.00; C:0.10]
- 6.0000: (UNLOAD-TRUCK PACCO4 TRUCK1 MERCATO) [D:0.00; C:0.10]
- 6.0000: (LOAD-TRUCK PACCO5 TRUCK1 MERCATO) [D:0.00; C:0.10]
- 6.0000: (DRIVE-TRUCK TRUCK1 MERCATO CENTROROMA BOLOGNA ROMA) [D:4.00; C:0.10]
- 7.0000: (UNLOAD-TRUCK PACCO1 TRUCK3 CENTROROMA) [D:0.00; C:0.10]
- 8.0000: (UNLOAD-TRUCK PACCO3 TRUCK2 MERCATO) [D:0.00; C:0.10]
- 8.0000: (LOAD-TRUCK PACCO3 TRUCK2 MERCATO) [D:0.00; C:0.10]
- 8.0000: (DRIVE-TRUCK TRUCK2 MERCATO STAZIONEMILANO BOLOGNA MILANO) [D:3.00; C:0.10]
- 10.0000: (LOAD-TRUCK PACCO6 TRUCK4 PONTEVECCHIO) [D:0.00; C:0.10]
- 10.0000: (DRIVE-TRUCK TRUCK4 PONTEVECCHIO CENTROMILANO FIRENZE MILANO) [D:4.00; C:0.10]
- 10.0000: (DRIVE-TRUCK TRUCK1 CENTROROMA PORTONAPOLI ROMA NAPOLI) [D:2.00; C:0.10]
- 11.0000: (DRIVE-TRUCK TRUCK2 STAZIONEMILANO CENTROMILANO MILANO MILANO) [D:0.00; C:0.10]
- 11.0000: (DRIVE-TRUCK TRUCK2 CENTROMILANO PIAZZACASTELLO MILANO TORINO) [D:2.00; C:0.10]
- 12.0000: (DRIVE-TRUCK TRUCK1 PORTONAPOLI DUOMO NAPOLI FIRENZE) [D:5.00; C:0.10]
- 13.0000: (UNLOAD-TRUCK PACCO3 TRUCK2 PIAZZACASTELLO) [D:0.00; C:0.10]
- 14.0000: (UNLOAD-TRUCK PACCO6 TRUCK4 CENTROMILANO) [D:0.00; C:0.10]
- 17.0000: (UNLOAD-TRUCK PACCO5 TRUCK1 DUOMO) [D:0.00; C:0.10]
+ 0.0000: (DRIVE-TRUCK TRUCK3 PIAZZACASTELLO milanstation turin milan) [D:2.00; C:0.10]
+ 0.0000: (DRIVE-TRUCK TRUCK4 DUOMO termini florence rome) [D:3.00; C:0.10]
+ 0.0000: (DRIVE-TRUCK TRUCK1 milancenter LINGOTTO milan turin) [D:2.00; C:0.10]
+ 0.0000: (DRIVE-TRUCK TRUCK2 romecenter naplescenter rome naples) [D:2.00; C:0.10]
+ 2.0000: (LOAD-TRUCK pack1 TRUCK3 milanstation) [D:0.00; C:0.10]
+ 2.0000: (DRIVE-TRUCK TRUCK3 milanstation romecenter milan rome) [D:5.00; C:0.10]
+ 2.0000: (LOAD-TRUCK pack4 TRUCK1 LINGOTTO) [D:0.00; C:0.10]
+ 2.0000: (DRIVE-TRUCK TRUCK1 LINGOTTO MERCATO turin BOLOGNA) [D:4.00; C:0.10]
+ 2.0000: (LOAD-TRUCK pack3 TRUCK2 naplescenter) [D:0.00; C:0.10]
+ 2.0000: (DRIVE-TRUCK TRUCK2 naplescenter MERCATO naples BOLOGNA) [D:6.00; C:0.10]
+ 3.0000: (LOAD-TRUCK pack2 TRUCK4 termini) [D:0.00; C:0.10]
+ 3.0000: (DRIVE-TRUCK TRUCK4 termini naplesport rome naples) [D:2.00; C:0.10]
+ 5.0000: (UNLOAD-TRUCK pack2 TRUCK4 naplesport) [D:0.00; C:0.10]
+ 5.0000: (DRIVE-TRUCK TRUCK4 naplesport PONTEVECCHIO naples florence) [D:5.00; C:0.10]
+ 6.0000: (UNLOAD-TRUCK pack4 TRUCK1 MERCATO) [D:0.00; C:0.10]
+ 6.0000: (LOAD-TRUCK pack5 TRUCK1 MERCATO) [D:0.00; C:0.10]
+ 6.0000: (DRIVE-TRUCK TRUCK1 MERCATO romecenter BOLOGNA rome) [D:4.00; C:0.10]
+ 7.0000: (UNLOAD-TRUCK pack1 TRUCK3 romecenter) [D:0.00; C:0.10]
+ 8.0000: (UNLOAD-TRUCK pack3 TRUCK2 MERCATO) [D:0.00; C:0.10]
+ 8.0000: (LOAD-TRUCK pack3 TRUCK2 MERCATO) [D:0.00; C:0.10]
+ 8.0000: (DRIVE-TRUCK TRUCK2 MERCATO milanstation BOLOGNA milan) [D:3.00; C:0.10]
+ 10.0000: (LOAD-TRUCK pack6 TRUCK4 PONTEVECCHIO) [D:0.00; C:0.10]
+ 10.0000: (DRIVE-TRUCK TRUCK4 PONTEVECCHIO milancenter florence milan) [D:4.00; C:0.10]
+ 10.0000: (DRIVE-TRUCK TRUCK1 romecenter naplesport rome naples) [D:2.00; C:0.10]
+ 11.0000: (DRIVE-TRUCK TRUCK2 milanstation milancenter milan milan) [D:0.00; C:0.10]
+ 11.0000: (DRIVE-TRUCK TRUCK2 milancenter PIAZZACASTELLO milan turin) [D:2.00; C:0.10]
+ 12.0000: (DRIVE-TRUCK TRUCK1 naplesport DUOMO naples florence) [D:5.00; C:0.10]
+ 13.0000: (UNLOAD-TRUCK pack3 TRUCK2 PIAZZACASTELLO) [D:0.00; C:0.10]
+ 14.0000: (UNLOAD-TRUCK pack6 TRUCK4 milancenter) [D:0.00; C:0.10]
+ 17.0000: (UNLOAD-TRUCK pack5 TRUCK1 DUOMO) [D:0.00; C:0.10]
 
 
 
@@ -1671,57 +1671,57 @@ export const prob2ex2 = `(define (problem logistics-temporal-air)
   (:domain logistics)
   
   (:objects
-    milano roma torino - city
+    milan rome turin - city
     malpensa fiumicino caselle - airport
-    centromilano stazionemilano - location
-    centroroma terminiroma - location
+    milancenter milanstation - location
+    romecenter termini - location
     piazzacastello lingotto - location
-    pacco1 pacco2 pacco3 pacco4 - package
+    pack1 pack2 pack3 pack4 - package
     truck1 truck2 truck3 - truck
-    aereo1 aereo2 - airplane
+    plane1 plane2 - airplane
   )
   
   (:init
-    (in-city malpensa milano)
-    (in-city centromilano milano)
-    (in-city stazionemilano milano)
-    (in-city fiumicino roma)
-    (in-city centroroma roma)
-    (in-city terminiroma roma)
-    (in-city caselle torino)
-    (in-city piazzacastello torino)
-    (in-city lingotto torino)
+    (in-city malpensa milan)
+    (in-city milancenter milan)
+    (in-city milanstation milan)
+    (in-city fiumicino rome)
+    (in-city romecenter rome)
+    (in-city termini rome)
+    (in-city caselle turin)
+    (in-city piazzacastello turin)
+    (in-city lingotto turin)
     
-    (at truck1 centromilano)
-    (at truck2 centroroma)
+    (at truck1 milancenter)
+    (at truck2 romecenter)
     (at truck3 piazzacastello)
-    (at aereo1 malpensa)
-    (at aereo2 fiumicino)
+    (at plane1 malpensa)
+    (at plane2 fiumicino)
     
-    (at pacco1 malpensa)
-    (at pacco2 fiumicino)
-    (at pacco3 lingotto)
-    (at pacco4 caselle)
+    (at pack1 malpensa)
+    (at pack2 fiumicino)
+    (at pack3 lingotto)
+    (at pack4 caselle)
     
-    (= (distance milano milano) 0)
-    (= (distance milano roma) 5)
-    (= (distance milano torino) 2)
+    (= (distance milan milan) 0)
+    (= (distance milan rome) 5)
+    (= (distance milan turin) 2)
     
-    (= (distance roma milano) 5)
-    (= (distance roma roma) 0)
-    (= (distance roma torino) 7)
+    (= (distance rome milan) 5)
+    (= (distance rome rome) 0)
+    (= (distance rome turin) 7)
     
-    (= (distance torino milano) 2)
-    (= (distance torino roma) 7)
-    (= (distance torino torino) 0)
+    (= (distance turin milan) 2)
+    (= (distance turin rome) 7)
+    (= (distance turin turin) 0)
   )
   
   (:goal
     (and
-      (at pacco1 caselle)
-      (at pacco2 malpensa)
-      (at pacco3 centromilano)
-      (at pacco4 fiumicino)
+      (at pack1 caselle)
+      (at pack2 malpensa)
+      (at pack3 milancenter)
+      (at pack4 fiumicino)
     )
   )
   (:metric minimize total-time)
@@ -1803,20 +1803,20 @@ Total Num Flips: 102
 
 Plan computed:
    Time: (ACTION) [action Duration; action Cost]
- 0.0000: (LOAD-AIRPLANE PACCO2 AEREO2 FIUMICINO) [D:0.00; C:0.10]
- 0.0000: (FLY-AIRPLANE AEREO2 FIUMICINO MALPENSA ROMA MILANO) [D:5.00; C:0.10]
- 0.0000: (DRIVE-TRUCK TRUCK1 CENTROMILANO LINGOTTO MILANO TORINO) [D:2.00; C:0.10]
- 0.0000: (DRIVE-TRUCK TRUCK3 PIAZZACASTELLO CASELLE TORINO TORINO) [D:0.00; C:0.10]
- 0.0000: (LOAD-TRUCK PACCO4 TRUCK3 CASELLE) [D:0.00; C:0.10]
- 0.0000: (DRIVE-TRUCK TRUCK3 CASELLE FIUMICINO TORINO ROMA) [D:7.00; C:0.10]
- 2.0000: (LOAD-TRUCK PACCO3 TRUCK1 LINGOTTO) [D:0.00; C:0.10]
- 2.0000: (DRIVE-TRUCK TRUCK1 LINGOTTO CENTROMILANO TORINO MILANO) [D:2.00; C:0.10]
- 4.0000: (UNLOAD-TRUCK PACCO3 TRUCK1 CENTROMILANO) [D:0.00; C:0.10]
- 5.0000: (UNLOAD-AIRPLANE PACCO2 AEREO2 MALPENSA) [D:0.00; C:0.10]
- 5.0000: (LOAD-AIRPLANE PACCO1 AEREO2 MALPENSA) [D:0.00; C:0.10]
- 5.0000: (FLY-AIRPLANE AEREO2 MALPENSA CASELLE MILANO TORINO) [D:2.00; C:0.10]
- 7.0000: (UNLOAD-AIRPLANE PACCO1 AEREO2 CASELLE) [D:0.00; C:0.10]
- 7.0000: (UNLOAD-TRUCK PACCO4 TRUCK3 FIUMICINO) [D:0.00; C:0.10]
+ 0.0000: (LOAD-AIRPLANE pack2 plane2 FIUMICINO) [D:0.00; C:0.10]
+ 0.0000: (FLY-AIRPLANE plane2 FIUMICINO MALPENSA rome milan) [D:5.00; C:0.10]
+ 0.0000: (DRIVE-TRUCK TRUCK1 milancenter LINGOTTO milan turin) [D:2.00; C:0.10]
+ 0.0000: (DRIVE-TRUCK TRUCK3 PIAZZACASTELLO CASELLE turin turin) [D:0.00; C:0.10]
+ 0.0000: (LOAD-TRUCK pack4 TRUCK3 CASELLE) [D:0.00; C:0.10]
+ 0.0000: (DRIVE-TRUCK TRUCK3 CASELLE FIUMICINO turin rome) [D:7.00; C:0.10]
+ 2.0000: (LOAD-TRUCK pack3 TRUCK1 LINGOTTO) [D:0.00; C:0.10]
+ 2.0000: (DRIVE-TRUCK TRUCK1 LINGOTTO milancenter turin milan) [D:2.00; C:0.10]
+ 4.0000: (UNLOAD-TRUCK pack3 TRUCK1 milancenter) [D:0.00; C:0.10]
+ 5.0000: (UNLOAD-AIRPLANE pack2 plane2 MALPENSA) [D:0.00; C:0.10]
+ 5.0000: (LOAD-AIRPLANE pack1 plane2 MALPENSA) [D:0.00; C:0.10]
+ 5.0000: (FLY-AIRPLANE plane2 MALPENSA CASELLE milan turin) [D:2.00; C:0.10]
+ 7.0000: (UNLOAD-AIRPLANE pack1 plane2 CASELLE) [D:0.00; C:0.10]
+ 7.0000: (UNLOAD-TRUCK pack4 TRUCK3 FIUMICINO) [D:0.00; C:0.10]
 
 
 
@@ -1834,82 +1834,82 @@ export const prob2ex3 = `(define (problem logistics-temporal-air-4cities)
   (:domain logistics)
 
   (:objects
-    milano roma torino napoli - city
+    milan rome turin naples - city
     malpensa fiumicino caselle capodichino - airport
-    centromilano stazionemilano duomo - location
-    centroroma terminiroma colosseo - location
+    milancenter milanstation duomo - location
+    romecenter termini colosseo - location
     piazzacastello lingotto portanuova - location
-    centralenapoli vomero posillipo - location
-    pacco1 pacco2 pacco3 pacco4 pacco5 pacco6 - package
+    centralenaples vomero posillipo - location
+    pack1 pack2 pack3 pack4 pack5 pack6 - package
     truck1 truck2 truck3 truck4 - truck
-    aereo1 aereo2 aereo3 - airplane
+    plane1 plane2 plane3 - airplane
   )
 
   (:init
-    (in-city malpensa milano)
-    (in-city centromilano milano)
-    (in-city stazionemilano milano)
-    (in-city duomo milano)
+    (in-city malpensa milan)
+    (in-city milancenter milan)
+    (in-city milanstation milan)
+    (in-city duomo milan)
 
-    (in-city fiumicino roma)
-    (in-city centroroma roma)
-    (in-city terminiroma roma)
-    (in-city colosseo roma)
+    (in-city fiumicino rome)
+    (in-city romecenter rome)
+    (in-city termini rome)
+    (in-city colosseo rome)
 
-    (in-city caselle torino)
-    (in-city piazzacastello torino)
-    (in-city lingotto torino)
-    (in-city portanuova torino)
+    (in-city caselle turin)
+    (in-city piazzacastello turin)
+    (in-city lingotto turin)
+    (in-city portanuova turin)
 
-    (in-city capodichino napoli)
-    (in-city centralenapoli napoli)
-    (in-city vomero napoli)
-    (in-city posillipo napoli)
+    (in-city capodichino naples)
+    (in-city centralenaples naples)
+    (in-city vomero naples)
+    (in-city posillipo naples)
 
-    (at truck1 centromilano)
-    (at truck2 centroroma)
+    (at truck1 milancenter)
+    (at truck2 romecenter)
     (at truck3 piazzacastello)
-    (at truck4 centralenapoli)
+    (at truck4 centralenaples)
 
-    (at aereo1 malpensa)
-    (at aereo2 fiumicino)
-    (at aereo3 capodichino)
+    (at plane1 malpensa)
+    (at plane2 fiumicino)
+    (at plane3 capodichino)
 
-    (at pacco1 duomo)
-    (at pacco2 colosseo)
-    (at pacco3 lingotto)
-    (at pacco4 vomero)
-    (at pacco5 malpensa)
-    (at pacco6 caselle)
-    (= (distance milano milano) 0)
-    (= (distance milano roma) 5)
-    (= (distance milano torino) 2)
-    (= (distance milano napoli) 8)
+    (at pack1 duomo)
+    (at pack2 colosseo)
+    (at pack3 lingotto)
+    (at pack4 vomero)
+    (at pack5 malpensa)
+    (at pack6 caselle)
+    (= (distance milan milan) 0)
+    (= (distance milan rome) 5)
+    (= (distance milan turin) 2)
+    (= (distance milan naples) 8)
 
-    (= (distance roma milano) 5)
-    (= (distance roma roma) 0)
-    (= (distance roma torino) 7)
-    (= (distance roma napoli) 3)
+    (= (distance rome milan) 5)
+    (= (distance rome rome) 0)
+    (= (distance rome turin) 7)
+    (= (distance rome naples) 3)
 
-    (= (distance torino milano) 2)
-    (= (distance torino roma) 7)
-    (= (distance torino torino) 0)
-    (= (distance torino napoli) 10)
+    (= (distance turin milan) 2)
+    (= (distance turin rome) 7)
+    (= (distance turin turin) 0)
+    (= (distance turin naples) 10)
 
-    (= (distance napoli milano) 8)
-    (= (distance napoli roma) 3)
-    (= (distance napoli torino) 10)
-    (= (distance napoli napoli) 0)
+    (= (distance naples milan) 8)
+    (= (distance naples rome) 3)
+    (= (distance naples turin) 10)
+    (= (distance naples naples) 0)
   )
 
   (:goal
     (and
-      (at pacco1 capodichino)
-      (at pacco2 portanuova)
-      (at pacco3 terminiroma)
-      (at pacco4 stazionemilano)
-      (at pacco5 posillipo)
-      (at pacco6 fiumicino)
+      (at pack1 capodichino)
+      (at pack2 portanuova)
+      (at pack3 termini)
+      (at pack4 milanstation)
+      (at pack5 posillipo)
+      (at pack6 fiumicino)
     )
   )
 (:metric minimize total-time)
@@ -1976,36 +1976,36 @@ Total Num Flips: 109
 
 Plan computed:
    Time: (ACTION) [action Duration; action Cost]
- 0.0000: (FLY-AIRPLANE AEREO2 FIUMICINO CASELLE ROMA TORINO) [D:7.00; C:0.10]
- 0.0000: (DRIVE-TRUCK TRUCK4 CENTRALENAPOLI COLOSSEO NAPOLI ROMA) [D:3.00; C:0.10]
- 0.0000: (DRIVE-TRUCK TRUCK3 PIAZZACASTELLO VOMERO TORINO NAPOLI) [D:10.00; C:0.10]
- 0.0000: (DRIVE-TRUCK TRUCK2 CENTROROMA STAZIONEMILANO ROMA MILANO) [D:5.00; C:0.10]
- 0.0000: (DRIVE-TRUCK TRUCK1 CENTROMILANO LINGOTTO MILANO TORINO) [D:2.00; C:0.10]
- 2.0000: (LOAD-TRUCK PACCO3 TRUCK1 LINGOTTO) [D:0.00; C:0.10]
- 2.0000: (DRIVE-TRUCK TRUCK1 LINGOTTO TERMINIROMA TORINO ROMA) [D:7.00; C:0.10]
- 3.0000: (LOAD-TRUCK PACCO2 TRUCK4 COLOSSEO) [D:0.00; C:0.10]
- 3.0000: (DRIVE-TRUCK TRUCK4 COLOSSEO CENTRALENAPOLI ROMA NAPOLI) [D:3.00; C:0.10]
- 5.0000: (DRIVE-TRUCK TRUCK2 STAZIONEMILANO MALPENSA MILANO MILANO) [D:0.00; C:0.10]
- 5.0000: (LOAD-TRUCK PACCO5 TRUCK2 MALPENSA) [D:0.00; C:0.10]
- 5.0000: (DRIVE-TRUCK TRUCK2 MALPENSA PORTANUOVA MILANO TORINO) [D:2.00; C:0.10]
- 6.0000: (DRIVE-TRUCK TRUCK4 CENTRALENAPOLI PORTANUOVA NAPOLI TORINO) [D:10.00; C:0.10]
- 7.0000: (LOAD-AIRPLANE PACCO6 AEREO2 CASELLE) [D:0.00; C:0.10]
- 7.0000: (FLY-AIRPLANE AEREO2 CASELLE FIUMICINO TORINO ROMA) [D:7.00; C:0.10]
- 7.0000: (DRIVE-TRUCK TRUCK2 PORTANUOVA DUOMO TORINO MILANO) [D:2.00; C:0.10]
- 9.0000: (LOAD-TRUCK PACCO1 TRUCK2 DUOMO) [D:0.00; C:0.10]
- 9.0000: (DRIVE-TRUCK TRUCK2 DUOMO MALPENSA MILANO MILANO) [D:0.00; C:0.10]
- 9.0000: (UNLOAD-TRUCK PACCO1 TRUCK2 MALPENSA) [D:0.00; C:0.10]
- 9.0000: (LOAD-AIRPLANE PACCO1 AEREO1 MALPENSA) [D:0.00; C:0.10]
- 9.0000: (FLY-AIRPLANE AEREO1 MALPENSA CAPODICHINO MILANO NAPOLI) [D:8.00; C:0.10]
- 9.0000: (DRIVE-TRUCK TRUCK2 MALPENSA POSILLIPO MILANO NAPOLI) [D:8.00; C:0.10]
- 9.0000: (UNLOAD-TRUCK PACCO3 TRUCK1 TERMINIROMA) [D:0.00; C:0.10]
- 10.0000: (LOAD-TRUCK PACCO4 TRUCK3 VOMERO) [D:0.00; C:0.10]
- 10.0000: (DRIVE-TRUCK TRUCK3 VOMERO STAZIONEMILANO NAPOLI MILANO) [D:8.00; C:0.10]
- 14.0000: (UNLOAD-AIRPLANE PACCO6 AEREO2 FIUMICINO) [D:0.00; C:0.10]
- 16.0000: (UNLOAD-TRUCK PACCO2 TRUCK4 PORTANUOVA) [D:0.00; C:0.10]
- 17.0000: (UNLOAD-AIRPLANE PACCO1 AEREO1 CAPODICHINO) [D:0.00; C:0.10]
- 17.0000: (UNLOAD-TRUCK PACCO5 TRUCK2 POSILLIPO) [D:0.00; C:0.10]
- 18.0000: (UNLOAD-TRUCK PACCO4 TRUCK3 STAZIONEMILANO) [D:0.00; C:0.10]
+ 0.0000: (FLY-AIRPLANE plane2 FIUMICINO CASELLE rome turin) [D:7.00; C:0.10]
+ 0.0000: (DRIVE-TRUCK TRUCK4 CENTRALEnaples COLOSSEO naples rome) [D:3.00; C:0.10]
+ 0.0000: (DRIVE-TRUCK TRUCK3 PIAZZACASTELLO VOMERO turin naples) [D:10.00; C:0.10]
+ 0.0000: (DRIVE-TRUCK TRUCK2 romecenter milanstation rome milan) [D:5.00; C:0.10]
+ 0.0000: (DRIVE-TRUCK TRUCK1 milancenter LINGOTTO milan turin) [D:2.00; C:0.10]
+ 2.0000: (LOAD-TRUCK pack3 TRUCK1 LINGOTTO) [D:0.00; C:0.10]
+ 2.0000: (DRIVE-TRUCK TRUCK1 LINGOTTO termini turin rome) [D:7.00; C:0.10]
+ 3.0000: (LOAD-TRUCK pack2 TRUCK4 COLOSSEO) [D:0.00; C:0.10]
+ 3.0000: (DRIVE-TRUCK TRUCK4 COLOSSEO CENTRALEnaples rome naples) [D:3.00; C:0.10]
+ 5.0000: (DRIVE-TRUCK TRUCK2 milanstation MALPENSA milan milan) [D:0.00; C:0.10]
+ 5.0000: (LOAD-TRUCK pack5 TRUCK2 MALPENSA) [D:0.00; C:0.10]
+ 5.0000: (DRIVE-TRUCK TRUCK2 MALPENSA PORTANUOVA milan turin) [D:2.00; C:0.10]
+ 6.0000: (DRIVE-TRUCK TRUCK4 CENTRALEnaples PORTANUOVA naples turin) [D:10.00; C:0.10]
+ 7.0000: (LOAD-AIRPLANE pack6 plane2 CASELLE) [D:0.00; C:0.10]
+ 7.0000: (FLY-AIRPLANE plane2 CASELLE FIUMICINO turin rome) [D:7.00; C:0.10]
+ 7.0000: (DRIVE-TRUCK TRUCK2 PORTANUOVA DUOMO turin milan) [D:2.00; C:0.10]
+ 9.0000: (LOAD-TRUCK pack1 TRUCK2 DUOMO) [D:0.00; C:0.10]
+ 9.0000: (DRIVE-TRUCK TRUCK2 DUOMO MALPENSA milan milan) [D:0.00; C:0.10]
+ 9.0000: (UNLOAD-TRUCK pack1 TRUCK2 MALPENSA) [D:0.00; C:0.10]
+ 9.0000: (LOAD-AIRPLANE pack1 plane1 MALPENSA) [D:0.00; C:0.10]
+ 9.0000: (FLY-AIRPLANE plane1 MALPENSA CAPODICHINO milan naples) [D:8.00; C:0.10]
+ 9.0000: (DRIVE-TRUCK TRUCK2 MALPENSA POSILLIPO milan naples) [D:8.00; C:0.10]
+ 9.0000: (UNLOAD-TRUCK pack3 TRUCK1 termini) [D:0.00; C:0.10]
+ 10.0000: (LOAD-TRUCK pack4 TRUCK3 VOMERO) [D:0.00; C:0.10]
+ 10.0000: (DRIVE-TRUCK TRUCK3 VOMERO milanstation naples milan) [D:8.00; C:0.10]
+ 14.0000: (UNLOAD-AIRPLANE pack6 plane2 FIUMICINO) [D:0.00; C:0.10]
+ 16.0000: (UNLOAD-TRUCK pack2 TRUCK4 PORTANUOVA) [D:0.00; C:0.10]
+ 17.0000: (UNLOAD-AIRPLANE pack1 plane1 CAPODICHINO) [D:0.00; C:0.10]
+ 17.0000: (UNLOAD-TRUCK pack5 TRUCK2 POSILLIPO) [D:0.00; C:0.10]
+ 18.0000: (UNLOAD-TRUCK pack4 TRUCK3 milanstation) [D:0.00; C:0.10]
 
 
 
@@ -2617,33 +2617,33 @@ export const probnumeric1 = `(define (problem logistics-capacity-test)
   (:domain logistics)
   
   (:objects
-    milano roma - city
-    centromilano stazionemilano - location
-    centroroma terminiroma - location
-    pacco1 pacco2 pacco3 pacco4 pacco5 - package
+    milan rome - city
+    milancenter milanstation - location
+    romecenter termini - location
+    pack1 pack2 pack3 pack4 pack5 - package
     truck1 - truck
   )
   
   (:init
     ; Definizione delle città
-    (in-city centromilano milano)
-    (in-city stazionemilano milano)
-    (in-city centroroma roma)
-    (in-city terminiroma roma)
+    (in-city milancenter milan)
+    (in-city milanstation milan)
+    (in-city romecenter rome)
+    (in-city termini rome)
     
     ; Posizioni iniziali
-    (at truck1 centromilano)
-    (at pacco1 centromilano)
-    (at pacco2 centromilano)
-    (at pacco3 centromilano)
-    (at pacco4 centromilano)
-    (at pacco5 stazionemilano)
+    (at truck1 milancenter)
+    (at pack1 milancenter)
+    (at pack2 milancenter)
+    (at pack3 milancenter)
+    (at pack4 milancenter)
+    (at pack5 milanstation)
     
     ; Distanze tra città
-    (= (distance milano milano) 0)
-    (= (distance milano roma) 5)
-    (= (distance roma milano) 5)
-    (= (distance roma roma) 0)
+    (= (distance milan milan) 0)
+    (= (distance milan rome) 5)
+    (= (distance rome milan) 5)
+    (= (distance rome rome) 0)
     
     ; Capacità e carico attuale dei veicoli
     (= (capacity truck1) 3)          ; il truck può trasportare massimo 3 pacchi
@@ -2652,30 +2652,30 @@ export const probnumeric1 = `(define (problem logistics-capacity-test)
   
   (:goal
     (and
-      (at pacco1 centroroma)
-      (at pacco2 centroroma)
-      (at pacco3 terminiroma)
-      (at pacco4 terminiroma)
-      (at pacco5 centroroma)
+      (at pack1 romecenter)
+      (at pack2 romecenter)
+      (at pack3 termini)
+      (at pack4 termini)
+      (at pack5 romecenter)
     )
   )
 )`;
 export const plannumeric1 = `Plan computed:
    Time: (ACTION) [action Duration; action Cost]
- 0.0000: (LOAD-TRUCK PACCO4 TRUCK1 CENTROMILANO) [D:0.00; C:1.00]
- 0.0000: (LOAD-TRUCK PACCO3 TRUCK1 CENTROMILANO) [D:0.00; C:1.00]
- 0.0000: (DRIVE-TRUCK TRUCK1 CENTROMILANO STAZIONEMILANO MILANO MILANO) [D:0.00; C:1.00]
- 0.0000: (LOAD-TRUCK PACCO5 TRUCK1 STAZIONEMILANO) [D:0.00; C:1.00]
- 0.0000: (DRIVE-TRUCK TRUCK1 STAZIONEMILANO TERMINIROMA MILANO ROMA) [D:5.00; C:1.00]
- 5.0000: (UNLOAD-TRUCK PACCO3 TRUCK1 TERMINIROMA) [D:0.00; C:1.00]
- 5.0000: (UNLOAD-TRUCK PACCO4 TRUCK1 TERMINIROMA) [D:0.00; C:1.00]
- 5.0000: (DRIVE-TRUCK TRUCK1 TERMINIROMA CENTROMILANO ROMA MILANO) [D:5.00; C:1.00]
- 10.0000: (LOAD-TRUCK PACCO2 TRUCK1 CENTROMILANO) [D:0.00; C:1.00]
- 10.0000: (LOAD-TRUCK PACCO1 TRUCK1 CENTROMILANO) [D:0.00; C:1.00]
- 10.0000: (DRIVE-TRUCK TRUCK1 CENTROMILANO CENTROROMA MILANO ROMA) [D:5.00; C:1.00]
- 15.0000: (UNLOAD-TRUCK PACCO1 TRUCK1 CENTROROMA) [D:0.00; C:1.00]
- 15.0000: (UNLOAD-TRUCK PACCO5 TRUCK1 CENTROROMA) [D:0.00; C:1.00]
- 15.0000: (UNLOAD-TRUCK PACCO2 TRUCK1 CENTROROMA) [D:0.00; C:1.00]
+ 0.0000: (LOAD-TRUCK pack4 TRUCK1 milancenter) [D:0.00; C:1.00]
+ 0.0000: (LOAD-TRUCK pack3 TRUCK1 milancenter) [D:0.00; C:1.00]
+ 0.0000: (DRIVE-TRUCK TRUCK1 milancenter milanstation milan milan) [D:0.00; C:1.00]
+ 0.0000: (LOAD-TRUCK pack5 TRUCK1 milanstation) [D:0.00; C:1.00]
+ 0.0000: (DRIVE-TRUCK TRUCK1 milanstation termini milan rome) [D:5.00; C:1.00]
+ 5.0000: (UNLOAD-TRUCK pack3 TRUCK1 termini) [D:0.00; C:1.00]
+ 5.0000: (UNLOAD-TRUCK pack4 TRUCK1 termini) [D:0.00; C:1.00]
+ 5.0000: (DRIVE-TRUCK TRUCK1 termini milancenter rome milan) [D:5.00; C:1.00]
+ 10.0000: (LOAD-TRUCK pack2 TRUCK1 milancenter) [D:0.00; C:1.00]
+ 10.0000: (LOAD-TRUCK pack1 TRUCK1 milancenter) [D:0.00; C:1.00]
+ 10.0000: (DRIVE-TRUCK TRUCK1 milancenter romecenter milan rome) [D:5.00; C:1.00]
+ 15.0000: (UNLOAD-TRUCK pack1 TRUCK1 romecenter) [D:0.00; C:1.00]
+ 15.0000: (UNLOAD-TRUCK pack5 TRUCK1 romecenter) [D:0.00; C:1.00]
+ 15.0000: (UNLOAD-TRUCK pack2 TRUCK1 romecenter) [D:0.00; C:1.00]
 `;
 export const plannumeric2 = `
 NUMERIC_THREATS_MODE: 0
@@ -2717,89 +2717,89 @@ Searching ('.' = every 50 search steps):
 
 Plan computed:
    Time: (ACTION) [action Duration; action Cost]
- 0.0000: (DRIVE-TRUCK TRUCKC CENTRONAPOLI STAZIONETORINO NAPOLI TORINO) [D:9.00; C:1.00]
- 0.0000: (LOAD-AIRPLANE PACCOL AEREO1 AEROPORTOMILANO) [D:0.00; C:1.00]
- 0.0000: (FLY-AIRPLANE AEREO1 AEROPORTOMILANO AEROPORTONAPOLI MILANO NAPOLI) [D:8.00; C:1.00]
- 0.0000: (DRIVE-TRUCK TRUCKD CENTROTORINO CENTROVENEZIA TORINO VENEZIA) [D:4.00; C:1.00]
- 0.0000: (LOAD-AIRPLANE PACCOM AEREO2 AEROPORTOROMA) [D:0.00; C:1.00]
- 0.0000: (FLY-AIRPLANE AEREO2 AEROPORTOROMA AEROPORTOVENEZIA ROMA VENEZIA) [D:5.00; C:1.00]
- 0.0000: (DRIVE-TRUCK TRUCKA CENTROMILANO CENTRONAPOLI MILANO NAPOLI) [D:8.00; C:1.00]
- 4.0000: (LOAD-TRUCK PACCOJ TRUCKD CENTROVENEZIA) [D:0.00; C:1.00]
- 4.0000: (DRIVE-TRUCK TRUCKD CENTROVENEZIA AEROPORTONAPOLI VENEZIA NAPOLI) [D:6.00; C:1.00]
- 5.0000: (UNLOAD-AIRPLANE PACCOM AEREO2 AEROPORTOVENEZIA) [D:0.00; C:1.00]
- 8.0000: (UNLOAD-AIRPLANE PACCOL AEREO1 AEROPORTONAPOLI) [D:0.00; C:1.00]
- 8.0000: (LOAD-TRUCK PACCOF TRUCKA CENTRONAPOLI) [D:0.00; C:1.00]
- 8.0000: (DRIVE-TRUCK TRUCKA CENTRONAPOLI STAZIONEMILANO NAPOLI MILANO) [D:8.00; C:1.00]
- 9.0000: (LOAD-TRUCK PACCOI TRUCKC STAZIONETORINO) [D:0.00; C:1.00]
- 9.0000: (DRIVE-TRUCK TRUCKC STAZIONETORINO PORTNAPOLI TORINO NAPOLI) [D:9.00; C:1.00]
- 10.0000: (UNLOAD-TRUCK PACCOJ TRUCKD AEROPORTONAPOLI) [D:0.00; C:1.00]
- 10.0000: (DRIVE-TRUCK TRUCKD AEROPORTONAPOLI CENTROTORINO NAPOLI TORINO) [D:9.00; C:1.00]
- 16.0000: (UNLOAD-TRUCK PACCOF TRUCKA STAZIONEMILANO) [D:0.00; C:1.00]
- 18.0000: (UNLOAD-TRUCK PACCOI TRUCKC PORTNAPOLI) [D:0.00; C:1.00]
- 18.0000: (DRIVE-TRUCK TRUCKC PORTNAPOLI AEROPORTONAPOLI NAPOLI NAPOLI) [D:0.00; C:1.00]
- 18.0000: (LOAD-TRUCK PACCON TRUCKC AEROPORTONAPOLI) [D:0.00; C:1.00]
- 18.0000: (LOAD-TRUCK PACCOL TRUCKC AEROPORTONAPOLI) [D:0.00; C:1.00]
- 18.0000: (LOAD-TRUCK PACCOJ TRUCKC AEROPORTONAPOLI) [D:0.00; C:1.00]
- 18.0000: (UNLOAD-TRUCK PACCOJ TRUCKC AEROPORTONAPOLI) [D:0.00; C:1.00]
- 18.0000: (LOAD-TRUCK PACCOJ TRUCKC AEROPORTONAPOLI) [D:0.00; C:1.00]
- 18.0000: (UNLOAD-TRUCK PACCOJ TRUCKC AEROPORTONAPOLI) [D:0.00; C:1.00]
- 18.0000: (LOAD-TRUCK PACCOJ TRUCKC AEROPORTONAPOLI) [D:0.00; C:1.00]
- 18.0000: (UNLOAD-TRUCK PACCOJ TRUCKC AEROPORTONAPOLI) [D:0.00; C:1.00]
- 18.0000: (LOAD-TRUCK PACCOJ TRUCKC AEROPORTONAPOLI) [D:0.00; C:1.00]
- 18.0000: (UNLOAD-TRUCK PACCOJ TRUCKC AEROPORTONAPOLI) [D:0.00; C:1.00]
- 18.0000: (LOAD-TRUCK PACCOJ TRUCKC AEROPORTONAPOLI) [D:0.00; C:1.00]
- 18.0000: (UNLOAD-TRUCK PACCOJ TRUCKC AEROPORTONAPOLI) [D:0.00; C:1.00]
- 18.0000: (LOAD-TRUCK PACCOJ TRUCKC AEROPORTONAPOLI) [D:0.00; C:1.00]
- 18.0000: (UNLOAD-TRUCK PACCOJ TRUCKC AEROPORTONAPOLI) [D:0.00; C:1.00]
- 18.0000: (LOAD-TRUCK PACCOJ TRUCKC AEROPORTONAPOLI) [D:0.00; C:1.00]
- 18.0000: (UNLOAD-TRUCK PACCOJ TRUCKC AEROPORTONAPOLI) [D:0.00; C:1.00]
- 18.0000: (LOAD-TRUCK PACCOJ TRUCKC AEROPORTONAPOLI) [D:0.00; C:1.00]
- 18.0000: (DRIVE-TRUCK TRUCKC AEROPORTONAPOLI STAZIONETORINO NAPOLI TORINO) [D:9.00; C:1.00]
- 19.0000: (DRIVE-TRUCK TRUCKD CENTROTORINO PORTNAPOLI TORINO NAPOLI) [D:9.00; C:1.00]
- 27.0000: (UNLOAD-TRUCK PACCON TRUCKC STAZIONETORINO) [D:0.00; C:1.00]
- 27.0000: (DRIVE-TRUCK TRUCKC STAZIONETORINO CENTROMILANO TORINO MILANO) [D:2.00; C:1.00]
- 28.0000: (LOAD-TRUCK PACCOG TRUCKD PORTNAPOLI) [D:0.00; C:1.00]
- 28.0000: (DRIVE-TRUCK TRUCKD PORTNAPOLI CENTROTORINO NAPOLI TORINO) [D:9.00; C:1.00]
- 29.0000: (LOAD-TRUCK PACCOA TRUCKC CENTROMILANO) [D:0.00; C:1.00]
- 29.0000: (DRIVE-TRUCK TRUCKC CENTROMILANO CENTROROMA MILANO ROMA) [D:6.00; C:1.00]
- 35.0000: (UNLOAD-TRUCK PACCOA TRUCKC CENTROROMA) [D:0.00; C:1.00]
- 35.0000: (UNLOAD-TRUCK PACCOL TRUCKC CENTROROMA) [D:0.00; C:1.00]
- 35.0000: (LOAD-TRUCK PACCOL TRUCKB CENTROROMA) [D:0.00; C:1.00]
- 35.0000: (UNLOAD-TRUCK PACCOJ TRUCKC CENTROROMA) [D:0.00; C:1.00]
- 35.0000: (DRIVE-TRUCK TRUCKC CENTROROMA CENTROTORINO ROMA TORINO) [D:7.00; C:1.00]
- 37.0000: (UNLOAD-TRUCK PACCOG TRUCKD CENTROTORINO) [D:0.00; C:1.00]
- 37.0000: (LOAD-TRUCK PACCOH TRUCKD CENTROTORINO) [D:0.00; C:1.00]
- 37.0000: (DRIVE-TRUCK TRUCKD CENTROTORINO STAZIONEVENEZIA TORINO VENEZIA) [D:4.00; C:1.00]
- 41.0000: (UNLOAD-TRUCK PACCOH TRUCKD STAZIONEVENEZIA) [D:0.00; C:1.00]
- 41.0000: (DRIVE-TRUCK TRUCKD STAZIONEVENEZIA AEROPORTOVENEZIA VENEZIA VENEZIA) [D:0.00; C:1.00]
- 41.0000: (LOAD-TRUCK PACCOP TRUCKD AEROPORTOVENEZIA) [D:0.00; C:1.00]
- 41.0000: (LOAD-TRUCK PACCOM TRUCKD AEROPORTOVENEZIA) [D:0.00; C:1.00]
- 41.0000: (DRIVE-TRUCK TRUCKD AEROPORTOVENEZIA STAZIONEMILANO VENEZIA MILANO) [D:3.00; C:1.00]
- 42.0000: (DRIVE-TRUCK TRUCKC CENTROTORINO AEROPORTOTORINO TORINO TORINO) [D:0.00; C:1.00]
- 42.0000: (LOAD-TRUCK PACCOO TRUCKC AEROPORTOTORINO) [D:0.00; C:1.00]
- 42.0000: (DRIVE-TRUCK TRUCKC AEROPORTOTORINO CENTROROMA TORINO ROMA) [D:7.00; C:1.00]
- 44.0000: (UNLOAD-TRUCK PACCOP TRUCKD STAZIONEMILANO) [D:0.00; C:1.00]
- 44.0000: (LOAD-TRUCK PACCOC TRUCKD STAZIONEMILANO) [D:0.00; C:1.00]
- 44.0000: (DRIVE-TRUCK TRUCKD STAZIONEMILANO CENTRONAPOLI MILANO NAPOLI) [D:8.00; C:1.00]
- 49.0000: (UNLOAD-TRUCK PACCOO TRUCKC CENTROROMA) [D:0.00; C:1.00]
- 49.0000: (LOAD-TRUCK PACCOO TRUCKB CENTROROMA) [D:0.00; C:1.00]
- 49.0000: (DRIVE-TRUCK TRUCKC CENTROROMA STAZIONEVENEZIA ROMA VENEZIA) [D:5.00; C:1.00]
- 49.0000: (LOAD-TRUCK PACCOD TRUCKB CENTROROMA) [D:0.00; C:1.00]
- 49.0000: (DRIVE-TRUCK TRUCKB CENTROROMA CENTROMILANO ROMA MILANO) [D:6.00; C:1.00]
- 52.0000: (UNLOAD-TRUCK PACCOC TRUCKD CENTRONAPOLI) [D:0.00; C:1.00]
- 52.0000: (UNLOAD-TRUCK PACCOM TRUCKD CENTRONAPOLI) [D:0.00; C:1.00]
- 54.0000: (LOAD-TRUCK PACCOK TRUCKC STAZIONEVENEZIA) [D:0.00; C:1.00]
- 54.0000: (DRIVE-TRUCK TRUCKC STAZIONEVENEZIA CENTROMILANO VENEZIA MILANO) [D:3.00; C:1.00]
- 55.0000: (UNLOAD-TRUCK PACCOD TRUCKB CENTROMILANO) [D:0.00; C:1.00]
- 55.0000: (LOAD-TRUCK PACCOB TRUCKB CENTROMILANO) [D:0.00; C:1.00]
- 55.0000: (DRIVE-TRUCK TRUCKB CENTROMILANO TERMINIROMA MILANO ROMA) [D:6.00; C:1.00]
- 57.0000: (UNLOAD-TRUCK PACCOK TRUCKC CENTROMILANO) [D:0.00; C:1.00]
- 61.0000: (UNLOAD-TRUCK PACCOB TRUCKB TERMINIROMA) [D:0.00; C:1.00]
- 61.0000: (UNLOAD-TRUCK PACCOL TRUCKB TERMINIROMA) [D:0.00; C:1.00]
- 61.0000: (LOAD-TRUCK PACCOE TRUCKB TERMINIROMA) [D:0.00; C:1.00]
- 61.0000: (DRIVE-TRUCK TRUCKB TERMINIROMA CENTROVENEZIA ROMA VENEZIA) [D:5.00; C:1.00]
- 66.0000: (UNLOAD-TRUCK PACCOE TRUCKB CENTROVENEZIA) [D:0.00; C:1.00]
- 66.0000: (UNLOAD-TRUCK PACCOO TRUCKB CENTROVENEZIA) [D:0.00; C:1.00]
+ 0.0000: (DRIVE-TRUCK TRUCKC naplescenter STAZIONEturin naples turin) [D:9.00; C:1.00]
+ 0.0000: (LOAD-AIRPLANE packL plane1 AEROPORTOmilan) [D:0.00; C:1.00]
+ 0.0000: (FLY-AIRPLANE plane1 AEROPORTOmilan AEROnaplesport milan naples) [D:8.00; C:1.00]
+ 0.0000: (DRIVE-TRUCK TRUCKD CENTROturin CENTROvenice turin venice) [D:4.00; C:1.00]
+ 0.0000: (LOAD-AIRPLANE packM plane2 AEROPORTOrome) [D:0.00; C:1.00]
+ 0.0000: (FLY-AIRPLANE plane2 AEROPORTOrome AEROPORTOvenice rome venice) [D:5.00; C:1.00]
+ 0.0000: (DRIVE-TRUCK TRUCKA milancenter naplescenter milan naples) [D:8.00; C:1.00]
+ 4.0000: (LOAD-TRUCK packJ TRUCKD CENTROvenice) [D:0.00; C:1.00]
+ 4.0000: (DRIVE-TRUCK TRUCKD CENTROvenice AEROnaplesport venice naples) [D:6.00; C:1.00]
+ 5.0000: (UNLOAD-AIRPLANE packM plane2 AEROPORTOvenice) [D:0.00; C:1.00]
+ 8.0000: (UNLOAD-AIRPLANE packL plane1 AEROnaplesport) [D:0.00; C:1.00]
+ 8.0000: (LOAD-TRUCK packF TRUCKA naplescenter) [D:0.00; C:1.00]
+ 8.0000: (DRIVE-TRUCK TRUCKA naplescenter milanstation naples milan) [D:8.00; C:1.00]
+ 9.0000: (LOAD-TRUCK packI TRUCKC STAZIONEturin) [D:0.00; C:1.00]
+ 9.0000: (DRIVE-TRUCK TRUCKC STAZIONEturin PORTnaples turin naples) [D:9.00; C:1.00]
+ 10.0000: (UNLOAD-TRUCK packJ TRUCKD AEROnaplesport) [D:0.00; C:1.00]
+ 10.0000: (DRIVE-TRUCK TRUCKD AEROnaplesport CENTROturin naples turin) [D:9.00; C:1.00]
+ 16.0000: (UNLOAD-TRUCK packF TRUCKA milanstation) [D:0.00; C:1.00]
+ 18.0000: (UNLOAD-TRUCK packI TRUCKC PORTnaples) [D:0.00; C:1.00]
+ 18.0000: (DRIVE-TRUCK TRUCKC PORTnaples AEROnaplesport naples naples) [D:0.00; C:1.00]
+ 18.0000: (LOAD-TRUCK packN TRUCKC AEROnaplesport) [D:0.00; C:1.00]
+ 18.0000: (LOAD-TRUCK packL TRUCKC AEROnaplesport) [D:0.00; C:1.00]
+ 18.0000: (LOAD-TRUCK packJ TRUCKC AEROnaplesport) [D:0.00; C:1.00]
+ 18.0000: (UNLOAD-TRUCK packJ TRUCKC AEROnaplesport) [D:0.00; C:1.00]
+ 18.0000: (LOAD-TRUCK packJ TRUCKC AEROnaplesport) [D:0.00; C:1.00]
+ 18.0000: (UNLOAD-TRUCK packJ TRUCKC AEROnaplesport) [D:0.00; C:1.00]
+ 18.0000: (LOAD-TRUCK packJ TRUCKC AEROnaplesport) [D:0.00; C:1.00]
+ 18.0000: (UNLOAD-TRUCK packJ TRUCKC AEROnaplesport) [D:0.00; C:1.00]
+ 18.0000: (LOAD-TRUCK packJ TRUCKC AEROnaplesport) [D:0.00; C:1.00]
+ 18.0000: (UNLOAD-TRUCK packJ TRUCKC AEROnaplesport) [D:0.00; C:1.00]
+ 18.0000: (LOAD-TRUCK packJ TRUCKC AEROnaplesport) [D:0.00; C:1.00]
+ 18.0000: (UNLOAD-TRUCK packJ TRUCKC AEROnaplesport) [D:0.00; C:1.00]
+ 18.0000: (LOAD-TRUCK packJ TRUCKC AEROnaplesport) [D:0.00; C:1.00]
+ 18.0000: (UNLOAD-TRUCK packJ TRUCKC AEROnaplesport) [D:0.00; C:1.00]
+ 18.0000: (LOAD-TRUCK packJ TRUCKC AEROnaplesport) [D:0.00; C:1.00]
+ 18.0000: (UNLOAD-TRUCK packJ TRUCKC AEROnaplesport) [D:0.00; C:1.00]
+ 18.0000: (LOAD-TRUCK packJ TRUCKC AEROnaplesport) [D:0.00; C:1.00]
+ 18.0000: (DRIVE-TRUCK TRUCKC AEROnaplesport STAZIONEturin naples turin) [D:9.00; C:1.00]
+ 19.0000: (DRIVE-TRUCK TRUCKD CENTROturin PORTnaples turin naples) [D:9.00; C:1.00]
+ 27.0000: (UNLOAD-TRUCK packN TRUCKC STAZIONEturin) [D:0.00; C:1.00]
+ 27.0000: (DRIVE-TRUCK TRUCKC STAZIONEturin milancenter turin milan) [D:2.00; C:1.00]
+ 28.0000: (LOAD-TRUCK packG TRUCKD PORTnaples) [D:0.00; C:1.00]
+ 28.0000: (DRIVE-TRUCK TRUCKD PORTnaples CENTROturin naples turin) [D:9.00; C:1.00]
+ 29.0000: (LOAD-TRUCK packA TRUCKC milancenter) [D:0.00; C:1.00]
+ 29.0000: (DRIVE-TRUCK TRUCKC milancenter romecenter milan rome) [D:6.00; C:1.00]
+ 35.0000: (UNLOAD-TRUCK packA TRUCKC romecenter) [D:0.00; C:1.00]
+ 35.0000: (UNLOAD-TRUCK packL TRUCKC romecenter) [D:0.00; C:1.00]
+ 35.0000: (LOAD-TRUCK packL TRUCKB romecenter) [D:0.00; C:1.00]
+ 35.0000: (UNLOAD-TRUCK packJ TRUCKC romecenter) [D:0.00; C:1.00]
+ 35.0000: (DRIVE-TRUCK TRUCKC romecenter CENTROturin rome turin) [D:7.00; C:1.00]
+ 37.0000: (UNLOAD-TRUCK packG TRUCKD CENTROturin) [D:0.00; C:1.00]
+ 37.0000: (LOAD-TRUCK packH TRUCKD CENTROturin) [D:0.00; C:1.00]
+ 37.0000: (DRIVE-TRUCK TRUCKD CENTROturin STAZIONEvenice turin venice) [D:4.00; C:1.00]
+ 41.0000: (UNLOAD-TRUCK packH TRUCKD STAZIONEvenice) [D:0.00; C:1.00]
+ 41.0000: (DRIVE-TRUCK TRUCKD STAZIONEvenice AEROPORTOvenice venice venice) [D:0.00; C:1.00]
+ 41.0000: (LOAD-TRUCK packP TRUCKD AEROPORTOvenice) [D:0.00; C:1.00]
+ 41.0000: (LOAD-TRUCK packM TRUCKD AEROPORTOvenice) [D:0.00; C:1.00]
+ 41.0000: (DRIVE-TRUCK TRUCKD AEROPORTOvenice milanstation venice milan) [D:3.00; C:1.00]
+ 42.0000: (DRIVE-TRUCK TRUCKC CENTROturin AEROPORTOturin turin turin) [D:0.00; C:1.00]
+ 42.0000: (LOAD-TRUCK packO TRUCKC AEROPORTOturin) [D:0.00; C:1.00]
+ 42.0000: (DRIVE-TRUCK TRUCKC AEROPORTOturin romecenter turin rome) [D:7.00; C:1.00]
+ 44.0000: (UNLOAD-TRUCK packP TRUCKD milanstation) [D:0.00; C:1.00]
+ 44.0000: (LOAD-TRUCK packC TRUCKD milanstation) [D:0.00; C:1.00]
+ 44.0000: (DRIVE-TRUCK TRUCKD milanstation naplescenter milan naples) [D:8.00; C:1.00]
+ 49.0000: (UNLOAD-TRUCK packO TRUCKC romecenter) [D:0.00; C:1.00]
+ 49.0000: (LOAD-TRUCK packO TRUCKB romecenter) [D:0.00; C:1.00]
+ 49.0000: (DRIVE-TRUCK TRUCKC romecenter STAZIONEvenice rome venice) [D:5.00; C:1.00]
+ 49.0000: (LOAD-TRUCK packD TRUCKB romecenter) [D:0.00; C:1.00]
+ 49.0000: (DRIVE-TRUCK TRUCKB romecenter milancenter rome milan) [D:6.00; C:1.00]
+ 52.0000: (UNLOAD-TRUCK packC TRUCKD naplescenter) [D:0.00; C:1.00]
+ 52.0000: (UNLOAD-TRUCK packM TRUCKD naplescenter) [D:0.00; C:1.00]
+ 54.0000: (LOAD-TRUCK packK TRUCKC STAZIONEvenice) [D:0.00; C:1.00]
+ 54.0000: (DRIVE-TRUCK TRUCKC STAZIONEvenice milancenter venice milan) [D:3.00; C:1.00]
+ 55.0000: (UNLOAD-TRUCK packD TRUCKB milancenter) [D:0.00; C:1.00]
+ 55.0000: (LOAD-TRUCK packB TRUCKB milancenter) [D:0.00; C:1.00]
+ 55.0000: (DRIVE-TRUCK TRUCKB milancenter termini milan rome) [D:6.00; C:1.00]
+ 57.0000: (UNLOAD-TRUCK packK TRUCKC milancenter) [D:0.00; C:1.00]
+ 61.0000: (UNLOAD-TRUCK packB TRUCKB termini) [D:0.00; C:1.00]
+ 61.0000: (UNLOAD-TRUCK packL TRUCKB termini) [D:0.00; C:1.00]
+ 61.0000: (LOAD-TRUCK packE TRUCKB termini) [D:0.00; C:1.00]
+ 61.0000: (DRIVE-TRUCK TRUCKB termini CENTROvenice rome venice) [D:5.00; C:1.00]
+ 66.0000: (UNLOAD-TRUCK packE TRUCKB CENTROvenice) [D:0.00; C:1.00]
+ 66.0000: (UNLOAD-TRUCK packO TRUCKB CENTROvenice) [D:0.00; C:1.00]
 
 
 Solution number: 1
@@ -2814,116 +2814,116 @@ Total Num Flips: 96
 export const probnumeric2 = `(define (problem logistics-complex-delivery)
   (:domain logistics)
   (:objects
-    milano roma napoli torino venezia - city
-    centromilano stazionemilano aeroportomilano - location
-    centroroma terminiroma aeroportoroma - location
-    centronapoli portnapoli aeroportonapoli - location
-    centrotorino stazionetorino aeroportotorino - location
-    centrovenezia stazionevenezia aeroportovenezia - location
-    aeroportomilano aeroportoroma aeroportonapoli aeroportotorino aeroportovenezia - airport
-    paccoa paccob paccoc paccod paccoe paccof paccog paccoh paccoi paccoj paccok paccol paccom paccon paccoo paccop - package
+    milan rome naples turin venice - city
+    milancenter milanstation aeroportomilan - location
+    romecenter termini aeroportorome - location
+    naplescenter portnaples aeronaplesport - location
+    centroturin stazioneturin aeroportoturin - location
+    centrovenice stazionevenice aeroportovenice - location
+    aeroportomilan aeroportorome aeronaplesport aeroportoturin aeroportovenice - airport
+    packa packb packc packd packe packf packg packh packi packj packk packl packm packn packo packp - package
     trucka truckb truckc truckd - truck
-    aereo1 aereo2 - airplane
+    plane1 plane2 - airplane
   )
   (:init
-    (in-city centromilano milano)
-    (in-city stazionemilano milano)
-    (in-city aeroportomilano milano)
-    (in-city centroroma roma)
-    (in-city terminiroma roma)
-    (in-city aeroportoroma roma)
-    (in-city centronapoli napoli)
-    (in-city portnapoli napoli)
-    (in-city aeroportonapoli napoli)
-    (in-city centrotorino torino)
-    (in-city stazionetorino torino)
-    (in-city aeroportotorino torino)
-    (in-city centrovenezia venezia)
-    (in-city stazionevenezia venezia)
-    (in-city aeroportovenezia venezia)
+    (in-city milancenter milan)
+    (in-city milanstation milan)
+    (in-city aeroportomilan milan)
+    (in-city romecenter rome)
+    (in-city termini rome)
+    (in-city aeroportorome rome)
+    (in-city naplescenter naples)
+    (in-city portnaples naples)
+    (in-city aeronaplesport naples)
+    (in-city centroturin turin)
+    (in-city stazioneturin turin)
+    (in-city aeroportoturin turin)
+    (in-city centrovenice venice)
+    (in-city stazionevenice venice)
+    (in-city aeroportovenice venice)
     
-    (at trucka centromilano)
-    (at truckb centroroma)
-    (at truckc centronapoli)
-    (at truckd centrotorino)
-    (at aereo1 aeroportomilano)
-    (at aereo2 aeroportoroma)
+    (at trucka milancenter)
+    (at truckb romecenter)
+    (at truckc naplescenter)
+    (at truckd centroturin)
+    (at plane1 aeroportomilan)
+    (at plane2 aeroportorome)
     
-    (at paccoa centromilano)
-    (at paccob centromilano)
-    (at paccoc stazionemilano)
-    (at paccod centroroma)
-    (at paccoe terminiroma)
-    (at paccof centronapoli)
-    (at paccog portnapoli)
-    (at paccoh centrotorino)
-    (at paccoi stazionetorino)
-    (at paccoj centrovenezia)
-    (at paccok stazionevenezia)
-    (at paccol aeroportomilano)
-    (at paccom aeroportoroma)
-    (at paccon aeroportonapoli)
-    (at paccoo aeroportotorino)
-    (at paccop aeroportovenezia)
+    (at packa milancenter)
+    (at packb milancenter)
+    (at packc milanstation)
+    (at packd romecenter)
+    (at packe termini)
+    (at packf naplescenter)
+    (at packg portnaples)
+    (at packh centroturin)
+    (at packi stazioneturin)
+    (at packj centrovenice)
+    (at packk stazionevenice)
+    (at packl aeroportomilan)
+    (at packm aeroportorome)
+    (at packn aeronaplesport)
+    (at packo aeroportoturin)
+    (at packp aeroportovenice)
     
-    (= (distance milano milano) 1)
-    (= (distance milano roma) 1)
-    (= (distance milano napoli) 1)
-    (= (distance milano torino) 1)
-    (= (distance milano venezia) 1)
-    (= (distance roma milano) 1)
-    (= (distance roma roma) 1)
-    (= (distance roma napoli) 1)
-    (= (distance roma torino) 1)
-    (= (distance roma venezia) 1)
-    (= (distance napoli milano) 1)
-    (= (distance napoli roma) 1)
-    (= (distance napoli napoli) 1)
-    (= (distance napoli torino) 1)
-    (= (distance napoli venezia) 1)
-    (= (distance torino milano) 1)
-    (= (distance torino roma) 1)
-    (= (distance torino napoli) 1)
-    (= (distance torino torino) 1)
-    (= (distance torino venezia) 1)
-    (= (distance venezia milano) 1)
-    (= (distance venezia roma) 1)
-    (= (distance venezia napoli) 1)
-    (= (distance venezia torino) 1)
-    (= (distance venezia venezia) 1)
+    (= (distance milan milan) 1)
+    (= (distance milan rome) 1)
+    (= (distance milan naples) 1)
+    (= (distance milan turin) 1)
+    (= (distance milan venice) 1)
+    (= (distance rome milan) 1)
+    (= (distance rome rome) 1)
+    (= (distance rome naples) 1)
+    (= (distance rome turin) 1)
+    (= (distance rome venice) 1)
+    (= (distance naples milan) 1)
+    (= (distance naples rome) 1)
+    (= (distance naples naples) 1)
+    (= (distance naples turin) 1)
+    (= (distance naples venice) 1)
+    (= (distance turin milan) 1)
+    (= (distance turin rome) 1)
+    (= (distance turin naples) 1)
+    (= (distance turin turin) 1)
+    (= (distance turin venice) 1)
+    (= (distance venice milan) 1)
+    (= (distance venice rome) 1)
+    (= (distance venice naples) 1)
+    (= (distance venice turin) 1)
+    (= (distance venice venice) 1)
     
     (= (capacity trucka) 4)
     (= (capacity truckb) 3)
     (= (capacity truckc) 5)
     (= (capacity truckd) 2)
-    (= (capacity aereo1) 8)
-    (= (capacity aereo2) 6)
+    (= (capacity plane1) 8)
+    (= (capacity plane2) 6)
     
     (= (current-load trucka) 0)
     (= (current-load truckb) 0)
     (= (current-load truckc) 0)
     (= (current-load truckd) 0)
-    (= (current-load aereo1) 0)
-    (= (current-load aereo2) 0)
+    (= (current-load plane1) 0)
+    (= (current-load plane2) 0)
   )
   (:goal
     (and
-      (at paccoa centroroma)
-      (at paccob terminiroma)
-      (at paccoc centronapoli)
-      (at paccod centromilano)
-      (at paccoe centrovenezia)
-      (at paccof stazionemilano)
-      (at paccog centrotorino)
-      (at paccoh stazionevenezia)
-      (at paccoi portnapoli)
-      (at paccoj centroroma)
-      (at paccok centromilano)
-      (at paccol terminiroma)
-      (at paccom centronapoli)
-      (at paccon stazionetorino)
-      (at paccoo centrovenezia)
-      (at paccop stazionemilano)
+      (at packa romecenter)
+      (at packb termini)
+      (at packc naplescenter)
+      (at packd milancenter)
+      (at packe centrovenice)
+      (at packf milanstation)
+      (at packg centroturin)
+      (at packh stazionevenice)
+      (at packi portnaples)
+      (at packj romecenter)
+      (at packk milancenter)
+      (at packl termini)
+      (at packm naplescenter)
+      (at packn stazioneturin)
+      (at packo centrovenice)
+      (at packp milanstation)
     )
   )
 )`;
